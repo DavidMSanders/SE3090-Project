@@ -1,14 +1,16 @@
 package coms309;
 
+
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
+
+
 /**
  * Controller used to showcase what happens when an exception is thrown
  *
  * @author Chris Lopez
  */
-
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 class ExceptionController {
