@@ -40,15 +40,21 @@ import org.w3c.dom.Text;
 
 public class MainActivity extends AppCompatActivity {
 
-    private TextView messageText;   // define message textview variable
+    private TextView messageText;   // define messagetext as a variable to use
+    private TextView messageText2;   // define messagetext as a variable to use
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);             // link to Main activity XML
+        setContentView(R.layout.activity_main);             // sets layout to activity_main
 
         /* initialize UI elements */
-        messageText = findViewById(R.id.main_msg_txt);      // link to message textview in the Main activity XML
-        messageText.setText("Hello World, are you there");
+        messageText = findViewById(R.id.main_msg_txt);      // sets the message text to connect to the text box on the app layout
+        messageText.setText("Hello World, are you there"); // sets the message text to be picked up by the layout
+
+        messageText2 = findViewById(R.id.main_msg_txt2);      // sets the message text to connect to the text box on the app layout
+        messageText2.setText("Ready to continue workout"); // sets the message text to be picked up by the layout
+
     }
 }
