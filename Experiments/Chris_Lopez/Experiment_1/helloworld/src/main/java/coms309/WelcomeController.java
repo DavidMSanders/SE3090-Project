@@ -80,12 +80,12 @@ public class WelcomeController {
 
     @PostMapping("/weight")
     public Map<String, Object> updateWeight(@RequestParam double newWeight) {
-        if(newWeight <= 0 || newWeight > 500){
+        if (newWeight <= 0 || newWeight > 500) {
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("error", "Invalid weight. Must be between 1 and 500 pounds. ");
             return errorResponse;
 
-    }
+        }
 
         double previousWeight = this.userWeight;
         this.userWeight = newWeight;
@@ -102,6 +102,30 @@ public class WelcomeController {
         return updateResult;
     }
 
+    /**
+     * Helper Method: Calculate BMI (Body Mass Index)
+     * Formula: (weight in pounds / (height in inches) ^ 2) * 703
+     * @param weightInPounds
+     * @param heightInches
+     * @return
+     */
 
+    private double calculateBMI(double weightInPounds, double heightInches){
+        double bmiValue = (weightInPounds / (heightInches * heightInches)) * 703;
+        return Math.round(bmiValue * 100.0) / 100.0;
+    }
 
+    /**
+     */
+
+    private String getBMICategory(double bmiValue){
+        if (bmiValue < 18.5)
+            return "Underweight";
+        else if (bmiValue < 25)
+            return "Normal weight";
+        else if (bmiValue < 30)
+            return "Overweight";
+        else return
+            "Obese";
+    }
 }
