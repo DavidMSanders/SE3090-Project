@@ -45,18 +45,40 @@ public class SignupActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                /* grab strings from user inputs */
                 String username = usernameEditText.getText().toString();
                 String password = passwordEditText.getText().toString();
                 String confirm = confirmEditText.getText().toString();
 
-                if (password.equals(confirm)){
-                    Toast.makeText(getApplicationContext(), "Signing up", Toast.LENGTH_LONG).show();
+                // Password length check
+                if (password.length() < 6) {
+                    Toast.makeText(getApplicationContext(),
+                            "Password must be at least 6 characters",
+                            Toast.LENGTH_LONG).show();
+                    return;
                 }
-                else {
-                    Toast.makeText(getApplicationContext(), "Password don't match", Toast.LENGTH_LONG).show();
+
+                // Must contain at least one digit
+                if (!password.matches(".*\\d.*")) {
+                    Toast.makeText(getApplicationContext(),
+                            "Password must contain at least one number",
+                            Toast.LENGTH_LONG).show();
+                    return;
                 }
+
+                // Confirm password check
+                if (!password.equals(confirm)) {
+                    Toast.makeText(getApplicationContext(),
+                            "Passwords do not match",
+                            Toast.LENGTH_LONG).show();
+                    return;
+                }
+
+                // If we reach here, everything is valid
+                Toast.makeText(getApplicationContext(),
+                        "Signing up",
+                        Toast.LENGTH_LONG).show();
             }
         });
+
     }
 }
