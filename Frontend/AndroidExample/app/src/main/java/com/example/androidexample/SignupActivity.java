@@ -11,6 +11,21 @@ import android.widget.Toast;
 
 import android.widget.ImageView;
 
+import android.content.Intent;
+import android.os.Bundle;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.android.volley.Request;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
 public class SignupActivity extends AppCompatActivity {
 
     private EditText usernameEditText;  // define username edittext variable
@@ -18,6 +33,13 @@ public class SignupActivity extends AppCompatActivity {
     private EditText confirmEditText;   // define confirm edittext variable
     private Button loginButton;         // define login button variable
     private Button signupButton;        // define signup button variable
+
+    //toDO mach port/path to backend
+
+    private static final String SIGNUP_URL = "https://18366156-06c4-4fa7-b2cb-53279f7fd5ad.mock.pstmn.io/api/v1/auth/signup";
+
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,13 +55,13 @@ public class SignupActivity extends AppCompatActivity {
         loginButton = findViewById(R.id.signup_login_btn);    // link to login button in the Signup activity XML
         signupButton = findViewById(R.id.signup_signup_btn);  // link to signup button in the Signup activity XML
 
-        /* click listener on login button pressed */
+        /* click listener on login button pressed -- UNEDITED CURRENTLY JUST TAKES BACK TO MAIN*/
         loginButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
                 /* when login button is pressed, use intent to switch to Login Activity */
-                Intent intent = new Intent(SignupActivity.this, LoginActivity.class);
+                Intent intent = new Intent(SignupActivity.this, MainActivity.class);
                 startActivity(intent);  // go to LoginActivity
             }
         });
@@ -92,7 +114,10 @@ public class SignupActivity extends AppCompatActivity {
                     confetti.postDelayed(() -> {
                         confetti.setVisibility(View.GONE);
                     }, 3000);
-                    return;
+
+                    //Post request (signup)
+                    sendSignupRequest(username, password);
+
                 }
                 else {
                     Toast.makeText(getApplicationContext(), "Password don't match", Toast.LENGTH_LONG).show();
@@ -100,5 +125,45 @@ public class SignupActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    private void sendSignupRequest(String username, String password) {
+        JSONObject body = new JSONObject();
+        try{
+            body.put("username", username);
+            body.put("password", password);
+        } catch (JSONException e){
+            Toast.makeText(getApplicationContext(), "JSON error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, SIGNUP_URL, body, response -> {
+            //success
+            Toast.makeText(getApplicationContext(), "Signup successful", Toast.LENGTH_LONG).show();
+            Intent intent = new Intent(SignupActivity.this, MainActivity.class);
+            startActivity(intent);
+        }, error -> {
+            //failure
+            Toast.makeText(getApplicationContext(), "Signup failed: " + error.getMessage(), Toast.LENGTH_LONG).show();
+        }
+        ){
+            @Override
+            public String getBodyContentType() {
+                return "application/json; charset=utf-8";
+            }
+        };
+
+        VolleySingleton.getInstance(this).addToRequestQueue(request);
+
+    }
+
+    private String readableVolleyError(VolleyError error) {
+        if (error == null) return "Unknown error";
+        if(error.networkResponse != null) {
+            return "HTTP " + error.networkResponse.statusCode;
+        }
+        else {
+            return error.toString();
+        }
     }
 }
