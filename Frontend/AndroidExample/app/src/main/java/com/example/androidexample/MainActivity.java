@@ -40,6 +40,9 @@ public class MainActivity extends AppCompatActivity {
 
     private Button btnGoToSignup;
 
+    private Button btnGoToDelete;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -54,8 +57,15 @@ public class MainActivity extends AppCompatActivity {
 
         btnGoToSignup = findViewById(R.id.btnGoToSignup);
 
+        btnGoToDelete = findViewById(R.id.btnGoToDelete);
+
         btnGoToSignup.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, SignupActivity.class);
+            startActivity(intent);
+        });
+
+        btnGoToDelete.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, DeleteUserActivity.class);
             startActivity(intent);
         });
 
