@@ -69,6 +69,7 @@ public class WelcomeController {
             return "Error: Steps cannot be negative!";
         }
         todaySteps += stepsToAdd;
+
         boolean isGoalReached = todaySteps >= stepGoal;
         return  String.format("Steps added: %d%n Total steps today: %d%nDaily goal: %d%nGoal reached: %s", stepsToAdd, todaySteps, stepGoal, isGoalReached ? "Yes!" : "Not yet, keep going");
     }
