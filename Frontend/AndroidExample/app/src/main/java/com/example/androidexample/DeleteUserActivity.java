@@ -23,11 +23,14 @@ import com.android.volley.toolbox.JsonObjectRequest;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import com.android.volley.toolbox.StringRequest;
 public class DeleteUserActivity extends AppCompatActivity {
 
 
     private EditText usernameEditText;  // define username edittext variable
     private EditText dobEditText;       // define dob edittext variable
+    private EditText userIdEditText;
 
     private static final String DELETE_URL =
             "https://18366156-06c4-4fa7-b2cb-53279f7fd5ad.mock.pstmn.io/api/v1/users";
@@ -43,8 +46,22 @@ public class DeleteUserActivity extends AppCompatActivity {
         Button deleteButton = findViewById(R.id.delete_user_btn);
         Button backButton = findViewById(R.id.delete_back_btn);
 
+        userIdEditText = findViewById(R.id.delete_userid_edt);
+
         backButton.setOnClickListener(v ->
                 startActivity(new Intent(DeleteUserActivity.this, MainActivity.class)));
+
+        Button deleteByIdButton = findViewById(R.id.delete_userid_btn);
+
+        deleteByIdButton.setOnClickListener(v -> {
+            String userId = userIdEditText.getText().toString().trim();
+            if(userId.isEmpty()) {
+                Toast.makeText(getApplicationContext(), "Please enter a user ID", Toast.LENGTH_LONG).show();
+                return;
+            }
+            sendDeleteByIdRequest(userId);
+        });
+
 
         deleteButton.setOnClickListener(v -> {
             String username = usernameEditText.getText().toString().trim();
@@ -89,6 +106,29 @@ public class DeleteUserActivity extends AppCompatActivity {
 
         VolleySingleton.getInstance(this).addToRequestQueue(request);
     }
+
+    private void sendDeleteByIdRequest(String idStr) {
+        String url = DELETE_URL + "/" + idStr;
+
+        StringRequest request = new StringRequest(
+                Request.Method.DELETE,
+                url,
+                response -> {
+
+                    Toast.makeText(getApplicationContext(),
+                            "Deleted (ID). Response: " + (response == null ? "" : response),
+                            Toast.LENGTH_LONG).show();
+                },
+                error -> {
+                    Toast.makeText(getApplicationContext(),
+                            "Delete failed: " +readableVolleyError(error),
+                            Toast.LENGTH_LONG).show();
+                }
+        );
+
+        VolleySingleton.getInstance(this).addToRequestQueue(request);
+    }
+
 
     private String readableVolleyError(VolleyError error) {
             if(error == null) return "Unknown error";
