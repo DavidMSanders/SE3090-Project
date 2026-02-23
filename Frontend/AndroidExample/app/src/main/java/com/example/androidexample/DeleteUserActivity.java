@@ -25,6 +25,15 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.android.volley.toolbox.StringRequest;
+
+import android.util.Log;
+
+
+import com.android.volley.AuthFailureError;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
+
 public class DeleteUserActivity extends AppCompatActivity {
 
 
@@ -34,6 +43,9 @@ public class DeleteUserActivity extends AppCompatActivity {
 
     private static final String DELETE_URL =
             "https://18366156-06c4-4fa7-b2cb-53279f7fd5ad.mock.pstmn.io/api/v1/users";
+
+    private static final String DELETE_BY_INFO_URL =
+            "https://18366156-06c4-4fa7-b2cb-53279f7fd5ad.mock.pstmn.io/api/v1/users/delete";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -97,12 +109,26 @@ public class DeleteUserActivity extends AppCompatActivity {
             return;
         }
 
-        JsonObjectRequest request = new JsonObjectRequest
-                (Request.Method.DELETE, DELETE_URL, body, response -> {
-            Toast.makeText(getApplicationContext(), "User deleted", Toast.LENGTH_LONG).show(); },
-            error -> {Toast.makeText(getApplicationContext(), "Delete failed: " + readableVolleyError(error),
-                    Toast.LENGTH_LONG).show(); }
-        );
+        JsonObjectRequest request = new JsonObjectRequest(
+                Request.Method.POST,
+                DELETE_BY_INFO_URL,
+                body,
+                response -> {
+                    Toast.makeText(getApplicationContext(),
+                            "Deleted (username + DOB): " + response.toString(),
+                            Toast.LENGTH_LONG).show();
+                },
+                error -> {
+                    Toast.makeText(getApplicationContext(),
+                            "Delete failed: " + readableVolleyError(error),
+                            Toast.LENGTH_LONG).show();
+                }
+        ) {
+            @Override
+            public String getBodyContentType() {
+                return "application/json; charset=utf-8";
+            }
+        };
 
         VolleySingleton.getInstance(this).addToRequestQueue(request);
     }
