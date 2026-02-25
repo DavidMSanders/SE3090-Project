@@ -31,6 +31,8 @@ public class SignupActivity extends AppCompatActivity {
     private EditText usernameEditText;  // define username edittext variable
     private EditText passwordEditText;  // define password edittext variable
     private EditText confirmEditText;   // define confirm edittext variable
+
+    private EditText dobEditText;       // define dob edittext variable
     private Button loginButton;         // define login button variable
     private Button signupButton;        // define signup button variable
 
@@ -52,6 +54,9 @@ public class SignupActivity extends AppCompatActivity {
         usernameEditText = findViewById(R.id.signup_username_edt);  // link to username edtext in the Signup activity XML
         passwordEditText = findViewById(R.id.signup_password_edt);  // link to password edtext in the Signup activity XML
         confirmEditText = findViewById(R.id.signup_confirm_edt);    // link to confirm edtext in the Signup activity XML
+
+        dobEditText = findViewById(R.id.signup_dob_edt);
+
         loginButton = findViewById(R.id.signup_login_btn);    // link to login button in the Signup activity XML
         signupButton = findViewById(R.id.signup_signup_btn);  // link to signup button in the Signup activity XML
 
@@ -76,6 +81,7 @@ public class SignupActivity extends AppCompatActivity {
                 String password = passwordEditText.getText().toString();
                 String confirm = confirmEditText.getText().toString();
 
+                String dob = dobEditText.getText().toString().trim();
 
                 ImageView confetti = findViewById(R.id.Confetti);
 
@@ -108,6 +114,20 @@ public class SignupActivity extends AppCompatActivity {
                     return;
                 }
                 //confirm validation
+
+                //DOB VALIDATION
+                if (dob.isEmpty()) {
+                    Toast.makeText(getApplicationContext(), "Please enter your date of birth", Toast.LENGTH_LONG).show();
+                    return;
+                }
+
+                if (!dob.matches("\\d{2}/\\d{2}/\\d{4}")) {
+                    Toast.makeText(getApplicationContext(), "DOB must be MM/DD/YYYY", Toast.LENGTH_LONG).show();
+                    return;
+                }
+
+
+
                 if (password.equals(confirm)){
                     Toast.makeText(getApplicationContext(), "Signing up", Toast.LENGTH_LONG).show();
                     confetti.setVisibility(View.VISIBLE);
@@ -116,7 +136,7 @@ public class SignupActivity extends AppCompatActivity {
                     }, 3000);
 
                     //Post request (signup)
-                    sendSignupRequest(username, password);
+                    sendSignupRequest(username, password, dob);
 
                 }
                 else {
@@ -127,11 +147,12 @@ public class SignupActivity extends AppCompatActivity {
         });
     }
 
-    private void sendSignupRequest(String username, String password) {
+    private void sendSignupRequest(String username, String password, String dob) {
         JSONObject body = new JSONObject();
         try{
             body.put("username", username);
             body.put("password", password);
+            body.put("dateOfBirth", dob);
         } catch (JSONException e){
             Toast.makeText(getApplicationContext(), "JSON error: " + e.getMessage(), Toast.LENGTH_LONG).show();
             return;

@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:padding="25dp"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!--Deleting User Title -->
+
+
+    <!--Label For Username-->
+
+    <TextView
+        android:id="@+id/delete_title"
+        android:layout_width="372dp"
+        android:layout_height="91dp"
+        android:layout_marginTop="40dp"
+        android:text="Delete User"
+        android:textSize="50sp"
+        app:layout_constraintBottom_toTopOf="@id/username_label"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.604"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/username_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
+        android:text="Username:"
+        android:textSize="24sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/delete_title" />
+
+    <!--User input-->
+    <EditText
+        android:id="@+id/delete_username_edt"
+        android:layout_width="0dp"
+        android:layout_height="50dp"
+        android:hint="Enter Username"
+        app:layout_constraintTop_toBottomOf="@id/username_label"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="8dp"/>
+
+    <!-- DOB Label -->
+    <TextView
+        android:id="@+id/dob_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:text="Date of Birth:"
+        android:textSize="24sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/delete_username_edt" />
+
+    <!-- DOB Input -->
+    <EditText
+        android:id="@+id/delete_dob_edt"
+        android:layout_width="0dp"
+        android:layout_height="50dp"
+        android:hint="MM/DD/YYYY"
+        android:inputType="text"
+        app:layout_constraintTop_toBottomOf="@id/dob_label"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="8dp"/>
+
+    <!-- Delete Button -->
+
+    <!-- User ID Label -->
+
+    <!-- User ID Input -->
+
+    <!-- Delete By ID Button -->
+
+    <!-- Back Button -->
+
+    <Button
+        android:id="@+id/delete_user_btn"
+        android:layout_width="757dp"
+        android:layout_height="79dp"
+        android:layout_marginTop="20dp"
+        android:text="Delete User"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.513"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/delete_dob_edt" />
+
+    <TextView
+        android:id="@+id/userid_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="128dp"
+        android:text="User ID:"
+        android:textSize="24sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/delete_dob_edt" />
+
+    <EditText
+        android:id="@+id/delete_userid_edt"
+        android:layout_width="0dp"
+        android:layout_height="50dp"
+        android:layout_marginTop="60dp"
+        android:hint="Enter User ID"
+        android:inputType="number"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/userid_label" />
+
+    <Button
+        android:id="@+id/delete_userid_btn"
+        android:layout_width="743dp"
+        android:layout_height="85dp"
+        android:layout_marginTop="36dp"
+        android:text="Delete by User ID"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.509"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/delete_userid_edt" />
+
+    <Button
+        android:id="@+id/delete_back_btn"
+        android:layout_width="731dp"
+        android:layout_height="99dp"
+        android:layout_marginTop="352dp"
+        android:text="Back"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.412"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/delete_user_btn" />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

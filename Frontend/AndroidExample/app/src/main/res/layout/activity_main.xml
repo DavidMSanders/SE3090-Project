@@ -93,4 +93,10 @@
         android:layout_height="wrap_content"
         android:text="Sign up" />
 
+    <Button
+        android:id="@+id/btnGoToDelete"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Go to Delete Page" />
+
 </LinearLayout>
