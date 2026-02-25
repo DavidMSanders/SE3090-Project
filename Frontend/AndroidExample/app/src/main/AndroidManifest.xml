@@ -25,6 +25,7 @@
         </activity>
         <activity android:name=".SignupActivity" />
         <activity android:name=".DeleteUserActivity" />
+        <activity android:name=".Calendar" />
     </application>
 
 </manifest>
