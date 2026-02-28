@@ -37,8 +37,8 @@ public class SignupActivity extends AppCompatActivity {
     private Button signupButton;        // define signup button variable
 
     //toDO mach port/path to backend
-
-    private static final String SIGNUP_URL = "https://18366156-06c4-4fa7-b2cb-53279f7fd5ad.mock.pstmn.io/api/v1/auth/signup";
+//https://18366156-06c4-4fa7-b2cb-53279f7fd5ad.mock.pstmn.io
+    private static final String SIGNUP_URL = "http://coms-3090-035.class.las.iastate.edu:8080/api/v1/auth/signup";
 
 
 
