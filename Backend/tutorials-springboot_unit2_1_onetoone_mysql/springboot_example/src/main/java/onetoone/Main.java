@@ -13,7 +13,7 @@ import onetoone.Users.UserRepository;
 
 /**
  * 
- * @author Vivek Bengre
+ * @author Chris Lopez
  * 
  */ 
 
@@ -23,6 +23,15 @@ class Main {
 
     public static void main(String[] args) {
         SpringApplication.run(Main.class, args);
+
+        System.out.println("===============================================");
+        System.out.println("Personal Trainer Backend Running");
+        System.out.println("Signup: POST /api/v1/auth/signup");
+        System.out.println("Delete: DELETE /api/v1/users");
+        System.out.println("==============================================");
+
+
+        }
     }
 
     // Create 3 users with their machines
@@ -33,9 +42,24 @@ class Main {
      * Creates a commandLine runner to enter dummy data into the database
      * As mentioned in User.java just associating the Laptop object with the User will save it into the database because of the CascadeType
      */
-    @Bean
+    /*@Bean
     CommandLineRunner initUser(UserRepository userRepository, LaptopRepository laptopRepository) {
-        return args -> {
+
+
+
+
+
+
+
+
+
+
+
+
+        /*return args -> {
+
+
+
             User user1 = new User("John", "john@somemail.com");
             User user2 = new User("Jane", "jane@somemail.com");
             User user3 = new User("Justin", "justin@somemail.com");
@@ -49,7 +73,10 @@ class Main {
             userRepository.save(user2);
             userRepository.save(user3);
 
-        };
-    }
+             */
 
-}
+
+
+
+
+
