@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.*;
 //import org.springframework.web.bind.annotation.PostMapping;
 //import org.springframework.web.bind.annotation.PutMapping;
 
-import onetoone.Laptops.Laptop;
-import onetoone.Laptops.LaptopRepository;
+//import onetoone.Laptops.Laptop;
+//import onetoone.Laptops.LaptopRepository;
 
 /**
  * 
@@ -38,7 +38,7 @@ public class UserController {
      * }
      */
 
-    @DeleteMapping
+    @PostMapping("/delete")
     public ResponseEntity<Map<String, String>> deleteUser(@RequestBody DeleteRequest requestData) {
         Map<String, String> responseMap = new HashMap<>();
 
