@@ -14,7 +14,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 public class CreateWorkoutActivity extends AppCompatActivity {
-    private EditText editName, editDate, editDuration, editDescription, editWorkoutID;
+    private EditText editName, editDate, editDuration, editDescription, editWorkoutID, getWorkoutJson;
     //currently on mock server
     private static final String BASE_URL = "https://18366156-06c4-4fa7-b2cb-53279f7fd5ad.mock.pstmn.io";
     private static final String WORKOUTS_URL = BASE_URL + "/workouts";
@@ -31,12 +31,17 @@ public class CreateWorkoutActivity extends AppCompatActivity {
         editDescription = findViewById(R.id.WorkoutDescription);
         editWorkoutID = findViewById(R.id.workoutID);
 
+        getWorkoutJson = findViewById(R.id.getWorkoutJson);
+
+
 
         Button SaveButton = findViewById(R.id.btnSaveWorkout);
         Button CancelButton = findViewById(R.id.btnCancelWorkout);
 
         Button UpdateButton = findViewById(R.id.btnUpdateWorkout);
         Button DeleteButton = findViewById(R.id.btnDeleteWorkout);
+
+        Button getButton = findViewById(R.id.btnGetWorkout);
 
 
         CancelButton.setOnClickListener( v -> finish());
@@ -93,7 +98,13 @@ public class CreateWorkoutActivity extends AppCompatActivity {
             deleteWorkout(id);
         });
 
+        // GET (GET) by ID
+        getButton.setOnClickListener(v -> {
+            Integer id = parseWorkoutIdOrError(); // you already have this helper
+            if (id == null) return;
 
+            getWorkoutById(id);
+        });
 
 
     }// end of onCreate()
@@ -255,6 +266,23 @@ public class CreateWorkoutActivity extends AppCompatActivity {
                 error -> showVolleyError("Delete failed", error)
         );
 
+        VolleySingleton.getInstance(this).addToRequestQueue(req);
+    }
+
+    private void getWorkoutById(int id) {
+        String url = WORKOUTS_URL + "/" + id;
+        JsonObjectRequest req = new JsonObjectRequest(
+                Request.Method.GET,
+                url,
+                null,
+                response -> {
+                    getWorkoutJson.setText(response.toString());
+                },
+                error -> {
+                    getWorkoutJson.setText("");
+                    showVolleyError("Get failed", error);
+                }
+        );
         VolleySingleton.getInstance(this).addToRequestQueue(req);
     }
 

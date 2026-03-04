@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true">
@@ -59,16 +60,16 @@
 
         <EditText
             android:id="@+id/WorkoutDescription"
-            android:layout_width="0dp"
-            android:layout_height="140dp"
+            android:layout_width="396dp"
+            android:layout_height="107dp"
+            android:layout_marginTop="8dp"
+            android:gravity="top|start"
             android:hint="Workout description"
             android:inputType="textMultiLine"
-            android:gravity="top|start"
             android:padding="12dp"
-            android:layout_marginTop="8dp"
-            app:layout_constraintTop_toBottomOf="@id/WorkoutDuration"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
+            app:layout_constraintTop_toBottomOf="@id/WorkoutDuration" />
 
         <Button
             android:id="@+id/btnSaveWorkout"
@@ -128,6 +129,31 @@
             app:layout_constraintHorizontal_weight="1"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/WorkoutDescription" />
+
+        <Button
+            android:id="@+id/btnGetWorkout"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Get Workout (by ID)"
+            android:layout_marginTop="12dp"
+            app:layout_constraintTop_toBottomOf="@id/btnDeleteWorkout"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <EditText
+            android:id="@+id/getWorkoutJson"
+            android:layout_width="0dp"
+            android:layout_height="140dp"
+            android:layout_marginTop="8dp"
+            android:clickable="false"
+            android:focusable="false"
+            android:gravity="top|start"
+            android:hint="Workout JSON will appear here"
+            android:inputType="textMultiLine"
+            android:padding="12dp"
+            app:layout_constraintTop_toBottomOf="@id/btnGetWorkout"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.core.widget.NestedScrollView>
