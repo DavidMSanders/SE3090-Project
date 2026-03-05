@@ -19,7 +19,7 @@ public class Workout {
     private String workoutName;
 
     @Column(name = "date")
-    private String sessionDate;
+    private LocalDate sessionDate;
 
     @Column( name = "duration_minutes")
     private int minutes;
