@@ -25,7 +25,7 @@ public class User {
 
 
     private String accountName;
-    private String usePassword;
+    private String userPassword;
     private LocalDate birthDate;
     private boolean isEnabled;
 
@@ -45,11 +45,12 @@ public class User {
     }
 
     public int getUserId() {
-        return userId;
+        return id;
     }
 
     public void setUserId(int userId) {
-        this.userId = userId;
+
+        this.id = userId;
     }
 
     public String getAccountName() {
@@ -84,13 +85,14 @@ public class User {
     }
 
     public void setEnabled(boolean enabled){
+
         isEnabled = enabled;
 }
  @Override
  public String toString(){
         return "User {" +
-                "UserId =" + userId + ", accountName='" + '\'' + ", birthDate=" + birthDate + " isEnabled=" + isEnabled
-                + '}';
+                "UserId =" + id + ", accountName='" + accountName + '\'' + ", birthDate=" + birthDate + " isEnabled=" +
+                isEnabled + '}';
  }
 
  /*

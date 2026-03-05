@@ -1,18 +1,16 @@
 package onetoone.Users;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+//import org.springframework.web.bind.annotation.PostMapping;
+//import org.springframework.web.bind.annotation.PutMapping;
 
 import onetoone.Laptops.Laptop;
 import onetoone.Laptops.LaptopRepository;
@@ -24,6 +22,7 @@ import onetoone.Laptops.LaptopRepository;
  */ 
 
 @RestController
+@RequestMapping("/api/v1/users")
 public class UserController {
 
     @Autowired
@@ -45,19 +44,19 @@ public class UserController {
 
         try {
             DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
-            LocalDate parsedBirthDate = LocalDate.parse(requestData.getDateOfBirth(), dataFormatter);
+            LocalDate parsedBirthDate = LocalDate.parse(requestData.getDateOfBirth(), dateTimeFormatter);
 
             User accountToDelete = userRepository.findByAccountNameAndBirthDate(
-                    requestData.getUsername();
-            parsedBirthData
+                    requestData.getUsername(),
+            parsedBirthDate
             );
 
             if (accountToDelete != null) {
                 userRepository.delete(accountToDelete);
-                responseMap.put("message", "User deleted sucessfully");
+                responseMap.put("message", "User deleted successfully");
                 return ResponseEntity.ok(responseMap);
             } else {
-                responseMap.put("message", "User Not Found");
+                responseMap.put("message", "User not found");
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseMap);
             }
 
@@ -66,6 +65,39 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseMap);
         }
     }
+
+
+
+
+    /**
+     * DELETE by ID
+     *
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Map<String, String>> deleteUserByID(@PathVariable int id){
+        Map<String, String> responseMap = new HashMap<>();
+
+        User foundAccount = userRepository.findById(id).orElse(null);
+
+
+        if (foundAccount != null){
+            userRepository.delete(foundAccount);
+            responseMap.put("message", "User deleted sucessfully");
+
+            return ResponseEntity.ok(responseMap);
+        } else {
+            responseMap.put("message", "User not found");
+
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseMap);
+        }
+    }
+
+
+
+
+
+
+
 
     /**
      * Get
@@ -78,9 +110,9 @@ public class UserController {
         if (foundAccount != null) {
             return ResponseEntity.ok(foundAccount);
         } else {
-            Map<String, String> repsonseMap = new HashMap<>();
+            Map<String, String> responseMap = new HashMap<>();
             responseMap.put("message", "User not found");
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(repsonseMap);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseMap);
         }
     }
 
@@ -102,22 +134,26 @@ public class UserController {
 
     class DeleteRequest {
     private String username;
-    private String dateofBirth;
+    private String dateOfBirth;
 
     public String getUsername() {
+
         return username;
     }
 
     public void setUsername(String username) {
+
         this.username = username;
     }
 
-    public String getDateofBirth() {
-        return dateofBirth;
+    public String getDateOfBirth() {
+
+        return dateOfBirth;
     }
 
-    public void setDateofBirth(String dateofBirth) {
-        this.dateofBirth = dateofBirth;
+    public void setDateOfBirth(String dateOfBirth) {
+
+        this.dateOfBirth = dateOfBirth;
     }
 }
 
