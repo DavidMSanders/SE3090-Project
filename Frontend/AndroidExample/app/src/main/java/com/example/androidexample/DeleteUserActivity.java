@@ -42,10 +42,10 @@ public class DeleteUserActivity extends AppCompatActivity {
     private EditText userIdEditText;
 
     private static final String DELETE_URL =
-            "https://18366156-06c4-4fa7-b2cb-53279f7fd5ad.mock.pstmn.io/api/v1/users";
+            "http://coms-3090-035.class.las.iastate.edu:8080/api/v1/users";
 
     private static final String DELETE_BY_INFO_URL =
-            "https://18366156-06c4-4fa7-b2cb-53279f7fd5ad.mock.pstmn.io/api/v1/users/delete";
+            "http://coms-3090-035.class.las.iastate.edu:8080/api/v1/users/delete";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

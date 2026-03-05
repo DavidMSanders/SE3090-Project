@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp">
+
+        <TextView
+            android:id="@+id/txtTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Create Workout"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:paddingBottom="12dp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <EditText
+            android:id="@+id/WorkoutName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:hint="Workout Name"
+            android:inputType="textPersonName"
+            android:padding="12dp"
+            app:layout_constraintTop_toBottomOf="@id/txtTitle"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <EditText
+            android:id="@+id/WorkoutDate"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:hint="Date (MM/DD/YYYY)"
+            android:inputType="text"
+            android:padding="12dp"
+            android:layout_marginTop="8dp"
+            app:layout_constraintTop_toBottomOf="@id/WorkoutName"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <EditText
+            android:id="@+id/WorkoutDuration"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:hint="Duration (minutes)"
+            android:inputType="number"
+            android:padding="12dp"
+            android:layout_marginTop="8dp"
+            app:layout_constraintTop_toBottomOf="@id/WorkoutDate"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <EditText
+            android:id="@+id/WorkoutDescription"
+            android:layout_width="381dp"
+            android:layout_height="97dp"
+            android:layout_marginTop="8dp"
+            android:gravity="top|start"
+            android:hint="Workout description"
+            android:inputType="textMultiLine"
+            android:padding="12dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/WorkoutDuration" />
+
+        <Button
+            android:id="@+id/btnSaveWorkout"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Save"
+            android:layout_marginTop="16dp"
+            app:layout_constraintTop_toBottomOf="@id/WorkoutDescription"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/btnCancelWorkout"
+            app:layout_constraintHorizontal_weight="1" />
+
+        <Button
+            android:id="@+id/btnCancelWorkout"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Cancel"
+            android:layout_marginTop="16dp"
+            app:layout_constraintTop_toBottomOf="@id/WorkoutDescription"
+            app:layout_constraintStart_toEndOf="@id/btnSaveWorkout"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_weight="1" />
+
+        <EditText
+            android:id="@+id/workoutID"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="256dp"
+            android:hint="WorkoutID"
+            android:inputType="number"
+            android:padding="12dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="1.0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/WorkoutDate" />
+
+        <Button
+            android:id="@+id/btnUpdateWorkout"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="156dp"
+            android:text="UpdateWorkout(byID)"
+            app:layout_constraintEnd_toStartOf="@id/btnCancelWorkout"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintHorizontal_weight="1"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/WorkoutDescription" />
+
+        <Button
+            android:id="@+id/btnDeleteWorkout"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="216dp"
+            android:text="Delete Workout(byID)"
+            app:layout_constraintEnd_toStartOf="@id/btnCancelWorkout"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintHorizontal_weight="1"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/WorkoutDescription" />
+
+        <Button
+            android:id="@+id/btnGetWorkout"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Get Workout (by ID)"
+            android:layout_marginTop="12dp"
+            app:layout_constraintTop_toBottomOf="@id/btnDeleteWorkout"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <EditText
+            android:id="@+id/getWorkoutJson"
+            android:layout_width="0dp"
+            android:layout_height="140dp"
+            android:layout_marginTop="8dp"
+            android:clickable="false"
+            android:focusable="false"
+            android:gravity="top|start"
+            android:hint="Workout JSON will appear here"
+            android:inputType="textMultiLine"
+            android:padding="12dp"
+            app:layout_constraintTop_toBottomOf="@id/btnGetWorkout"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.core.widget.NestedScrollView>
