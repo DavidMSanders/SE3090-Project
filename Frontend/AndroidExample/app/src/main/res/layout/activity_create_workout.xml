@@ -60,8 +60,8 @@
 
         <EditText
             android:id="@+id/WorkoutDescription"
-            android:layout_width="396dp"
-            android:layout_height="107dp"
+            android:layout_width="381dp"
+            android:layout_height="97dp"
             android:layout_marginTop="8dp"
             android:gravity="top|start"
             android:hint="Workout description"
@@ -97,12 +97,12 @@
             android:id="@+id/workoutID"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="276dp"
+            android:layout_marginTop="256dp"
             android:hint="WorkoutID"
             android:inputType="number"
             android:padding="12dp"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintHorizontal_bias="1.0"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/WorkoutDate" />
 
@@ -110,7 +110,7 @@
             android:id="@+id/btnUpdateWorkout"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="144dp"
+            android:layout_marginTop="156dp"
             android:text="UpdateWorkout(byID)"
             app:layout_constraintEnd_toStartOf="@id/btnCancelWorkout"
             app:layout_constraintHorizontal_bias="0.0"
@@ -122,7 +122,7 @@
             android:id="@+id/btnDeleteWorkout"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="204dp"
+            android:layout_marginTop="216dp"
             android:text="Delete Workout(byID)"
             app:layout_constraintEnd_toStartOf="@id/btnCancelWorkout"
             app:layout_constraintHorizontal_bias="0.0"

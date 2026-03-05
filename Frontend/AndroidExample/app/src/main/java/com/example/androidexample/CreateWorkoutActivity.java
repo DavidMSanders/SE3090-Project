@@ -16,8 +16,8 @@ import org.json.JSONObject;
 public class CreateWorkoutActivity extends AppCompatActivity {
     private EditText editName, editDate, editDuration, editDescription, editWorkoutID, getWorkoutJson;
     //currently on mock server
-    private static final String BASE_URL = "https://18366156-06c4-4fa7-b2cb-53279f7fd5ad.mock.pstmn.io";
-    private static final String WORKOUTS_URL = BASE_URL + "/workouts";
+    private static final String BASE_URL = "http://coms-3090-035.class.las.iastate.edu:8080";
+    private static final String WORKOUTS_URL = BASE_URL + "/api/v1/workouts";
 
 
     @Override
@@ -232,10 +232,10 @@ public class CreateWorkoutActivity extends AppCompatActivity {
 
     private void updateWorkout(int id, JSONObject body) {
 
-
+        String url = WORKOUTS_URL + "/" + id;
         JsonObjectRequest req = new JsonObjectRequest(
                 Request.Method.PUT,
-                WORKOUTS_URL,
+                url,
                 body,
                 response -> {
                     Toast.makeText(this, "Workout updated!", Toast.LENGTH_LONG).show();
