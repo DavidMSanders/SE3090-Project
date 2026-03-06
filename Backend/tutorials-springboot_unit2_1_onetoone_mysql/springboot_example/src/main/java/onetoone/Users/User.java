@@ -2,7 +2,7 @@ package onetoone.Users;
 
 import jakarta.persistence.*;
 
-import onetoone.Laptops.Laptop;
+//import onetoone.Laptops.Laptop;
 
 import java.time.LocalDate;
 

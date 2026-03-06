@@ -6,10 +6,10 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
-import onetoone.Laptops.Laptop;
-import onetoone.Laptops.LaptopRepository;
-import onetoone.Users.User;
-import onetoone.Users.UserRepository;
+//import onetoone.Laptops.Laptop;
+//import onetoone.Laptops.LaptopRepository;
+//import onetoone.Users.User;
+//import onetoone.Users.UserRepository;
 
 /**
  * 
@@ -27,8 +27,10 @@ class Main {
         System.out.println("===============================================");
         System.out.println("Personal Trainer Backend Running");
         System.out.println("Signup: POST /api/v1/auth/signup");
-        System.out.println("Delete: DELETE /api/v1/users");
+        System.out.println("Delete (by info): POST /api/v1/users/delete");
+        System.out.println("Delete (by ID): DELETE /api/v1/users/{id}");
         System.out.println("==============================================");
+        System.out.println("Testing");
 
 
         }
