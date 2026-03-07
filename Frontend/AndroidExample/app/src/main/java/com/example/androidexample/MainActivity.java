@@ -31,11 +31,11 @@ import java.util.Map;
 public class MainActivity extends AppCompatActivity {
 
     // Default API URL for demonstration
-    private String url = "https://jsonplaceholder.typicode.com/users";
-    private Spinner spMethod;
-    private EditText etUrl, etRequest;
-    private TextView tvResponse;
-    private Button btnSend;
+    //private String url = "https://jsonplaceholder.typicode.com/users";
+    //private Spinner spMethod;
+    //private EditText etUrl, etRequest;
+    //private TextView tvResponse;
+    //private Button btnSend;
     private String method;
 
     private Button btnGoToSignup;
@@ -44,6 +44,8 @@ public class MainActivity extends AppCompatActivity {
 
     private Button btnGoToWorkout;
 
+    private Button btnGoToWorkoutList;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,16 +53,18 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         // Initialize UI components
-        etUrl = findViewById(R.id.etUrl);
-        etRequest = findViewById(R.id.etRequest);
-        tvResponse = findViewById(R.id.tvResponse);
-        btnSend = findViewById(R.id.sendBtn);
-        spMethod = findViewById(R.id.spMethod);
+        //etUrl = findViewById(R.id.etUrl);
+        //etRequest = findViewById(R.id.etRequest);
+        //tvResponse = findViewById(R.id.tvResponse);
+        //btnSend = findViewById(R.id.sendBtn);
+        //spMethod = findViewById(R.id.spMethod);
 
         btnGoToSignup = findViewById(R.id.btnGoToSignup);
 
         btnGoToDelete = findViewById(R.id.btnGoToDelete);
         btnGoToWorkout = findViewById(R.id.btnGoToWorkout);
+
+        btnGoToWorkoutList = findViewById(R.id.WorkoutList);
 
         btnGoToSignup.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, SignupActivity.class);
@@ -77,6 +81,11 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
+        btnGoToWorkoutList.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, WorkoutListActivity.class);
+            startActivity(intent);
+        });
+/*
         etUrl.setText(url); // Set default URL in the input field
 
         // Initialize Spinner for selecting request method
@@ -155,7 +164,7 @@ public class MainActivity extends AppCompatActivity {
         Log.d("PostRequest", "Sending request...");
         Volley.newRequestQueue(this).add(request); // Add request to queue
     }
+*/
 
-
-
+    }
 }

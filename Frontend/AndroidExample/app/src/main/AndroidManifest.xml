@@ -27,6 +27,7 @@
         <activity android:name=".DeleteUserActivity" />
         <activity android:name=".Calendar" />
         <activity android:name=".CreateWorkoutActivity" />
+        <activity android:name=".WorkoutListActivity" />
     </application>
 
 </manifest>

@@ -276,7 +276,12 @@ public class CreateWorkoutActivity extends AppCompatActivity {
                 url,
                 null,
                 response -> {
-                    getWorkoutJson.setText(response.toString());
+                    try{
+                        Workout workout = Workout.fromJson(response);
+                        getWorkoutJson.setText(workout.toString());
+                    } catch (JSONException e) {
+                        getWorkoutJson.setText("Error parsing workout");
+                    }
                 },
                 error -> {
                     getWorkoutJson.setText("");
