@@ -25,6 +25,8 @@ import com.android.volley.toolbox.JsonObjectRequest;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+//GAVIN THIS IS IMPORTANT its used for persistence across pages
+import android.content.SharedPreferences;
 
 public class SignupActivity extends AppCompatActivity {
 
@@ -160,6 +162,12 @@ public class SignupActivity extends AppCompatActivity {
 
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, SIGNUP_URL, body, response -> {
             //success
+
+
+            // save current user session for persistence
+
+
+
             Toast.makeText(getApplicationContext(), "Signup successful", Toast.LENGTH_LONG).show();
             Intent intent = new Intent(SignupActivity.this, MainActivity.class);
             startActivity(intent);
