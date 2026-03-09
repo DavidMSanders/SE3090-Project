@@ -68,7 +68,7 @@ public class SignupActivity extends AppCompatActivity {
             public void onClick(View v) {
 
                 /* when login button is pressed, use intent to switch to Login Activity */
-                Intent intent = new Intent(SignupActivity.this, Calendar.class);
+                Intent intent = new Intent(SignupActivity.this, CalendarActivity.class);
                 startActivity(intent);  // go to LoginActivity
             }
         });
