@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.appcompat.widget.LinearLayoutCompat
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     xmlns:android="http://schemas.android.com/apk/res/android"
     tools:context=".MainActivity"
@@ -8,15 +8,29 @@
     android:orientation="vertical">
 
     <TextView
+        android:id="@+id/signupTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Signup Example"
         android:layout_gravity="center"
         android:layout_marginTop="100dp"
-        android:layout_marginBottom="80dp"
-        android:textSize="30dp"
-        android:textColor="#fc0303">
-    </TextView>
+        android:layout_marginBottom="20dp"
+        android:fontFamily="sans-serif-smallcaps"
+        android:text="Signup"
+        android:textAlignment="center"
+        android:textColor="#0331FC"
+        android:textSize="48sp"
+        android:textStyle="bold"></TextView>
+
+    <ImageView
+        android:id="@+id/Runner"
+
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        app:srcCompat="@drawable/running_silhouette"
+        android:layout_gravity="center"
+        app:layout_constraintTop_toBottomOf="@id/signupTitle"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>/>
 
     <LinearLayout
         android:layout_width="wrap_content"
@@ -150,6 +164,8 @@
         android:layout_marginTop="100dp"
         android:visibility="gone"
         />
+
+
 
 
 </androidx.appcompat.widget.LinearLayoutCompat>
