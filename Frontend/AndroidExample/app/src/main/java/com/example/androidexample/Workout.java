@@ -18,7 +18,6 @@ public class Workout {
             this.date = date;
             this.durationMinutes = durationMinutes;
             this.description = description;
-
         }
 
         //Convert Json to a Workout object

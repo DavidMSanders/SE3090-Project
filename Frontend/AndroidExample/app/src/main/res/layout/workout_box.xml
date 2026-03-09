@@ -11,34 +11,35 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="#02A90A"
+        android:backgroundTint="#6E95EF"
         android:padding="12dp">
 
-        <!-- Name label -->
+    <!--workout label section-->
         <TextView
             android:id="@+id/labelName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Name:"
+            android:text="Workout Name:"
             android:textSize="24sp"
             android:textStyle="bold"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <!-- Name field -->
+
         <EditText
             android:id="@+id/itemWorkoutName"
-            android:layout_width="280dp"
-            android:layout_height="43dp"
+            android:layout_width="169dp"
+            android:layout_height="42dp"
             android:layout_marginStart="8dp"
             android:inputType="text"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@id/labelName"
             app:layout_constraintTop_toTopOf="@id/labelName" />
 
-        <!-- Date label -->
+        <!-- end of workout label section-->
 
-        <!-- Date field -->
-
+        <!--workout labelDate section-->
         <TextView
             android:id="@+id/labelDate"
             android:layout_width="63dp"
@@ -51,9 +52,6 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/itemWorkoutName" />
 
-        <!-- Duration label -->
-
-        <!-- Duration field -->
 
         <EditText
             android:id="@+id/itemWorkoutDate"
@@ -66,32 +64,83 @@
             app:layout_constraintStart_toEndOf="@id/labelDate"
             app:layout_constraintTop_toTopOf="@id/labelDate" />
 
+        <!--end of workout labelDate section-->
+
+        <!-- workout duration section-->
+
         <TextView
             android:id="@+id/labelDuration"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="90dp"
+            android:layout_height="32dp"
             android:layout_marginTop="20dp"
             android:text="Duration:"
-            android:textSize="24sp"
+            android:textSize="20sp"
             android:textStyle="bold"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/itemWorkoutDate" />
 
-        <!-- Description label -->
 
-        <!-- Description field -->
+        <Button
+            android:id="@+id/btnDurationMinus"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:layout_marginStart="12dp"
+            android:backgroundTint="#945959"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:padding="0dp"
+            android:text="-"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            app:cornerRadius="3dp"
+            app:layout_constraintStart_toEndOf="@id/labelDuration"
+            app:layout_constraintTop_toTopOf="@id/labelDuration">
 
-        <EditText
+        </Button>
+
+        <TextView
             android:id="@+id/itemWorkoutDuration"
-            android:layout_width="127dp"
-            android:layout_height="40dp"
-            android:layout_marginStart="8dp"
-            android:inputType="number"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.0"
+            android:layout_width="48dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="52dp"
+            android:layout_marginTop="4dp"
+            android:fontFamily="sans-serif-black"
+            android:gravity="center"
+
+            android:textColor="#000000"
+
+            android:textSize="24sp"
+            android:textStyle="bold"
             app:layout_constraintStart_toEndOf="@id/labelDuration"
             app:layout_constraintTop_toTopOf="@id/labelDuration" />
 
+        <Button
+            android:id="@+id/btnDurationPlus"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:layout_marginStart="108dp"
+
+            android:backgroundTint="#379902"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:padding="0dp"
+            android:text="+"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            app:cornerRadius="3dp"
+            app:layout_constraintStart_toEndOf="@id/labelDuration"
+            app:layout_constraintTop_toTopOf="@id/labelDuration">
+
+        </Button>
+
+        <!-- end of workout duration section-->
+
+
+        <!-- Workout description section-->
         <TextView
             android:id="@+id/labelDescription"
             android:layout_width="wrap_content"
@@ -108,48 +157,50 @@
             android:id="@+id/itemWorkoutDescription"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:minLines="2"
+            android:layout_marginStart="8dp"
             android:gravity="top|start"
             android:inputType="textMultiLine"
-            app:layout_constraintTop_toTopOf="@id/labelDescription"
-            app:layout_constraintStart_toEndOf="@id/labelDescription"
+            android:minLines="2"
             app:layout_constraintEnd_toEndOf="parent"
-            android:layout_marginStart="8dp"/>
+            app:layout_constraintStart_toEndOf="@id/labelDescription"
+            app:layout_constraintTop_toTopOf="@id/labelDescription" />
+
+        <!-- End of Workout description section-->
 
         <!-- Save Button -->
         <Button
             android:id="@+id/btnItemSave"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="SAVE"
-            app:layout_constraintTop_toBottomOf="@id/itemWorkoutDescription"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/btnItemDelete"
             android:layout_marginTop="12dp"
-            android:layout_marginEnd="6dp"/>
+            android:layout_marginEnd="6dp"
+            android:text="SAVE"
+            app:layout_constraintEnd_toStartOf="@id/btnItemDelete"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/itemWorkoutDescription" />
 
         <!-- Delete Button -->
         <Button
             android:id="@+id/btnItemDelete"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
             android:text="DELETE"
-            app:layout_constraintTop_toTopOf="@id/btnItemSave"
-            app:layout_constraintStart_toEndOf="@id/btnItemSave"
             app:layout_constraintEnd_toEndOf="parent"
-            android:layout_marginStart="6dp"/>
+            app:layout_constraintStart_toEndOf="@id/btnItemSave"
+            app:layout_constraintTop_toTopOf="@id/btnItemSave" />
 
         <TextView
             android:id="@+id/durationUnits"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
+            android:layout_marginStart="52dp"
             android:text="(minutes)"
             android:textSize="20sp"
             app:layout_constraintBottom_toBottomOf="@id/itemWorkoutDuration"
             app:layout_constraintStart_toEndOf="@id/itemWorkoutDuration"
             app:layout_constraintTop_toTopOf="@id/itemWorkoutDuration"
-            app:layout_constraintVertical_bias="0.555" />
+            app:layout_constraintVertical_bias="0.0" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

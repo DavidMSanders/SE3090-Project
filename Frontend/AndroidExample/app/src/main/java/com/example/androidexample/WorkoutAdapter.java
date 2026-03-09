@@ -6,7 +6,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
+
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -44,21 +46,47 @@ public class WorkoutAdapter extends RecyclerView.Adapter<WorkoutAdapter.WorkoutV
 
         holder.editName.setText(workout.getName());
         holder.editDate.setText(workout.getDate());
-        holder.editDuration.setText(String.valueOf(workout.getDuration()));
+        //to txtduration
+        holder.txtDuration.setText(String.valueOf(workout.getDuration()));
+
         holder.editDescription.setText(workout.getDescription());
+
+        //buttons for duration
+        holder.btnDurationMinus.setOnClickListener(v -> {
+            int currentDuration = workout.getDuration();
+            if (currentDuration > 0) {
+                int newDuration = currentDuration - 1;
+                workout.setDuration(newDuration);
+                holder.txtDuration.setText(String.valueOf(newDuration));
+            }
+        });
+        holder.btnDurationPlus.setOnClickListener(v -> {
+            if(workout.getDuration() < 300) {
+                int newDuration = workout.getDuration() + 1;
+                workout.setDuration(newDuration);
+                holder.txtDuration.setText(String.valueOf(newDuration));
+            }
+        });
+
+
+
+
+
+
     holder.btnSave.setOnClickListener(v -> {
 
 
         String name = holder.editName.getText().toString().trim();
     String date = holder.editDate.getText().toString().trim();
-    String durationStr = holder.editDuration.getText().toString().trim();
+    //String durationStr = holder.editDuration.getText().toString().trim();
     String desc = holder.editDescription.getText().toString().trim();
 
-
-    if(name.isEmpty() || date.isEmpty() || durationStr.isEmpty() || desc.isEmpty()){
+//|| durationStr.isEmpty()
+    if(name.isEmpty() || date.isEmpty()  || desc.isEmpty()){
         Toast.makeText(context, "Please fill out all fields", Toast.LENGTH_LONG).show();
         return;
     }
+    /*
     int duration;
     try{
         duration = Integer.parseInt(durationStr);
@@ -66,9 +94,12 @@ public class WorkoutAdapter extends RecyclerView.Adapter<WorkoutAdapter.WorkoutV
         Toast.makeText(context, "Duration must be a number", Toast.LENGTH_LONG).show();
         return;
     }
+
+     */
     workout.setName(name);
     workout.setDate(date);
-    workout.setDuration(duration);
+    //workout set duration called in +- buttons
+    //workout.setDuration(duration);
     workout.setDescription(desc);
 
     updateWorkout(workout);
@@ -84,17 +115,27 @@ public int getItemCount() {
         return workoutList.size();
     }
     public static class WorkoutViewHolder extends RecyclerView.ViewHolder {
-        EditText editName, editDate, editDuration, editDescription;
+        EditText editName, editDate,  editDescription;
         Button btnSave, btnDelete;
+
+        Button btnDurationMinus, btnDurationPlus;
+        TextView txtDuration;
+
 
         public WorkoutViewHolder(@NonNull View itemView) {
             super(itemView);
             editName = itemView.findViewById(R.id.itemWorkoutName);
             editDate = itemView.findViewById(R.id.itemWorkoutDate);
-            editDuration = itemView.findViewById(R.id.itemWorkoutDuration);
+
+            txtDuration = itemView.findViewById(R.id.itemWorkoutDuration);
+
             editDescription = itemView.findViewById(R.id.itemWorkoutDescription);
             btnSave = itemView.findViewById(R.id.btnItemSave);
             btnDelete = itemView.findViewById(R.id.btnItemDelete);
+
+            //buttons for duration
+            btnDurationMinus = itemView.findViewById(R.id.btnDurationMinus);
+            btnDurationPlus = itemView.findViewById(R.id.btnDurationPlus);
 
         }
     }

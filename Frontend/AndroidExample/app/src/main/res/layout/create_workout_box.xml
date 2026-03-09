@@ -9,16 +9,17 @@
     app:cardElevation="4dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="match_parent"
+        android:layout_width="385dp"
         android:layout_height="match_parent"
+        android:background="#13B3AB"
         android:padding="12dp">
 
-
+    <!-- workout label section -->
         <TextView
             android:id="@+id/CreatelabelName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Name:"
+            android:text="Workout Name:"
             android:textSize="20sp"
             android:textStyle="bold"
             app:layout_constraintStart_toStartOf="parent"
@@ -27,19 +28,18 @@
 
         <EditText
             android:id="@+id/CreateitemWorkoutName"
-            android:layout_width="280dp"
-            android:layout_height="wrap_content"
+            android:layout_width="178dp"
+            android:layout_height="36dp"
             android:layout_marginStart="8dp"
             android:inputType="text"
-            android:textSize="18sp"
+            android:maxLines="1"
             android:paddingTop="6dp"
             android:paddingBottom="6dp"
-            android:maxLines="1"
+            android:textSize="18sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.294"
             app:layout_constraintStart_toEndOf="@id/CreatelabelName"
-            app:layout_constraintTop_toTopOf="@id/CreatelabelName"
-            app:layout_constraintEnd_toEndOf="parent" />
-
-
+            app:layout_constraintTop_toTopOf="@id/CreatelabelName" />
 
         <TextView
             android:id="@+id/CreatelabelDate"
@@ -53,21 +53,37 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/CreateitemWorkoutName" />
 
-        <!-- Duration label -->
+        <!-- end of workout label section -->
 
-        <!-- Duration field -->
+        <!-- workout Date section -->
 
         <EditText
             android:id="@+id/CreateitemWorkoutDate"
             android:layout_width="141dp"
             android:layout_height="44dp"
             android:layout_marginStart="8dp"
+            android:hint="MM/dd/yyyy"
             android:inputType="text"
-            android:hint = "MM/dd/yyyy"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.038"
             app:layout_constraintStart_toEndOf="@id/CreatelabelDate"
             app:layout_constraintTop_toTopOf="@id/CreatelabelDate" />
+
+        <Button
+            android:id="@+id/btnSetToday"
+            android:layout_width="87dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="28dp"
+            android:layout_marginTop="4dp"
+            android:text="Today"
+            android:textSize="12sp"
+            app:layout_constraintStart_toEndOf="@id/CreateitemWorkoutDate"
+            app:layout_constraintTop_toTopOf="@id/CreateitemWorkoutDate" />
+
+        <!-- end of workout Date section -->
+
+
+        <!--  workout duration section -->
 
         <TextView
             android:id="@+id/CreatelabelDuration"
@@ -80,20 +96,68 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/CreateitemWorkoutDate" />
 
-        <!-- Description label -->
 
-        <!-- Description field -->
+        <Button
+            android:id="@+id/CreatebtnDurationMinus"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:layout_marginStart="12dp"
+            android:backgroundTint="#945959"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:padding="0dp"
+            android:text="-"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            app:cornerRadius ="3dp"
+            app:layout_constraintStart_toEndOf="@id/CreatelabelDuration"
+            app:layout_constraintTop_toTopOf="@id/CreatelabelDuration">
 
-        <EditText
+        </Button>
+
+        <TextView
             android:id="@+id/CreateitemWorkoutDuration"
-            android:layout_width="131dp"
-            android:layout_height="40dp"
-            android:layout_marginStart="8dp"
-            android:inputType="number"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.0"
+            android:layout_width="48dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="64dp"
+            android:layout_marginTop="4dp"
+            android:fontFamily="sans-serif-black"
+            android:gravity="center"
+            android:text="30"
+            android:textColor="#000000"
+            android:textSize="24sp"
+            android:textStyle="bold"
             app:layout_constraintStart_toEndOf="@id/CreatelabelDuration"
             app:layout_constraintTop_toTopOf="@id/CreatelabelDuration" />
+
+        <Button
+            android:id="@+id/CreatebtnDurationPlus"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:layout_marginStart="124dp"
+
+            android:backgroundTint="#379902"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:padding="0dp"
+            android:text="+"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            app:cornerRadius="3dp"
+            app:layout_constraintStart_toEndOf="@id/CreatelabelDuration"
+            app:layout_constraintTop_toTopOf="@id/CreatelabelDuration">
+
+        </Button>
+
+        <!-- end of workout duration section -->
+
+
+
+        <!-- workout description section -->
 
         <TextView
             android:id="@+id/CreatelabelDescription"
@@ -102,7 +166,7 @@
             android:layout_marginStart="4dp"
             android:layout_marginTop="20dp"
             android:text="Description:"
-            android:textSize="14sp"
+            android:textSize="20sp"
             android:textStyle="bold"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/CreateitemWorkoutDuration" />
@@ -119,16 +183,18 @@
             app:layout_constraintStart_toEndOf="@id/CreatelabelDescription"
             app:layout_constraintTop_toTopOf="@id/CreatelabelDescription" />
 
-        <!-- Save Button -->
+        <!-- end of workout description section -->
 
-        <!-- Delete Button -->
+        <!-- Create Button -->
+
+
 
         <Button
             android:id="@+id/btnCreateWorkout"
             android:layout_width="169dp"
             android:layout_height="37dp"
             android:layout_marginTop="4dp"
-            android:layout_marginEnd="4dp"
+            android:layout_marginEnd="24dp"
             android:text="Create Workout"
             android:textSize="12sp"
             app:layout_constraintEnd_toEndOf="parent"
@@ -138,13 +204,13 @@
             android:id="@+id/CreatedurationUnits"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
+            android:layout_marginStart="56dp"
             android:text="(minutes)"
             android:textSize="20sp"
             app:layout_constraintBottom_toBottomOf="@id/CreateitemWorkoutDuration"
             app:layout_constraintStart_toEndOf="@id/CreateitemWorkoutDuration"
             app:layout_constraintTop_toTopOf="@id/CreateitemWorkoutDuration"
-            app:layout_constraintVertical_bias="0.555" />
+            app:layout_constraintVertical_bias="0.0" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
