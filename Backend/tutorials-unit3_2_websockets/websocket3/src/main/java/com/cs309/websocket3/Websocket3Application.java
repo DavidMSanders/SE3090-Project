@@ -9,5 +9,9 @@ public class Websocket3Application {
 	public static void main(String[] args) {
 		SpringApplication.run(Websocket3Application.class, args);
 	}
+	System.out.println("==================");
+	System.out.println("Websocket Server Running");
+	System.out.println("==================");
+
 
 }
