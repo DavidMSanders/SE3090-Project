@@ -95,6 +95,29 @@ public class User {
                 isEnabled + '}';
  }
 
+    /**
+     * @author Matthew Smith
+     */
+
+    @PostMapping("/login")
+    public ResponseEntity<?> loginUser(@RequestBody LoginRequest request) {
+
+        User foundUser = userRepository.findByAccountNameAndUserPassword(
+                request.getAccountName(),
+                request.getUserPassword()
+        );
+
+        if (foundUser != null && foundUser.isEnabled()) {
+            return ResponseEntity.ok(foundUser);
+        } else {
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Invalid username or password");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+        }
+    }
+
+
+
  /*
     /*
      * @OneToOne creates a relation between the current entity/table(Laptop) with the entity/table defined below it(User)
@@ -160,3 +183,30 @@ public class User {
     */
     
 }
+
+/**
+ * @author Matthew Smith
+ */
+
+class LoginRequest {
+
+    private String accountName;
+    private String userPassword;
+
+    public String getAccountName() {
+        return accountName;
+    }
+
+    public void setAccountName(String accountName) {
+        this.accountName = accountName;
+    }
+
+    public String getUserPassword() {
+        return userPassword;
+    }
+
+    public void setUserPassword(String userPassword) {
+        this.userPassword = userPassword;
+    }
+}
+
