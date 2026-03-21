@@ -38,7 +38,7 @@ public class SignupController {
      */
     @PostMapping("/signup")
     public ResponseEntity<Map<String, String>> createAccount(@RequestBody RegistrationInfo info){
-        Map<String, String> response = new HashMap<>();
+        Map<String, Object> response = new HashMap<>();
 
         try{
             User existing = userRepo.findByAccountName(info.getUsername());
@@ -57,8 +57,11 @@ public class SignupController {
             );
 
             // save database
-            userRepo.save(newUser);
+            User savedUser = userRepo.save(newUser);
 
+            response.put("userId", savedUser.getUserId());
+            response.put("username", savedUser.getAccountName());
+            response.put("role", savedUser.getRole());
             response.put("message", "User created successfully");
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
 

@@ -23,15 +23,24 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-
+    @Column
     private String accountName;
+
+    @Column
     private String userPassword;
+
+    @Column
     private LocalDate birthDate;
+
+    @Column
     private boolean isEnabled;
+
+    @Column(name = "role", nullable = false, columnDefinition = "varchar(50) default 'Client'")
+    private String role = "Client";
 
 
     public User() {
-        this.isEnabled = true;
+        //this.isEnabled = true;
     }
 
 
@@ -40,11 +49,12 @@ public class User {
         this.accountName = accountName;
         this.userPassword = userPassword;
         this.birthDate = birthDate;
-        this.isEnabled = true;
+        this.role = "Client";
 
     }
 
     public int getUserId() {
+
         return id;
     }
 
@@ -88,11 +98,19 @@ public class User {
 
         isEnabled = enabled;
 }
+
+public String getRole(){
+        return role;
+}
+
+public void setRole(String role){
+        this.role = role;
+}
  @Override
  public String toString(){
         return "User {" +
-                "UserId =" + id + ", accountName='" + accountName + '\'' + ", birthDate=" + birthDate + " isEnabled=" +
-                isEnabled + '}';
+                "UserId =" + id + ", accountName='" + accountName + '\'' + ", birthDate=" + birthDate + ", isEnabled=" +
+                isEnabled + ", role'" + role + '\'' + '}';
  }
 
  /*

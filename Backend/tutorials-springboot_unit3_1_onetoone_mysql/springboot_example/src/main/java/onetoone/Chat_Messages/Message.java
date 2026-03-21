@@ -26,7 +26,7 @@ import jakarta.persistence.TemporalType;
 public class Message {
 	@Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long messageid;
+    private Long id;
 
     @Column (name = "sender_id", nullable = false)
     private Integer originatorId;
@@ -60,7 +60,7 @@ public class Message {
         this.textBody = textBody;
     }
 
-    public Long getID(){
+    public Long getId(){
         return id;
     }
 
@@ -88,8 +88,8 @@ public class Message {
         return textBody;
     }
 
-    public void setTextBody(String textbody){
-        this.textBody = textbody;
+    public void setTextBody(String textBody){
+        this.textBody = textBody;
     }
 
     public LocalDateTime getCreatedTimestamp(){
@@ -120,13 +120,13 @@ public class Message {
         return editTimestamp;
     }
     public void setEditTimestamp(LocalDateTime editTimestamp){
-        this.editTimestamp = editTimestamp = editTimestamp;
+        this.editTimestamp = editTimestamp;
     }
 
     @Override
     public String toString(){
-        return "Message{" + "id=" + id + ", originatorId=" + originatorId +  "targetUserId=" + targetUserId +
-                ",createdTimeStamp" + createdTimestamp + ", readFlag=" + readFlag +
+        return "Message{" + "id=" + id + ", originatorId=" + originatorId +  ", targetUserId=" + targetUserId +
+                ", createdTimeStamp" + createdTimestamp + ", readFlag=" + readFlag +
                 '}';
     }
     /*@Temporal(TemporalType.TIMESTAMP)
