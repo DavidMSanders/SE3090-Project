@@ -11,14 +11,6 @@ import android.widget.Toast;
 
 import android.widget.ImageView;
 
-import android.content.Intent;
-import android.os.Bundle;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.Toast;
-
-import androidx.appcompat.app.AppCompatActivity;
-
 import com.android.volley.Request;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
@@ -26,7 +18,7 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import org.json.JSONException;
 import org.json.JSONObject;
 //GAVIN THIS IS IMPORTANT its used for persistence across pages
-import android.content.SharedPreferences;
+
 
 public class SignupActivity extends AppCompatActivity {
 
@@ -40,7 +32,8 @@ public class SignupActivity extends AppCompatActivity {
 
     //toDO mach port/path to backend
 //https://18366156-06c4-4fa7-b2cb-53279f7fd5ad.mock.pstmn.io
-    private static final String SIGNUP_URL = "http://coms-3090-035.class.las.iastate.edu:8080/api/v1/auth/signup";
+    //private static final String SIGNUP_URL = "http://coms-3090-035.class.las.iastate.edu:8080/api/v1/auth/signup";
+    private static final String SIGNUP_URL = "https://18366156-06c4-4fa7-b2cb-53279f7fd5ad.mock.pstmn.io/api/v1/auth/signup";
 
 
 
@@ -165,7 +158,13 @@ public class SignupActivity extends AppCompatActivity {
 
 
             // save current user session for persistence
+            KeepUser keepUser = new KeepUser(SignupActivity.this);
 
+            int userId = response.optInt("userId", -1);
+            String savedUsername = response.optString("username", username);
+            String role = response.optString("role", "normal");
+
+            keepUser.saveUser(userId, savedUsername, role);
 
 
             Toast.makeText(getApplicationContext(), "Signup successful", Toast.LENGTH_LONG).show();

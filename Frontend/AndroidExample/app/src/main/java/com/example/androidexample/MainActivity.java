@@ -2,31 +2,11 @@ package com.example.androidexample;
 
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.EditText;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import android.content.Intent;
-
-import com.android.volley.AuthFailureError;
-import com.android.volley.Request;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -46,6 +26,9 @@ public class MainActivity extends AppCompatActivity {
 
     private Button btnGoToWorkoutList;
 
+    private TextView tvCurrentUser;
+    private Button btnLogout;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,6 +41,34 @@ public class MainActivity extends AppCompatActivity {
         //tvResponse = findViewById(R.id.tvResponse);
         //btnSend = findViewById(R.id.sendBtn);
         //spMethod = findViewById(R.id.spMethod);
+
+        //pers. user logic
+        tvCurrentUser = findViewById(R.id.tvCurrentUser);
+        btnLogout = findViewById(R.id.btnLogout);
+
+        KeepUser keepUser = new KeepUser(this);
+
+        if (keepUser.isLoggedIn()) {
+            String username = keepUser.getUsername();
+            tvCurrentUser.setText("Logged in as: " + username);
+        } else {
+            tvCurrentUser.setText("Not logged in");
+        }
+
+        btnLogout.setOnClickListener(v -> {
+            keepUser.clearUser();
+
+            tvCurrentUser.setText("Not logged in");
+
+            Toast.makeText(this, "Logged out", Toast.LENGTH_SHORT).show();
+            /*
+            // Optional: send back to signup/login
+            Intent intent = new Intent(MainActivity.this, SignupActivity.class);
+            startActivity(intent);
+            finish();
+            */
+
+        });
 
         btnGoToSignup = findViewById(R.id.btnGoToSignup);
 
