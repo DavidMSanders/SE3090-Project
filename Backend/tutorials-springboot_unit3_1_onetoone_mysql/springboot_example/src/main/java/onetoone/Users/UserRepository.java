@@ -15,7 +15,7 @@ import java.util.Optional;
 public interface UserRepository extends JpaRepository<User, Integer> {
     Optional<User> findByAccountNameAndBirthDate(String accountName, LocalDate birthDate);
 
-    User findByAccountName(String accountName);
+    Optional<User> findFirstByAccountName(String accountName);
 
 
 }

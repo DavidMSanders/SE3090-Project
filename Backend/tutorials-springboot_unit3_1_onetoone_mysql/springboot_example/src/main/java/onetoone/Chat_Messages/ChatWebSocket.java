@@ -52,7 +52,7 @@ public class ChatWebSocket{
     public void handleOpen(Session clientSession, @PathParam("username") String username) throws IOException {
         log.info("Connection attempt from username: {}", username);
 
-        Optional<User> accountQuery = accountStore.findByAccountName(username);
+        Optional<User> accountQuery = accountStore.findFirstByAccountName(username);
         if(accountQuery.isEmpty()){
         log.warn("User not found: {}", username);
         clientSession.close(new CloseReason(CloseReason.CloseCodes.CANNOT_ACCEPT, "User not found"));
@@ -124,7 +124,7 @@ public class ChatWebSocket{
             String destinationName = components[0];
             String messagePayload = components[1];
 
-            Optional<User> destinationQuery = accountStore.findByAccountName(destinationName);
+            Optional<User> destinationQuery = accountStore.findFirstByAccountName(destinationName);
             if (destinationQuery.isEmpty()) {
                 transmitSystemAlert(originatorSession, "User not found: " + destinationName);
                 return;

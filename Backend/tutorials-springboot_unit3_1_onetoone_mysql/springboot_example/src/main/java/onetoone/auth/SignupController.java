@@ -37,11 +37,11 @@ public class SignupController {
      *
      */
     @PostMapping("/signup")
-    public ResponseEntity<Map<String, String>> createAccount(@RequestBody RegistrationInfo info){
+    public ResponseEntity<Map<String, Object>> createAccount(@RequestBody RegistrationInfo info){
         Map<String, Object> response = new HashMap<>();
 
         try{
-            User existing = userRepo.findByAccountName(info.getUsername());
+            User existing = userRepo.findFirstByAccountName(info.getUsername()).orElse(null);
             if (existing != null){
                 response.put("message", "Username already exists");
                 return ResponseEntity.status(HttpStatus.CONFLICT).body(response);

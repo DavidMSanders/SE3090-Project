@@ -49,7 +49,7 @@ public class UserController {
             User accountToDelete = userRepository.findByAccountNameAndBirthDate(
                     requestData.getUsername(),
             parsedBirthDate
-            );
+            ).orElse(null);
 
             if (accountToDelete != null) {
                 userRepository.delete(accountToDelete);
