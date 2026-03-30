@@ -28,6 +28,12 @@
         <activity android:name=".CreateWorkoutActivity" />
         <activity android:name=".WorkoutListActivity" />
         <activity android:name=".CalendarActivity" />
+        <activity android:name=".GroupListActivity" />
+        <activity android:name=".GroupCreateActivity" />
+
+
+
+
     </application>
 
 </manifest>

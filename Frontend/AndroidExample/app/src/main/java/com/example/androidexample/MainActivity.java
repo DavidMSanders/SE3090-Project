@@ -29,6 +29,8 @@ public class MainActivity extends AppCompatActivity {
     private TextView tvCurrentUser;
     private Button btnLogout;
 
+    private Button btnGroupList;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,6 +78,13 @@ public class MainActivity extends AppCompatActivity {
         btnGoToWorkout = findViewById(R.id.btnGoToWorkout);
 
         btnGoToWorkoutList = findViewById(R.id.WorkoutList);
+
+        btnGroupList = findViewById(R.id.btnGroupList);
+
+        btnGroupList.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, GroupListActivity.class);
+            startActivity(intent);
+        });
 
         btnGoToSignup.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, SignupActivity.class);
