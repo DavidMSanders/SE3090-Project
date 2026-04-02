@@ -3,6 +3,9 @@ package onetoone.Notifications;
 import jakarta.persistence.*;
 import onetoone.Users.User;
 
+/**
+ * @author Matthew Smith
+ */
 @Entity
 @Table(name = "notification_preferences", uniqueConstraints = {
         @UniqueConstraint(columnNames = { "user_id", "category_id" })

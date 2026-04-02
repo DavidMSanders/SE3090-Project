@@ -2,6 +2,9 @@ package onetoone.Notifications;
 
 import jakarta.persistence.*;
 
+/**
+ * @author Matthew Smith
+ */
 @Entity
 @Table(name = "notification_categories")
 public class NotificationCategory {

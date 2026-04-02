@@ -4,6 +4,9 @@ import jakarta.persistence.*;
 import onetoone.Users.User;
 import java.time.LocalDateTime;
 
+/**
+ * @author Matthew Smith
+ */
 @Entity
 @Table(name = "notifications")
 public class Notification {

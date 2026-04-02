@@ -3,6 +3,9 @@ package onetoone.Trainer;
 import jakarta.persistence.*;
 import onetoone.Users.User;
 
+/**
+ * @author Matthew Smith
+ */
 @Entity
 @Table(name = "trainer_clients")
 public class TrainerClient {

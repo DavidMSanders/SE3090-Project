@@ -8,6 +8,9 @@ import onetoone.Users.User;
 import onetoone.Users.UserRepository;
 import onetoone.Trainer.TrainerClientRepository;
 
+/**
+ * @author Matthew Smith
+ */
 @RestController
 @RequestMapping("/workouts/actions")
 public class WorkoutIntegrationController {

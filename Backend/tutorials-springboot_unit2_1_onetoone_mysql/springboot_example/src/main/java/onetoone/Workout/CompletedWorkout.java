@@ -3,6 +3,9 @@ package onetoone.Workout;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
+/**
+ * @author Matthew Smith
+ */
 @Entity
 @Table(name = "completed_workouts")
 public class CompletedWorkout {

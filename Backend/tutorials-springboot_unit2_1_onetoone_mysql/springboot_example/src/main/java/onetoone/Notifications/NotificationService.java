@@ -9,6 +9,9 @@ import onetoone.Trainer.TrainerClientRepository;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * @author Matthew Smith
+ */
 @Service
 public class NotificationService {
 
