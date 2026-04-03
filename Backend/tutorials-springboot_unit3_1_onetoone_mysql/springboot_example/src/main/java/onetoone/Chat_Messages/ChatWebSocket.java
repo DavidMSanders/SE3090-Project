@@ -1,12 +1,20 @@
 package onetoone.Chat_Messages;
 
+import com.mysql.cj.PreparedQuery;
 import jakarta.websocket.*;
 import jakarta.websocket.server.ServerEndpoint;
 import jakarta.websocket.server.PathParam;
 
 
+import onetoone.Groups.GroupMembershipController;
+import onetoone.Groups.GroupRepository;
 import onetoone.Users.UserRepository;
 import onetoone.Users.User;
+
+import onetoone.Groups.GroupMembership;
+import onetoone.Groups.GroupMembershipRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
 
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
@@ -28,23 +36,33 @@ import java.time.format.DateTimeFormatter;
  */
 @Component
 @ServerEndpoint(value = "/chat/{username}")
-public class ChatWebSocket{
+public class ChatWebSocket {
     private static MessageRepository messageStore;
     private static UserRepository accountStore;
+    private static GroupRepository groupAccessRepo;
     private static Map<String, Session> liveConnections = new ConcurrentHashMap<>();
     private static Map<Session, String> sessionToUsername = new ConcurrentHashMap<>();
     private static Map<Session, Integer> sessionToUserId = new ConcurrentHashMap<>();
     private final Logger log = LoggerFactory.getLogger(ChatWebSocket.class);
+    private final ObjectMapper payloadParser = new ObjectMapper();
+
 
     @Autowired
     public void setMessageRepository(MessageRepository repository) {
+
         ChatWebSocket.messageStore = repository;
     }
 
 
     @Autowired
-    public void setUserRepository(UserRepository repository){
+    public void setUserRepository(UserRepository repository) {
+
         ChatWebSocket.accountStore = repository;
+    }
+
+    @Autowired
+    public void setGroupMembershipRepository(GroupMembershipRepository repository) {
+        ChatWebSocket.groupAccessRepo = repository;
     }
 
 
@@ -53,10 +71,10 @@ public class ChatWebSocket{
         log.info("Connection attempt from username: {}", username);
 
         Optional<User> accountQuery = accountStore.findFirstByAccountName(username);
-        if(accountQuery.isEmpty()){
-        log.warn("User not found: {}", username);
-        clientSession.close(new CloseReason(CloseReason.CloseCodes.CANNOT_ACCEPT, "User not found"));
-        return;
+        if (accountQuery.isEmpty()) {
+            log.warn("User not found: {}", username);
+            clientSession.close(new CloseReason(CloseReason.CloseCodes.CANNOT_ACCEPT, "User not found"));
+            return;
         }
 
         User account = accountQuery.get();
@@ -75,24 +93,54 @@ public class ChatWebSocket{
 
 
     @OnMessage
-    public void handleMessage(Session clientSession, String incomingText) throws IOException{
+    public void handleMessage(Session clientSession, String incomingText) throws IOException {
         String authorName = sessionToUsername.get(clientSession);
         Integer authorId = sessionToUserId.get(clientSession);
 
-        if(authorName == null || authorId == null){
+        if (authorName == null || authorId == null) {
             log.warn("Message from unknown session");
             return;
         }
 
         log.info("Message from {}: {}", authorName, incomingText);
-
-
-        if(incomingText.startsWith("@")) {
-            processDirectMessage(clientSession, authorId, authorName, incomingText);
-        } else {
-            processStaffBroadcast(clientSession, authorId, authorName, incomingText);
+        switch (eventType) {
+            case "SEND":
+                processChatMessage(clientSession, authorId, authorName, payload);
+                break;
+            case "EDIT":
+                processMessageEdit(clientSession, authorId, payload);
+                break;
+            case "DELETE":
+                processMessageRemoval(clientSession, authorId, payload);
+                break;
+            case "UPDATE_PERMISSIONS":
+                processAccessChange(clientSession, authorId, authorName, payload);
+                break;
+            case "REMOVE_MEMBER":
+                processGroupKick(clientSession, authorId, authorName, payload);
+                break;
+            case "LEAVE":
+                processGroupExit(clientSession, authorId, authorName, payload);
+                break;
+            case "JOIN":
+                processGroupEntry(clientSession, authorId, authorName, payload);
+                break;
+            default:
+                if (incomingText.startsWith("@")) {
+                    processDirectMessage(clientSession, authorId,
+                            authorName, incomingText);
+                } else {
+                    processStaffBroadcast(clientSession, authorId,
+                            authorName, incomingText);
+                }
+        } catch(Exception e){
+            if (incomingText.startsWith("@")) {
+                processDirectMessage(clientSession, authorId, authorName, incomingText);
+            } else {
+                processStaffBroadcast(clientSession, authorId, authorName, incomingText);
+            }
         }
-        }
+    }
 
         @OnClose
     public void handleClose(Session clientSession) throws IOException {
@@ -245,11 +293,151 @@ public class ChatWebSocket{
 
 
 
+
+
     }
 
-
-
 }
+
+        private void processChatMessage(Session originatorSession, Integer originatorId, String originatorName, JsonNode payload){
+         try {
+         int groupId = payload.get("groupId").asInt();
+        String textBody = payload.get("textBody").asText();
+        String messageType = payload.has("messageType") ? payload.get("messageType").asText() : "NORMAL";
+        Integer targetUserId = payload.has("targetUserId") && !payload.get("targetUserId").isNull() ? payload.get("targetUserId").asInt() : null;
+
+        Optional<GroupMembership> membershipQuery = groupAccessRepo.findByGroupIdAndUserId(groupId, originatorId);
+
+        if (membershipQuery.isEmpty()) {
+            transmitSystemAlert(originatorSession, "You are not a member of this group");
+            return;
+        }
+
+        if (!membershipQuery.get().isChatEnabled()) {
+            transmitSystemAlert(originatorSession, "MESSAGE_REJECTED: You do not have permission to send messages");
+            return;
+    }
+        Message newMessage = new Message(originatorId, targetUserId, textBody);
+        newMessage.setGroupId(groupId);
+        newMessage.setMessageType(messageType);
+        messageStore.save(newMessage);
+
+        String outgoing = formatMessageEvent(
+                "MESSAGE_CREATED", newMessage, originatorName);
+        distributeToGroup(groupId, outgoing, null);
+
+        log.info("Message sent by {} to group {}", originatorName, groupId);
+    } catch (Exception error) {
+        log.error("Error sending message", error);
+        transmitSystemAlert(originatorSession, "Error sending message");
+
+    }
+}
+
+/**
+ * Handles editing an existing message
+ * Only the original sender can edit their message
+ */
+        private void processMessageEdit(Session originatorSession, Integer originatorId, JsonNode payload){
+        try {
+            long messageId = payload.get("messageId").asLong();
+            String updatedText = payload.get("newTextBody").asText();
+
+            Message found = messageStore.findById(messageId).orElse(null);
+            if (found == null) {
+                transmitSystemAlert(originatorSession, "Message not found");
+                return;
+            }
+
+            if (found.getOriginatorId() != originatorId) {
+                transmitSystemAlert(originatorSession, "You can only edit your own messages");
+                return;
+            }
+
+            found.setTextBody(updatedText);
+            found.setEditTimestamp(LocalDateTime.now());
+            messageStore.save(found);
+
+            Optional<User> authorQuery = accountStore.findById(originatorId);
+            String authorName = authorQuery.map(User::getAccountName).orElse("Unknown");
+
+            String outgoing = formatMessageEvent("MESSAGE_UPDATED", found, authorName);
+            distributeToGroup(found.getGroupId(), outgoing, null);
+
+            log.info("Message {} edited by {}", messageId, originatorId);
+        } catch (Exception error) {
+            log.error("Error editing message", error);
+            transmitSystemAlert(originatorSession, "Error editing message");
+        }
+
+        /**
+         * Handles updating a member's permissions in real time
+         * Only GROUP_LEADER or ADMIN can update permissions
+         */
+
+        private void processAccessChange(Session originatorSession, Integer originatorId, String originatorName, JsonNode payload){
+            try {
+                int groupId = payload.get("groupId").asInt();
+                int targetUserId = payload.get("targetUserId").asInt();
+
+                Optional<GroupMembership> requesterQuery = groupAccessRepo.findByGroupIdAndUserId(groupId, originatorId);
+                if (requesterQuery.isEmpty() || !requesterQuery.get().isManageEnabled()) {
+                    transmitSystemAlert(originatorSession, "You do not have permission to update permissions");
+                    return;
+                }
+
+                Optional<GroupMembership> targetQuery = groupAccessRepo.findByGroupIdAndUserId(groupId, targetUserId);
+                if (targetQuery.isEmpty()) {
+                    transmitSystemAlert(originatorSession, "Target user is not a member of this group");
+                    return;
+                }
+
+                GroupMembership target = targetQuery.get();
+                if (target.getAccessLevel().equals("GROUP_LEADER") || target.getAccessLevel().equals("ADMIN")) {
+                    transmitSystemAlert(originatorSession, "Cannot change GROUP_LEADER or ADMIN permissions");
+                    return;
+                }
+
+                target.setAccessLevel(payload.get("membershipRole").asText());
+                target.setChatEnabled(payload.get("canSendMessages").asBoolean());
+                target.setManageEnabled(payload.get("canManageMembers").asBoolean());
+                target.setAnnounceEnabled(payload.get("canPostAnnouncements").asBoolean());
+                target.setWorkoutEnabled(payload.get("canAssignWorkouts").asBoolean());
+                groupAccessRepo.save(target);
+
+                Optional<User> targetAccount = accountStore.findById(targetUserId);
+                String targetName = targetAccount.map(User::getAccountName).orElse("Unknown");
+
+                String outgoing = "{\"eventType\":\"GROUP_PERMISSION_UPDATED\"," +
+                        "\"groupId\":" + groupId + "," +
+                        "\"targetUserId\":" + targetUserId + "," +
+                        "\"username\":\"" + targetName + "\"," +
+                        "\"membershipRole\":\"" + target.getAccessLevel() + "\"," +
+                        "\"canSendMessages\":" + target.isChatEnabled() + "," +
+                        "\"canManageMembers\":" + target.isManageEnabled() + "," +
+                        "\"canPostAnnouncements\":" + target.isAnnounceEnabled() + "," +
+                        "\"canAssignWorkouts\":" + target.isWorkoutEnabled() + "," +
+                        "\"changedByUserId\":" + originatorId + "," +
+                        "\"changedByUsername\":\"" + originatorName + "\"}";
+
+                distributeToGroup(groupId, outgoing, null);
+                log.info("Permission updated for user {} in group {}", targetUserId, groupId);
+            } catch (Exception eror){
+                log.error("Error updating permissions", error);
+                transmitSystemAlert(originatorSession, "Error updating permissions");
+                }
+                }
+
+            /**
+             *
+             * Handles removing a member from a group in real time
+             * Only GROUP_LEADER or ADMIN can remove members
+             */
+
+            private void processGroupKick(Session originatorSession, Integer originatorid, )
+
+        }
+
 /*
 @Controller      // this is needed for this to be an endpoint to springboot
 

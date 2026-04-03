@@ -125,11 +125,10 @@ public class GroupController {
     }
 
     @GetMapping("/{groupId}")
-    public ResponseEntity<Map<String, Object>> fetchGroupById(
-            @PathVariable int groupId){
+    public ResponseEntity<Map<String, Object>> fetchGroupById(@PathVariable int groupId){
         Map<String, Object> result = new HashMap<>();
 
-        Group found = groupRepo.findById(groupById).orElse(null);
+        Group found = groupRepo.findById(groupId).orElse(null);
         if (found != null){
             result.put("groupId", found.getGroupId());
             result.put("groupName", found.getGroupTitle());
@@ -177,7 +176,7 @@ public class GroupController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
         }
 
-        if(membershipRepo.existsByGroupIdAndUserId(groupId, incoming.getUserId())){ result.put("message " ,
+        if(membershipRepo.existsByGroupIdAndUserId(groupId, incoming.getUserId())){ result.put("message" ,
                 "User is already a member of this group");
             return ResponseEntity.status(HttpStatus.CONFLICT).body(result);
     }
@@ -238,6 +237,7 @@ public ResponseEntity<List<Map<String, Object>>> fetchGroupMembers(@PathVariable
     }
     return ResponseEntity.ok(result);
 }
+
 
 @GetMapping("/{groupId}/members/{userId}")
 public ResponseEntity<Map<String, Object>> fetchMemberById(@PathVariable int groupId, @PathVariable int userId){
