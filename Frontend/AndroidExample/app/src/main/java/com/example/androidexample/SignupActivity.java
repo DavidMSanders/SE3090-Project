@@ -19,7 +19,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 //GAVIN THIS IS IMPORTANT its used for persistence across pages
 
-
+/**
+ * Activity for user signup.
+ */
 public class SignupActivity extends AppCompatActivity {
 
     private EditText usernameEditText;  // define username edittext variable
@@ -36,8 +38,10 @@ public class SignupActivity extends AppCompatActivity {
     private static final String SIGNUP_URL = "https://18366156-06c4-4fa7-b2cb-53279f7fd5ad.mock.pstmn.io/api/v1/auth/signup";
 
 
-
-
+    /**
+     * Initializes signup activity. Sets up UI elements and click listeners.
+     * @param savedInstanceState
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -57,6 +61,10 @@ public class SignupActivity extends AppCompatActivity {
 
         /* click listener on login button pressed -- UNEDITED CURRENTLY JUST TAKES BACK TO MAIN*/
         loginButton.setOnClickListener(new View.OnClickListener() {
+            /**
+             * Called swap button for login/signup
+             * @param v
+             */
             @Override
             public void onClick(View v) {
 
@@ -68,6 +76,10 @@ public class SignupActivity extends AppCompatActivity {
 
         /* click listener on signup button pressed */
         signupButton.setOnClickListener(new View.OnClickListener() {
+            /**
+             * validates user input and attempts the signup
+             * @param v
+             */
             @Override
             public void onClick(View v) {
 
@@ -142,6 +154,12 @@ public class SignupActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Sends signup request to backend and saves user session info
+     * @param username
+     * @param password
+     * @param dob
+     */
     private void sendSignupRequest(String username, String password, String dob) {
         JSONObject body = new JSONObject();
         try{
@@ -175,6 +193,10 @@ public class SignupActivity extends AppCompatActivity {
             Toast.makeText(getApplicationContext(), "Signup failed: " + error.getMessage(), Toast.LENGTH_LONG).show();
         }
         ){
+            /**
+             * Sets content type to JSON
+             * @return
+             */
             @Override
             public String getBodyContentType() {
                 return "application/json; charset=utf-8";
@@ -185,6 +207,11 @@ public class SignupActivity extends AppCompatActivity {
 
     }
 
+    /**
+     * Converts Volley error to readable string
+     * @param error
+     * @return
+     */
     private String readableVolleyError(VolleyError error) {
         if (error == null) return "Unknown error";
         if(error.networkResponse != null) {
