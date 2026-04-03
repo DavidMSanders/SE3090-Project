@@ -73,12 +73,13 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHol
                 Toast.makeText(context, "Join the group first", Toast.LENGTH_SHORT).show();
                 return;
             }
-/*
+
             Intent intent = new Intent(context, GroupChatActivity.class);
             intent.putExtra("groupId", group.getGroupID());
             intent.putExtra("groupName", group.getGroupName());
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(intent);
-*/
+
 
         });
 

@@ -7,6 +7,8 @@
     android:background="#F7F7F7"
     tools:context=".GroupChatActivity">
 
+
+
     <Button
         android:id="@+id/btnBackFromChat"
         android:layout_width="wrap_content"
@@ -16,6 +18,19 @@
         android:text="Back"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/btnAnnouncement"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Announcement"
+
+        android:visibility="gone"
+
+        app:layout_constraintTop_toBottomOf="@id/btnBackFromChat"
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="6dp"/>
 
     <TextView
         android:id="@+id/tvChatGroupTitle"
@@ -40,7 +55,7 @@
         android:background="#DADADA"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/btnBackFromChat" />
+        app:layout_constraintTop_toBottomOf="@id/btnAnnouncement" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvChatMessages"
