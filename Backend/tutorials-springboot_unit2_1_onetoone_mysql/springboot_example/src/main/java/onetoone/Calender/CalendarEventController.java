@@ -1,7 +1,7 @@
-package __rk1.backend.controller;
+package onetoone.Calender;
 
-import __rk1.backend.model.CalendarEvent;
-import __rk1.backend.service.CalendarEventService;
+import onetoone.Calender.CalendarEvent;
+import onetoone.Calender.CalendarEventService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

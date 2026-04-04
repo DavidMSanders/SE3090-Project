@@ -1,7 +1,7 @@
-package __rk1.backend.controller;
+package onetoone.Journal;
 
-import __rk1.backend.model.JournalEntry;
-import __rk1.backend.service.JournalService;
+import onetoone.Journal.JournalEntry;
+import onetoone.Journal.JournalService;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -21,32 +21,27 @@ public class JournalController {
     public JournalEntry createEntry(
             @RequestParam Long userId,
             @RequestParam String date,
-            @RequestParam String content
-    ) {
+            @RequestParam String content) {
         return journalService.createEntry(
                 userId,
                 LocalDate.parse(date),
-                content
-        );
+                content);
     }
 
     @GetMapping("/date")
     public List<JournalEntry> getEntriesByDate(
             @RequestParam Long userId,
-            @RequestParam String date
-    ) {
+            @RequestParam String date) {
         return journalService.getEntriesForDate(
                 userId,
-                LocalDate.parse(date)
-        );
+                LocalDate.parse(date));
     }
 
     @GetMapping("/month")
     public List<JournalEntry> getEntriesByMonth(
             @RequestParam long userId,
             @RequestParam int year,
-            @RequestParam int month
-    ) {
+            @RequestParam int month) {
         return journalService.getEntriesForMonth(userId, year, month);
     }
 }

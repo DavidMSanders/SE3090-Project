@@ -1,4 +1,4 @@
-package __rk1.backend.model;
+package onetoone.Calender;
 
 import jakarta.persistence.*;
 import java.time.LocalDate;

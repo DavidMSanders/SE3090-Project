@@ -1,6 +1,6 @@
-package __rk1.backend.repository;
+package onetoone.Calender;
 
-import __rk1.backend.model.CalendarEvent;
+import onetoone.Calender.CalendarEvent;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
