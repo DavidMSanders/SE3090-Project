@@ -23,9 +23,9 @@ import java.util.Map;
 
 /**
  * Workout Controller
+ * 
  * @author Chris Lopez
  */
-
 
 @RestController
 @RequestMapping("/api/v1/workouts")
@@ -33,17 +33,6 @@ public class WorkoutController {
 
     @Autowired
     private WorkoutRepository repo;
-
-    /**
-     * Create - POST
-     * <p>
-     * {
-     * "name": "Push Day",
-     * "date": "02/24/2026"
-     * "durationMinutes": 60,
-     * "description": "Chest + Triceps"
-     * }
-     */
 
     @PostMapping
     public ResponseEntity<Map<String, Object>> addWorkout(@RequestBody WorkoutData incoming) {
@@ -57,59 +46,47 @@ public class WorkoutController {
             DateTimeFormatter pattern = DateTimeFormatter.ofPattern("MM/dd/yyyy");
             LocalDate parsedDate = LocalDate.parse(incoming.getDate(), pattern);
 
-            Workout newWorkout = new Workout(
-                    incoming.getName(), parsedDate,
-                    incoming.getDurationMinutes(),
-                    incoming.getDescription());
+            Workout newWorkout = new Workout();
+            newWorkout.setWorkoutName(incoming.getName());
+            newWorkout.setScheduledDate(parsedDate);
+            newWorkout.setDurationMinutes(incoming.getDurationMinutes());
+            newWorkout.setWorkoutDescription(incoming.getDescription());
+            newWorkout.setUserId(incoming.getUserId());
+            newWorkout.setGroupId(incoming.getGroupId());
+            newWorkout.setStatus("planned");
+            newWorkout.setSourceType("self_created");
 
             Workout saved = repo.save(newWorkout);
 
             result.put("id", saved.getWorkoutId());
             result.put("name", saved.getWorkoutName());
-            result.put("date", saved.getSessionDate().format(pattern));
-            result.put("durationMinutes", saved.getMinutes());
-            result.put("description", saved.getDetails());
+            result.put("date", saved.getScheduledDate() != null ? saved.getScheduledDate().format(pattern) : null);
+            result.put("durationMinutes", saved.getDurationMinutes());
+            result.put("description", saved.getWorkoutDescription());
 
             return ResponseEntity.status(HttpStatus.CREATED).body(result);
         } catch (DateTimeParseException error) {
-            result.put("message", "date must be in MM/DD/YYYY format");
+            result.put("message", "date must be in MM/dd/yyyy format");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
         } catch (Exception error) {
             result.put("message", "Error creating workout: " + error.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
-
-
         }
     }
 
-
-    /**
-     * READ - GET
-     * <p>
-     * {
-     * "id": 1
-     * "name": "Push Day",
-     * "date": "02/24/2026",
-     * "durationMinutes: 60,
-     * "description": "Chest + triceps"
-     * }
-     */
-
     @GetMapping("/{workoutId}")
-    public ResponseEntity<Map<String, Object>> fetchWorkoutById(@PathVariable int workoutId) {
+    public ResponseEntity<Map<String, Object>> fetchWorkoutById(@PathVariable Long workoutId) {
         Map<String, Object> result = new HashMap<>();
-
-        Workout found = repo.findById(workoutId).orElse(null);
+        Workout found = repo.findById(Math.toIntExact(workoutId)).orElse(null);
 
         if (found != null) {
             DateTimeFormatter pattern = DateTimeFormatter.ofPattern("MM/dd/yyyy");
-
-
             result.put("id", found.getWorkoutId());
             result.put("name", found.getWorkoutName());
-            result.put("date", found.getSessionDate().format(pattern));
-            result.put("durationMinutes", found.getMinutes());
-            result.put("description", found.getDetails());
+            result.put("date", found.getScheduledDate() != null ? found.getScheduledDate().format(pattern) : null);
+            result.put("durationMinutes", found.getDurationMinutes());
+            result.put("description", found.getWorkoutDescription());
+            result.put("status", found.getStatus());
             return ResponseEntity.ok(result);
         } else {
             result.put("message", "Workout not found");
@@ -117,10 +94,6 @@ public class WorkoutController {
         }
     }
 
-
-    /**
-     * READ ALL - GET /api/v1/workouts
-     */
     @GetMapping
     public ResponseEntity<List<Map<String, Object>>> fetchAllWorkouts() {
         List<Workout> allWorkouts = repo.findAll();
@@ -130,88 +103,58 @@ public class WorkoutController {
             Map<String, Object> workoutData = new HashMap<>();
             workoutData.put("id", item.getWorkoutId());
             workoutData.put("name", item.getWorkoutName());
-            workoutData.put("date", item.getSessionDate().format(pattern));
-            workoutData.put("durationMinutes", item.getMinutes());
-            workoutData.put("description", item.getDetails());
+            workoutData.put("date", item.getScheduledDate() != null ? item.getScheduledDate().format(pattern) : null);
+            workoutData.put("durationMinutes", item.getDurationMinutes());
+            workoutData.put("description", item.getWorkoutDescription());
+            workoutData.put("status", item.getStatus());
             return workoutData;
         }).toList();
         return ResponseEntity.ok(result);
     }
 
-    /**
-     * UPDATE PUT /api/v1/workouts/{id}
-     * <p>
-     * {
-     * "id": 1,
-     * "name":
-     * "date"
-     * "durationMinutes"
-     * "description":
-     * }
-     */
-
     @PutMapping("/{id}")
-    public ResponseEntity<Map<String, Object>> modifyWorkout(@PathVariable int id, @RequestBody
-    WorkoutData incoming) {
+    public ResponseEntity<Map<String, Object>> modifyWorkout(@PathVariable int id, @RequestBody WorkoutData incoming) {
         Map<String, Object> result = new HashMap<>();
-
         try {
             Workout current = repo.findById(id).orElse(null);
-
             if (current == null) {
                 result.put("message", "Workout not found");
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
             }
 
-            if (!isEmpty(incoming.getName())) {
+            if (!isEmpty(incoming.getName()))
                 current.setWorkoutName(incoming.getName());
-            }
-
             if (!isEmpty(incoming.getDate())) {
                 DateTimeFormatter pattern = DateTimeFormatter.ofPattern("MM/dd/yyyy");
-                LocalDate parsedDate = LocalDate.parse(incoming.getDate(), pattern);
-                current.setSessionDate(parsedDate);
+                current.setScheduledDate(LocalDate.parse(incoming.getDate(), pattern));
             }
-
-            if (incoming.getDurationMinutes() > 0) {
-                current.setMinutes(incoming.getDurationMinutes());
-            }
-
-            if (incoming.getDescription() != null) {
-                current.setDetails(incoming.getDescription());
-            }
+            if (incoming.getDurationMinutes() > 0)
+                current.setDurationMinutes(incoming.getDurationMinutes());
+            if (incoming.getDescription() != null)
+                current.setWorkoutDescription(incoming.getDescription());
+            if (incoming.getStatus() != null)
+                current.setStatus(incoming.getStatus());
 
             Workout updated = repo.save(current);
-
             DateTimeFormatter pattern = DateTimeFormatter.ofPattern("MM/dd/yyyy");
+
             result.put("id", updated.getWorkoutId());
             result.put("name", updated.getWorkoutName());
-            result.put("date", updated.getSessionDate().format(pattern));
-            result.put("durationMinutes", updated.getMinutes());
-            result.put("description", updated.getDetails());
-
+            result.put("date", updated.getScheduledDate() != null ? updated.getScheduledDate().format(pattern) : null);
+            result.put("durationMinutes", updated.getDurationMinutes());
+            result.put("description", updated.getWorkoutDescription());
+            result.put("status", updated.getStatus());
             return ResponseEntity.ok(result);
-
-
-        } catch (DateTimeParseException error) {
-            result.put("message", "date must be in MM/DD/yyyy format");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
         } catch (Exception error) {
-            result.put("message", "Error updating workout: " + error.getMessage());
+            result.put("message", "Error updating workout");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
         }
     }
 
-    /**
-     * Delete - DELETE /api/v1/workouts/{id}
-     */
-
     @DeleteMapping("/{id}")
     public ResponseEntity<Map<String, String>> removeWorkout(@PathVariable int id) {
         Map<String, String> result = new HashMap<>();
-
         Workout found = repo.findById(id).orElse(null);
-
         if (found != null) {
             repo.delete(found);
             result.put("message", "Workout deleted sucessfully");
@@ -222,61 +165,73 @@ public class WorkoutController {
         }
     }
 
+    private boolean isEmpty(String text) {
+        return text == null || text.trim().isEmpty();
+    }
+}
 
-        private boolean isEmpty (String text){
-            return text == null || text.trim().isEmpty();
-        }
+class WorkoutData {
+    private Long userId;
+    private Long groupId;
+    private String name;
+    private String date;
+    private int durationMinutes;
+    private String description;
+    private String status;
+
+    public Long getUserId() {
+        return userId;
     }
 
-
-    /**
-     * Request body class for workout endpoints
-     */
-
-    class WorkoutData {
-        private String name;
-        private String date;
-        private int durationMinutes;
-        private String description;
-
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        public String getDate() {
-            return date;
-        }
-
-        public void setDate(String date) {
-            this.date = date;
-        }
-
-        public int getDurationMinutes() {
-            return durationMinutes;
-        }
-
-        public void setDurationMinutes(int durationMinutes) {
-            this.durationMinutes = durationMinutes;
-        }
-
-        public String getDescription() {
-            return description;
-        }
-
-        public void setDescription(String description) {
-            this.description = description;
-        }
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 
+    public Long getGroupId() {
+        return groupId;
+    }
 
+    public void setGroupId(Long groupId) {
+        this.groupId = groupId;
+    }
 
+    public String getName() {
+        return name;
+    }
 
+    public void setName(String name) {
+        this.name = name;
+    }
 
+    public String getDate() {
+        return date;
+    }
 
+    public void setDate(String date) {
+        this.date = date;
+    }
 
+    public int getDurationMinutes() {
+        return durationMinutes;
+    }
 
+    public void setDurationMinutes(int durationMinutes) {
+        this.durationMinutes = durationMinutes;
+    }
 
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+}
