@@ -15,9 +15,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
+//import io.swagger.v3.oas.annotations.Operation;
+//import io.swagger.v3.oas.annotations.responses.ApiResponse;
+//import io.swagger.v3.oas.annotations.responses.ApiResponses;
 
 
 /**
@@ -44,12 +44,12 @@ public class GroupController {
     /**
      * POST /api/v1/groups
      */
-    @Operation(summary = "Create a new group")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Group created successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid input"),
-            @ApiResponse(responseCode = "404", description = "Creator user not found")
-    })
+    //@Operation(summary = "Create a new group")
+    //@ApiResponses(value = {
+            //@ApiResponse(responseCode = "201", description = "Group created successfully"),
+            //@ApiResponse(responseCode = "400", description = "Invalid input"),
+            //@ApiResponse(responseCode = "404", description = "Creator user not found")
+    //})
     @PostMapping
     public ResponseEntity<Map<String, Object>> createGroup(@RequestBody GroupRequest incoming){
         Map<String, Object> result = new HashMap<>();
@@ -103,10 +103,10 @@ public class GroupController {
     }
 
 
-    @Operation(summary = "Get all groups with membership status for a user")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Groups retrieved successfully")
-    })
+    //@Operation(summary = "Get all groups with membership status for a user")
+    //@ApiResponses(value = {
+            //@ApiResponse(responseCode = "200", description = "Groups retrieved successfully")
+    //})
             @GetMapping
     public ResponseEntity<List<Map<String, Object>>> fetchAllGroups(
             @RequestParam int userId,
@@ -138,11 +138,11 @@ public class GroupController {
         return ResponseEntity.ok(result);
     }
 
-    @Operation(summary = "Get a single group by ID")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Group found"),
-            @ApiResponse(responseCode = "404", description = "Group not found")
-    })
+    //@Operation(summary = "Get a single group by ID")
+    //@ApiResponses(value = {
+            //@ApiResponse(responseCode = "200", description = "Group found"),
+            //@ApiResponse(responseCode = "404", description = "Group not found")
+    //})
     @GetMapping("/{groupId}")
     public ResponseEntity<Map<String, Object>> fetchGroupById(@PathVariable int groupId){
         Map<String, Object> result = new HashMap<>();
@@ -161,11 +161,11 @@ public class GroupController {
         }
     }
 
-    @Operation(summary = "Delete a group and all its memberships")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Group deleted successfully"),
-            @ApiResponse(responseCode = "404", description = "Group not found")
-    })
+    //@Operation(summary = "Delete a group and all its memberships")
+    //@ApiResponses(value = {
+            //@ApiResponse(responseCode = "200", description = "Group deleted successfully"),
+            //@ApiResponse(responseCode = "404", description = "Group not found")
+    //})
     @DeleteMapping("/{groupId}")
     public ResponseEntity<Map<String, String>> removeGroup(@PathVariable int groupId){
         Map<String, String> result = new HashMap<>();
@@ -183,12 +183,12 @@ public class GroupController {
         }
     }
 
-    @Operation(summary = "Join a group")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Joined group successfully"),
-            @ApiResponse(responseCode = "404", description = "Group or user not found"),
-            @ApiResponse(responseCode = "409", description = "User already a member")
-    })
+    //@Operation(summary = "Join a group")
+    //@ApiResponses(value = {
+            //@ApiResponse(responseCode = "201", description = "Joined group successfully"),
+            //@ApiResponse(responseCode = "404", description = "Group or user not found"),
+            //@ApiResponse(responseCode = "409", description = "User already a member")
+    //})
     @PostMapping("/{groupId}/join")
     public ResponseEntity<Map<String, Object>> joinGroup(@PathVariable int groupId, @RequestBody JoinRequest incoming){
         Map<String, Object> result = new HashMap<>();
@@ -227,11 +227,11 @@ public class GroupController {
     return ResponseEntity.status(HttpStatus.CREATED).body(result);
 }
 
-    @Operation(summary = "Leave a group")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Left group successfully"),
-            @ApiResponse(responseCode = "404", description = "User not a member of this group")
-    })
+    //@Operation(summary = "Leave a group")
+    //@ApiResponses(value = {
+            //@ApiResponse(responseCode = "200", description = "Left group successfully"),
+            //@ApiResponse(responseCode = "404", description = "User not a member of this group")
+    //})
 @DeleteMapping("/{groupId}/leave")
 public ResponseEntity<Map<String, String>> leaveGroup(@PathVariable int groupId, @RequestBody JoinRequest incoming){
     Map <String, String> result = new HashMap<>();
@@ -248,10 +248,10 @@ public ResponseEntity<Map<String, String>> leaveGroup(@PathVariable int groupId,
     }
     }
 
-    @Operation(summary = "Get all members of a group with their permissions")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Members retrieved successfully")
-    })
+    //@Operation(summary = "Get all members of a group with their permissions")
+    //@ApiResponses(value = {
+            //@ApiResponse(responseCode = "200", description = "Members retrieved successfully")
+    //})
     @GetMapping("/{groupId}/members")
 public ResponseEntity<List<Map<String, Object>>> fetchGroupMembers(@PathVariable int groupId){
     List<GroupMembership> membershipList = membershipRepo.findByGroupId(groupId);
@@ -277,11 +277,11 @@ public ResponseEntity<List<Map<String, Object>>> fetchGroupMembers(@PathVariable
     return ResponseEntity.ok(result);
 }
 
-    @Operation(summary = "Get a specific member in a group")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Member found"),
-            @ApiResponse(responseCode = "404", description = "Member not found in this group")
-    })
+    //@Operation(summary = "Get a specific member in a group")
+    //@ApiResponses(value = {
+            //@ApiResponse(responseCode = "200", description = "Member found"),
+            //@ApiResponse(responseCode = "404", description = "Member not found in this group")
+    //})
 @GetMapping("/{groupId}/members/{userId}")
 public ResponseEntity<Map<String, Object>> fetchMemberById(@PathVariable int groupId, @PathVariable int userId){
     Map<String, Object> result = new HashMap<>();
@@ -309,15 +309,14 @@ public ResponseEntity<Map<String, Object>> fetchMemberById(@PathVariable int gro
     }
     }
 
-    @Operation(summary = "Get chat history for a group ordered oldest to newest")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Messages retrieved successfully")
-    })
+    //@Operation(summary = "Get chat history for a group ordered oldest to newest")
+    //@ApiResponses(value = {
+            //@ApiResponse(responseCode = "200", description = "Messages retrieved successfully")
+    //})
     @GetMapping("/{groupId}/messages")
 public ResponseEntity<List<Map<String, Object>>> fetchGroupMessages(@PathVariable int groupId){
         List<Map<String, Object>> result = new ArrayList<>();
-        List<onetoone.Chat_Messages.Message> chatLog = messageRepo.findByGroupIdOrderByCreatedTimestampAsc(groupId);
-
+        List<onetoone.Chat_Messages.Message> chatLog = messageRepo.findByGroupRefOrderByCreatedTimestampAsc(groupId);
         for (onetoone.Chat_Messages.Message entry : chatLog) {
             Map<String, Object> messageData = new HashMap<>();
             messageData.put("id", entry.getId());
@@ -340,12 +339,12 @@ public ResponseEntity<List<Map<String, Object>>> fetchGroupMessages(@PathVariabl
 }
 
 
-    @Operation(summary = "Get all groups a user belongs to")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "User groups retrieved successfully")
-    })
-@GetMapping("/user/{userId}")
-public ResponseEntity<List<Map<String, Object>>> fetchUserGroups(@PathVariable int userId){
+    //@Operation(summary = "Get all groups a user belongs to")
+    //@ApiResponses(value = {
+            //@ApiResponse(responseCode = "200", description = "User groups retrieved successfully")
+    //})
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<Map<String, Object>>> fetchUserGroups(@PathVariable int userId){
     List<GroupMembership> membershipList = membershipRepo.findByUserId(userId);
     List<Map<String, Object>> result = new ArrayList<>();
 
@@ -364,12 +363,43 @@ public ResponseEntity<List<Map<String, Object>>> fetchUserGroups(@PathVariable i
     }
     return ResponseEntity.ok(result);
 }
+
+    @PutMapping("/{groupId}")
+    public ResponseEntity<Map<String, Object>> updateGroup(@PathVariable int groupId, @RequestBody GroupUpdateRequest incoming) {
+        Map<String, Object> result = new HashMap<>();
+
+        Group found = groupRepo.findById(groupId).orElse(null);
+        if (found == null) {
+            result.put("message", "Group not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
+        }
+
+        Optional<GroupMembership> requesterLookup = membershipRepo.findByGroupIdAndUserId(groupId, incoming.getRequestUserId());
+        if (requesterLookup.isEmpty() || !requesterLookup.get().getAccessLevel().equals("GROUP_LEADER")) {
+            result.put("message", "Only GROUP_LEADER can update the group");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(result);
+        }
+
+        found.setGroupTitle(incoming.getGroupName());
+        found.setGroupDetails(incoming.getGroupDescription());
+        found.setGroupType(incoming.getGroupType());
+        groupRepo.save(found);
+
+        result.put("groupId", found.getGroupId());
+        result.put("requestUserId", incoming.getRequestUserId());
+        result.put("groupName", found.getGroupTitle());
+        result.put("groupDescription", found.getGroupDetails());
+        result.put("groupType", found.getGroupType());
+        return ResponseEntity.ok(result);
+    }
+
+
 }
 
 /**
  * Request body to create a group
  */
-class GroupRequest {
+    class GroupRequest {
 
     private String groupTitle;
     private String groupType;
@@ -422,6 +452,7 @@ class GroupRequest {
     /**
      * Request body for leaving or joining a group
      */
+
     class JoinRequest {
         private int userId;
 
@@ -434,4 +465,40 @@ class GroupRequest {
         public void setUserId(int userId) {
             this.userId = userId; }
     }
+
+/**
+ * Request body for updating a group
+ */
+    class GroupUpdateRequest {
+    private int groupId;
+    private int requestUserId;
+    private String groupName;
+    private String groupDescription;
+    private String groupType;
+
+    public int getGroupId() {
+        return groupId; }
+    public void setGroupId(int groupId) {
+        this.groupId = groupId; }
+
+    public int getRequestUserId() {
+        return requestUserId; }
+    public void setRequestUserId(int requestUserId) {
+        this.requestUserId = requestUserId; }
+
+    public String getGroupName() {
+        return groupName; }
+    public void setGroupName(String groupName) {
+        this.groupName = groupName; }
+
+    public String getGroupDescription() {
+        return groupDescription; }
+    public void setGroupDescription(String groupDescription) {
+        this.groupDescription = groupDescription; }
+
+    public String getGroupType() {
+        return groupType; }
+    public void setGroupType(String groupType) {
+        this.groupType = groupType; }
+}
 

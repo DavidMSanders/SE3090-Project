@@ -87,6 +87,14 @@ public class Message {
         this.originatorId = originatorId;
     }
 
+    public Integer getGroupId() {
+        return groupRef;
+    }
+
+    public void setGroupId(Integer groupRef) {
+        this.groupRef = groupRef;
+    }
+
     public Integer getTargetUserId(){
 
         return targetUserId;
@@ -98,6 +106,7 @@ public class Message {
     }
 
     public String getTextBody(){
+
         return textBody;
     }
 
@@ -144,6 +153,12 @@ public class Message {
 
         this.editTimestamp = editTimestamp;
     }
+
+    public String getMessageType() {
+        return msgCategory; }
+
+    public void setMessageType(String msgCategory) {
+        this.msgCategory = msgCategory; }
 
     @Override
     public String toString(){

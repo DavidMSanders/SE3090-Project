@@ -31,6 +31,7 @@ class Main {
         System.out.println("Delete (by ID): DELETE /api/v1/users/{id}");
         System.out.println("==============================================");
         System.out.println("Testing");
+        System.out.print("Websocket");
 
 
     }

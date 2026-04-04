@@ -13,9 +13,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
+//import io.swagger.v3.oas.annotations.Operation;
+//import io.swagger.v3.oas.annotations.responses.ApiResponse;
+//import io.swagger.v3.oas.annotations.responses.ApiResponses;
 
 
 @RestController
@@ -38,7 +38,7 @@ public class MessageController {
         List<Map<String, Object>> result  = new ArrayList<>();
 
 
-        List<Message> msgHistory = msgRepo.findByGroupIdOrderByCreatedTimestampAsc(groupId);
+        List<Message> msgHistory = msgRepo.findByGroupRefOrderByCreatedTimestampAsc(groupId);
 
         for(Message entry : msgHistory){
             Map<String, Object> msgData = new HashMap<>();

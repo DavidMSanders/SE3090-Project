@@ -16,8 +16,9 @@ public interface MessageRepository extends JpaRepository<Message, Long>{
     List<Message> fetchConversation(@Param("firstPerson") Integer firstPerson, @Param("secondPerson") Integer secondPerson);
     List <Message> findByOriginatorIdAndActiveFlagTrueOrderByCreatedTimestampDesc(Integer originatorId);
     List <Message> findByTargetUserIdAndActiveFlagTrueOrderByCreatedTimestampDesc(Integer targetUserId);
-    List<Message> findByGroupIdOrderByCreatedTimestampAsc(Integer groupId);
-    List<Message> findByGroupId(Integer groupId);
+
+    List<Message> findByGroupRefOrderByCreatedTimestampAsc(Integer groupRef);
+    List<Message> findByGroupRef(Integer groupRef);
 
 
     @Query("SELECT m FROM Message m WHERE " + "(m.originatorId = :personId OR m.targetUserId = :personId) " +
@@ -35,6 +36,9 @@ public interface MessageRepository extends JpaRepository<Message, Long>{
             "AND m.textBody LIKE %:queryText% " + "AND m.activeFlag = true " +
       "ORDER BY m.createdTimestamp DESC")
     List <Message> searchMessageText(@Param("personId") Integer personId, @Param("queryText") String queryText);
+
+
+
 
 
 }

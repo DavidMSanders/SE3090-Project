@@ -45,17 +45,23 @@ public class Group {
         return groupType;
     }
 
+
+
+    public void setGroupType(String groupType) { this.groupType = groupType; }
+
+
     public void setGroupTitle(String groupTitle) {
         this.groupTitle = groupTitle;
     }
 
-    public String getGroupDetails() {
-        return getGroupDetails();
-    }
+    public String getGroupTitle() { return groupTitle; }
 
-    public void setGroupDetails(String groupDetails) {
-        this.groupDetails = groupDetails;
-    }
+
+    public String getGroupDetails() { return groupDetails; }
+
+    public void setGroupDetails(String groupDetails) { this.groupDetails = groupDetails; }
+
+
 
     @Override
     public String toString() {
