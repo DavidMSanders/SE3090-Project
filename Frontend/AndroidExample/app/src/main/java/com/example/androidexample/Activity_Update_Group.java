@@ -30,7 +30,7 @@ public class Activity_Update_Group extends AppCompatActivity {
     private int currentUserId;
 
     private static final String BASE_URL =
-            "https://18366156-06c4-4fa7-b2cb-53279f7fd5ad.mock.pstmn.io";
+            "http://coms-3090-035.class.las.iastate.edu:8080";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -103,7 +103,7 @@ public class Activity_Update_Group extends AppCompatActivity {
                 url,
                 body,
                 response -> {
-                    //tvUpdateGroupResult.setText(response.toString());
+                    tvUpdateGroupResult.setText(response.toString());
                     Toast.makeText(
                             Activity_Update_Group.this,
                             "Group updated successfully",
@@ -111,7 +111,7 @@ public class Activity_Update_Group extends AppCompatActivity {
                     ).show();
                 },
                 error -> {
-                    //tvUpdateGroupResult.setText("Update failed");
+                    tvUpdateGroupResult.setText(error.toString());
                     Toast.makeText(
                             Activity_Update_Group.this,
                             "Failed to update group",

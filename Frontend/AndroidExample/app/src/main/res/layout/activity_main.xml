@@ -14,7 +14,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="252dp"
+        android:layout_marginTop="212dp"
         android:text="Not logged in"
         android:textSize="18sp"
         android:textStyle="bold"
@@ -28,18 +28,28 @@
         android:text="Logout"
         app:layout_constraintTop_toBottomOf="@id/tvCurrentUser"
         app:layout_constraintStart_toStartOf="parent"
-        android:layout_marginTop="8dp"/>
-
+        android:layout_marginBottom="4dp"/>
+    <Button
+        android:id="@+id/btnTestingPage"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Testing Page"
+        android:layout_marginBottom="4dp"
+        app:layout_constraintBottom_toTopOf = "@id/btnGroupList"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
 
     <Button
         android:id="@+id/btnGroupList"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="Group List"
         android:layout_marginBottom="8dp"
+        android:text="Group List"
         app:layout_constraintBottom_toTopOf="@id/WorkoutList"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent" />
+
     <Button
         android:id="@+id/WorkoutList"
         android:layout_width="0dp"

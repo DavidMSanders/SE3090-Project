@@ -5,15 +5,15 @@ import org.json.JSONObject;
 
 public class SendMessageRequest {
 
-    private final int originatorId;
+    //private final int originatorId;
     private final int groupId;
     private final String messageType;
     private final Integer targetUserId;
     private final String textBody;
-
-    public SendMessageRequest(int originatorId, int groupId, String messageType,
+    //no originatorId
+    public SendMessageRequest( int groupId, String messageType,
                               Integer targetUserId, String textBody) {
-        this.originatorId = originatorId;
+        //this.originatorId = originatorId;
         this.groupId = groupId;
         this.messageType = messageType;
         this.targetUserId = targetUserId;
@@ -24,7 +24,7 @@ public class SendMessageRequest {
         JSONObject json = new JSONObject();
 
         try {
-            json.put("originatorId", originatorId);
+            //json.put("originatorId", originatorId);
             json.put("groupId", groupId);
             json.put("messageType", messageType);
 

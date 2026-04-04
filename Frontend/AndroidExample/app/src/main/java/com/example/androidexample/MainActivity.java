@@ -81,6 +81,13 @@ public class MainActivity extends AppCompatActivity {
 
         btnGroupList = findViewById(R.id.btnGroupList);
 
+        Button btnTestingPage = findViewById(R.id.btnTestingPage);
+
+        btnTestingPage.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, TestingActivity.class);
+            startActivity(intent);
+        });
+
         btnGroupList.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, GroupListActivity.class);
             startActivity(intent);

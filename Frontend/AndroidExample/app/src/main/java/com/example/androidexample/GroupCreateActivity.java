@@ -21,7 +21,7 @@ public class GroupCreateActivity extends AppCompatActivity {
     private Button btnBackFromCreateGroup;
 
     private static final String BASE_URL =
-            "https://18366156-06c4-4fa7-b2cb-53279f7fd5ad.mock.pstmn.io";
+            "http://coms-3090-035.class.las.iastate.edu:8080";
     private static final String GROUP_TYPE = "Trainer Group";
 
     @Override
@@ -70,10 +70,10 @@ public class GroupCreateActivity extends AppCompatActivity {
         JSONObject body = new JSONObject();
 
         try{
-            body.put("createdByUserId", userId);
-            body.put("groupName", groupName);
+            body.put("creatorId", userId);
+            body.put("groupTitle", groupName);
             body.put("groupType", "Trainer Group");
-            body.put("groupDescription", groupDescription);
+            body.put("groupDetails", groupDescription);
         } catch (Exception e){
             Toast.makeText(this, "JSON error: " + e.getMessage(), Toast.LENGTH_LONG).show();
             return;

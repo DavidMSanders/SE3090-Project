@@ -27,7 +27,7 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHol
     private final List<Group> groupList;
 
     private static final String Base_URL =
-            "https://18366156-06c4-4fa7-b2cb-53279f7fd5ad.mock.pstmn.io";
+            "http://coms-3090-035.class.las.iastate.edu:8080";
 
     public GroupAdapter(Context context, List<Group> groupList){
         this.context = context;

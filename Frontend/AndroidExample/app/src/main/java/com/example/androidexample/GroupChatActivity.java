@@ -69,7 +69,7 @@ public class GroupChatActivity extends AppCompatActivity {
     private Integer pendingTargetUserId = null;
 
 
-    private static final String BASE_URL = "https://18366156-06c4-4fa7-b2cb-53279f7fd5ad.mock.pstmn.io";
+    private static final String BASE_URL = "http://coms-3090-035.class.las.iastate.edu:8080";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -173,7 +173,7 @@ public class GroupChatActivity extends AppCompatActivity {
     }
     private void loadInitialMessages() {
 
-            String url = BASE_URL + "/messages/group/" + currentGroupId;
+            String url = BASE_URL + "/api/v1/messages/group/" + currentGroupId;
 
             JsonArrayRequest request = new JsonArrayRequest(
                     Request.Method.GET,
@@ -215,7 +215,7 @@ public class GroupChatActivity extends AppCompatActivity {
     private void setupWebSocket() {
         chatWebSocketManager = new ChatWebSocketManager();
 
-        chatWebSocketManager.connect(currentUsername, new ChatWebSocketManager.SocketConnectListener() {
+        chatWebSocketManager.connect(currentUserId, new ChatWebSocketManager.SocketConnectListener() {
             @Override
             public void onConnected() {
                 chatWebSocketManager.setGroupEventListener(currentGroupId, new ChatWebSocketManager.GroupEventListener() {
@@ -309,7 +309,6 @@ public class GroupChatActivity extends AppCompatActivity {
             String messageType = resolveOutgoingMessageType();
 
             SendMessageRequest request = new SendMessageRequest(
-                    currentUserId,
                     currentGroupId,
                     messageType,
                     sendAsDirect ? pendingTargetUserId:null,
@@ -367,7 +366,7 @@ public class GroupChatActivity extends AppCompatActivity {
     }
 
     private void fetchMembershipAndInit() {
-        String url = BASE_URL + "/groups/" + currentGroupId + "/members/" + currentUserId;
+        String url = BASE_URL + "/api/v1/groupMemberships/user/" + currentUserId + "/group/" + currentGroupId;
 
         JsonObjectRequest request = new JsonObjectRequest(
                 Request.Method.GET,
@@ -504,7 +503,7 @@ public class GroupChatActivity extends AppCompatActivity {
     }
 
     private void fetchTargetMembershipAndShowDialog(Message message) {
-        String url = BASE_URL + "/groups/" + currentGroupId + "/members/" + message.getOriginatorId();
+        String url = BASE_URL + "/api/v1/groupMemberships/user/" + message.getOriginatorId() + "/group/" +currentGroupId ;
 
         JsonObjectRequest request = new JsonObjectRequest(
                 Request.Method.GET,

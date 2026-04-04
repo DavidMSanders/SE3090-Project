@@ -27,9 +27,9 @@ public class ChatWebSocketManager {
         void onEventReceived(ChatSocketEvent event);
     }
 
-    public void connect(String username, SocketConnectListener listener) {
+    public void connect(int userId, SocketConnectListener listener) {
 
-        String url = "ws://10.0.2.2:8080/chat/" + username;
+        String url = "ws://coms-3090-035.class.las.iastate.edu:8080/chat/" + userId;
 
         Request request = new Request.Builder().url(url).build();
 
@@ -79,6 +79,7 @@ public class ChatWebSocketManager {
     public void disconnect() {
         if (webSocket != null) {
             webSocket.close(1000, "Closed");
+            webSocket = null; //clear after dc
         }
     }
 }
