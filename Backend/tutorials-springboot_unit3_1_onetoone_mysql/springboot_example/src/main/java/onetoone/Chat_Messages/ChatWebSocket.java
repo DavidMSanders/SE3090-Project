@@ -1,12 +1,10 @@
 package onetoone.Chat_Messages;
 
-import com.mysql.cj.PreparedQuery;
 import jakarta.websocket.*;
 import jakarta.websocket.server.ServerEndpoint;
 import jakarta.websocket.server.PathParam;
 
 
-import onetoone.Groups.GroupMembershipController;
 import onetoone.Groups.GroupRepository;
 import onetoone.Users.UserRepository;
 import onetoone.Users.User;
@@ -39,7 +37,7 @@ import java.time.format.DateTimeFormatter;
 public class ChatWebSocket {
     private static MessageRepository messageStore;
     private static UserRepository accountStore;
-    private static GroupRepository groupAccessRepo;
+    private static GroupMembershipRepository groupAccessRepo;
     private static Map<String, Session> liveConnections = new ConcurrentHashMap<>();
     private static Map<Session, String> sessionToUsername = new ConcurrentHashMap<>();
     private static Map<Session, Integer> sessionToUserId = new ConcurrentHashMap<>();
@@ -103,37 +101,44 @@ public class ChatWebSocket {
         }
 
         log.info("Message from {}: {}", authorName, incomingText);
-        switch (eventType) {
-            case "SEND":
-                processChatMessage(clientSession, authorId, authorName, payload);
-                break;
-            case "EDIT":
-                processMessageEdit(clientSession, authorId, payload);
-                break;
-            case "DELETE":
-                processMessageRemoval(clientSession, authorId, payload);
-                break;
-            case "UPDATE_PERMISSIONS":
-                processAccessChange(clientSession, authorId, authorName, payload);
-                break;
-            case "REMOVE_MEMBER":
-                processGroupKick(clientSession, authorId, authorName, payload);
-                break;
-            case "LEAVE":
-                processGroupExit(clientSession, authorId, authorName, payload);
-                break;
-            case "JOIN":
-                processGroupEntry(clientSession, authorId, authorName, payload);
-                break;
-            default:
-                if (incomingText.startsWith("@")) {
-                    processDirectMessage(clientSession, authorId,
-                            authorName, incomingText);
-                } else {
-                    processStaffBroadcast(clientSession, authorId,
-                            authorName, incomingText);
-                }
-        } catch(Exception e){
+
+        try {
+            JsonNode payload = payloadParser.readTree(incomingText);
+            String eventType = payload.has("eventType") ? payload.get("eventType").asText() : "";
+
+
+            switch (eventType) {
+                case "SEND":
+                    processChatMessage(clientSession, authorId, authorName, payload);
+                    break;
+                case "EDIT":
+                    processMessageEdit(clientSession, authorId, payload);
+                    break;
+                case "DELETE":
+                    processMessageRemoval(clientSession, authorId, payload);
+                    break;
+                case "UPDATE_PERMISSIONS":
+                    processAccessChange(clientSession, authorId, authorName, payload);
+                    break;
+                case "REMOVE_MEMBER":
+                    processGroupKick(clientSession, authorId, authorName, payload);
+                    break;
+                case "LEAVE":
+                    processGroupExit(clientSession, authorId, authorName, payload);
+                    break;
+                case "JOIN":
+                    processGroupEntry(clientSession, authorId, authorName, payload);
+                    break;
+                default:
+                    if (incomingText.startsWith("@")) {
+                        processDirectMessage(clientSession, authorId,
+                                authorName, incomingText);
+                    } else {
+                        processStaffBroadcast(clientSession, authorId,
+                                authorName, incomingText);
+                    }
+            }
+        } catch (Exception e) {
             if (incomingText.startsWith("@")) {
                 processDirectMessage(clientSession, authorId, authorName, incomingText);
             } else {
@@ -142,26 +147,29 @@ public class ChatWebSocket {
         }
     }
 
-        @OnClose
+
+    @OnClose
     public void handleClose(Session clientSession) throws IOException {
-            String username = sessionToUsername.get(clientSession);
-            Integer userId = sessionToUserId.get(clientSession);
+        String username = sessionToUsername.get(clientSession);
+        Integer userId = sessionToUserId.get(clientSession);
 
-            if (username != null) {
-                liveConnections.remove(username);
-                sessionToUsername.remove(clientSession);
-                sessionToUserId.remove(clientSession);
-                log.info("User disconnected: {} (ID: {})", username, userId);
+        if (username != null) {
+            liveConnections.remove(username);
+            sessionToUsername.remove(clientSession);
+            sessionToUserId.remove(clientSession);
+            log.info("User disconnected: {} (ID: {})", username, userId);
 
-                String departureAlert = username + " left the chat";
-                notifyStaffMembers(departureAlert, userId);
-            }
+            String departureAlert = username + " left the chat";
+            notifyStaffMembers(departureAlert, userId);
         }
-        @OnError
+    }
+
+    @OnError
     public void handleError(Session clientSession, Throwable error) {
-            log.error("WebSocket error", error);
-        }
-        private void processDirectMessage(Session originatorSession, Integer originatorId, String originatorName, String fullText){
+        log.error("WebSocket error", error);
+    }
+
+    private void processDirectMessage(Session originatorSession, Integer originatorId, String originatorName, String fullText) {
         try {
             String[] components = fullText.substring(1).split(" ", 2);
             if (components.length < 2) {
@@ -196,29 +204,29 @@ public class ChatWebSocket {
             log.error("Error in private message", error);
             transmitSystemAlert(originatorSession, "Error sending message");
         }
-        }
+    }
 
-        private void processStaffBroadcast(Session originatorSession, Integer originatorId, String originatorName, String messagePayload) {
-            String broadcastText = "[BROADCAST] " + composeTimestampedMessage(originatorName, messagePayload, LocalDateTime.now());
-            notifyStaffMembers(broadcastText, originatorId);
-            transmitSystemAlert(originatorSession, "Broadcast sent to all staff");
-        }
+    private void processStaffBroadcast(Session originatorSession, Integer originatorId, String originatorName, String messagePayload) {
+        String broadcastText = "[BROADCAST] " + composeTimestampedMessage(originatorName, messagePayload, LocalDateTime.now());
+        notifyStaffMembers(broadcastText, originatorId);
+        transmitSystemAlert(originatorSession, "Broadcast sent to all staff");
+    }
 
-        private void transmitToSession(Session destination, String messageText){
-        if(destination != null && destination.isOpen()){
+    private void transmitToSession(Session destination, String messageText) {
+        if (destination != null && destination.isOpen()) {
             try {
                 destination.getBasicRemote().sendText(messageText);
             } catch (IOException error) {
                 log.error("Error sending to session", error);
-                }
             }
         }
+    }
 
-        private void transmitSystemAlert(Session destination, String alertText) {
-            transmitToSession(destination, "[SYSTEM] " + alertText);
-        }
+    private void transmitSystemAlert(Session destination, String alertText) {
+        transmitToSession(destination, "[SYSTEM] " + alertText);
+    }
 
-        private void notifyStaffMembers(String notification, Integer excludedId){
+    private void notifyStaffMembers(String notification, Integer excludedId) {
         sessionToUserId.forEach((connection, accountId) -> {
             if (accountId.equals(excludedId)) {
                 return;
@@ -236,28 +244,28 @@ public class ChatWebSocket {
 
         });
 
-        }
+    }
 
-        private void alertStaffOfPrivateChat(Integer originatorId, Integer destinationId, String originatorName, String destinationName,
-                                              String messageDisplay){
+    private void alertStaffOfPrivateChat(Integer originatorId, Integer destinationId, String originatorName, String destinationName,
+                                         String messageDisplay) {
         sessionToUserId.forEach((connection, accountId) -> {
-            if(accountId.equals(originatorId) || accountId.equals(destinationId)){
+            if (accountId.equals(originatorId) || accountId.equals(destinationId)) {
                 return;
             }
             Optional<User> accountQuery = accountStore.findById(accountId);
-            if (accountQuery.isPresent()){
+            if (accountQuery.isPresent()) {
                 User account = accountQuery.get();
                 String accountRole = account.getRole();
 
-                if(accountRole.equals("Trainer") || accountRole.equals("Manager") || accountRole.equals("Admin")){
+                if (accountRole.equals("Trainer") || accountRole.equals("Manager") || accountRole.equals("Admin")) {
                     String monitorNotice = String.format("[MONITOR] %s -> %s: %s", originatorName, destinationName, messageDisplay);
                     transmitToSession(connection, monitorNotice);
                 }
             }
         });
-        }
+    }
 
-        private void loadMessageHistory(Session destination, Integer accountId){
+    private void loadMessageHistory(Session destination, Integer accountId) {
         try {
             List<Message> historicalMessages = messageStore.retrieveAllMessagesForUser(accountId);
 
@@ -283,62 +291,55 @@ public class ChatWebSocket {
         } catch (Exception error) {
             log.error("Error sending history", error);
         }
-        }
+    }
 
-        private String composeTimestampedMessage(String authorName, String bodyText, LocalDateTime timestamp){
+    private String composeTimestampedMessage(String authorName, String bodyText, LocalDateTime timestamp) {
         DateTimeFormatter timeFormat = DateTimeFormatter.ofPattern("HH:mm:ss");
         return String.format("[%s] %s: %s", timestamp.format(timeFormat), authorName, bodyText);
 
 
-
-
-
-
-
     }
 
-}
+    private void processChatMessage(Session originatorSession, Integer originatorId, String originatorName, JsonNode payload) {
+        try {
+            int groupId = payload.get("groupId").asInt();
+            String textBody = payload.get("textBody").asText();
+            String messageType = payload.has("messageType") ? payload.get("messageType").asText() : "NORMAL";
+            Integer targetUserId = payload.has("targetUserId") && !payload.get("targetUserId").isNull() ? payload.get("targetUserId").asInt() : null;
 
-        private void processChatMessage(Session originatorSession, Integer originatorId, String originatorName, JsonNode payload){
-         try {
-         int groupId = payload.get("groupId").asInt();
-        String textBody = payload.get("textBody").asText();
-        String messageType = payload.has("messageType") ? payload.get("messageType").asText() : "NORMAL";
-        Integer targetUserId = payload.has("targetUserId") && !payload.get("targetUserId").isNull() ? payload.get("targetUserId").asInt() : null;
+            Optional<GroupMembership> membershipQuery = groupAccessRepo.findByGroupIdAndUserId(groupId, originatorId);
 
-        Optional<GroupMembership> membershipQuery = groupAccessRepo.findByGroupIdAndUserId(groupId, originatorId);
+            if (membershipQuery.isEmpty()) {
+                transmitSystemAlert(originatorSession, "You are not a member of this group");
+                return;
+            }
 
-        if (membershipQuery.isEmpty()) {
-            transmitSystemAlert(originatorSession, "You are not a member of this group");
-            return;
+            if (!membershipQuery.get().isChatEnabled()) {
+                transmitSystemAlert(originatorSession, "MESSAGE_REJECTED: You do not have permission to send messages");
+                return;
+            }
+            Message newMessage = new Message(originatorId, targetUserId, textBody);
+            newMessage.setGroupId(groupId);
+            newMessage.setMessageType(messageType);
+            messageStore.save(newMessage);
+
+            String outgoing = formatMessageEvent(
+                    "MESSAGE_CREATED", newMessage, originatorName);
+            distributeToGroup(groupId, outgoing, null);
+
+            log.info("Message sent by {} to group {}", originatorName, groupId);
+        } catch (Exception error) {
+            log.error("Error sending message", error);
+            transmitSystemAlert(originatorSession, "Error sending message");
+
         }
-
-        if (!membershipQuery.get().isChatEnabled()) {
-            transmitSystemAlert(originatorSession, "MESSAGE_REJECTED: You do not have permission to send messages");
-            return;
     }
-        Message newMessage = new Message(originatorId, targetUserId, textBody);
-        newMessage.setGroupId(groupId);
-        newMessage.setMessageType(messageType);
-        messageStore.save(newMessage);
 
-        String outgoing = formatMessageEvent(
-                "MESSAGE_CREATED", newMessage, originatorName);
-        distributeToGroup(groupId, outgoing, null);
-
-        log.info("Message sent by {} to group {}", originatorName, groupId);
-    } catch (Exception error) {
-        log.error("Error sending message", error);
-        transmitSystemAlert(originatorSession, "Error sending message");
-
-    }
-}
-
-/**
- * Handles editing an existing message
- * Only the original sender can edit their message
- */
-        private void processMessageEdit(Session originatorSession, Integer originatorId, JsonNode payload){
+    /**
+     * Handles editing an existing message
+     * Only the original sender can edit their message
+     */
+    private void processMessageEdit(Session originatorSession, Integer originatorId, JsonNode payload) {
         try {
             long messageId = payload.get("messageId").asLong();
             String updatedText = payload.get("newTextBody").asText();
@@ -369,74 +370,241 @@ public class ChatWebSocket {
             log.error("Error editing message", error);
             transmitSystemAlert(originatorSession, "Error editing message");
         }
+    }
 
-        /**
-         * Handles updating a member's permissions in real time
-         * Only GROUP_LEADER or ADMIN can update permissions
-         */
+    /**
+     * Handles updating a member's permissions in real time
+     * Only GROUP_LEADER or ADMIN can update permissions
+     */
 
-        private void processAccessChange(Session originatorSession, Integer originatorId, String originatorName, JsonNode payload){
-            try {
-                int groupId = payload.get("groupId").asInt();
-                int targetUserId = payload.get("targetUserId").asInt();
+    private void processAccessChange(Session originatorSession, Integer originatorId, String originatorName, JsonNode payload) {
+        try {
+            int groupId = payload.get("groupId").asInt();
+            int targetUserId = payload.get("targetUserId").asInt();
 
-                Optional<GroupMembership> requesterQuery = groupAccessRepo.findByGroupIdAndUserId(groupId, originatorId);
-                if (requesterQuery.isEmpty() || !requesterQuery.get().isManageEnabled()) {
-                    transmitSystemAlert(originatorSession, "You do not have permission to update permissions");
-                    return;
-                }
+            Optional<GroupMembership> requesterQuery = groupAccessRepo.findByGroupIdAndUserId(groupId, originatorId);
+            if (requesterQuery.isEmpty() || !requesterQuery.get().isManageEnabled()) {
+                transmitSystemAlert(originatorSession, "You do not have permission to update permissions");
+                return;
+            }
 
-                Optional<GroupMembership> targetQuery = groupAccessRepo.findByGroupIdAndUserId(groupId, targetUserId);
-                if (targetQuery.isEmpty()) {
-                    transmitSystemAlert(originatorSession, "Target user is not a member of this group");
-                    return;
-                }
+            Optional<GroupMembership> targetQuery = groupAccessRepo.findByGroupIdAndUserId(groupId, targetUserId);
+            if (targetQuery.isEmpty()) {
+                transmitSystemAlert(originatorSession, "Target user is not a member of this group");
+                return;
+            }
 
-                GroupMembership target = targetQuery.get();
-                if (target.getAccessLevel().equals("GROUP_LEADER") || target.getAccessLevel().equals("ADMIN")) {
-                    transmitSystemAlert(originatorSession, "Cannot change GROUP_LEADER or ADMIN permissions");
-                    return;
-                }
+            GroupMembership target = targetQuery.get();
+            if (target.getAccessLevel().equals("GROUP_LEADER") || target.getAccessLevel().equals("ADMIN")) {
+                transmitSystemAlert(originatorSession, "Cannot change GROUP_LEADER or ADMIN permissions");
+                return;
+            }
 
-                target.setAccessLevel(payload.get("membershipRole").asText());
-                target.setChatEnabled(payload.get("canSendMessages").asBoolean());
-                target.setManageEnabled(payload.get("canManageMembers").asBoolean());
-                target.setAnnounceEnabled(payload.get("canPostAnnouncements").asBoolean());
-                target.setWorkoutEnabled(payload.get("canAssignWorkouts").asBoolean());
-                groupAccessRepo.save(target);
+            target.setAccessLevel(payload.get("membershipRole").asText());
+            target.setChatEnabled(payload.get("canSendMessages").asBoolean());
+            target.setManageEnabled(payload.get("canManageMembers").asBoolean());
+            target.setAnnounceEnabled(payload.get("canPostAnnouncements").asBoolean());
+            target.setWorkoutEnabled(payload.get("canAssignWorkouts").asBoolean());
+            groupAccessRepo.save(target);
 
-                Optional<User> targetAccount = accountStore.findById(targetUserId);
-                String targetName = targetAccount.map(User::getAccountName).orElse("Unknown");
+            Optional<User> targetAccount = accountStore.findById(targetUserId);
+            String targetName = targetAccount.map(User::getAccountName).orElse("Unknown");
 
-                String outgoing = "{\"eventType\":\"GROUP_PERMISSION_UPDATED\"," +
-                        "\"groupId\":" + groupId + "," +
-                        "\"targetUserId\":" + targetUserId + "," +
-                        "\"username\":\"" + targetName + "\"," +
-                        "\"membershipRole\":\"" + target.getAccessLevel() + "\"," +
-                        "\"canSendMessages\":" + target.isChatEnabled() + "," +
-                        "\"canManageMembers\":" + target.isManageEnabled() + "," +
-                        "\"canPostAnnouncements\":" + target.isAnnounceEnabled() + "," +
-                        "\"canAssignWorkouts\":" + target.isWorkoutEnabled() + "," +
-                        "\"changedByUserId\":" + originatorId + "," +
-                        "\"changedByUsername\":\"" + originatorName + "\"}";
+            String outgoing = "{\"eventType\":\"GROUP_PERMISSION_UPDATED\"," +
+                    "\"groupId\":" + groupId + "," +
+                    "\"targetUserId\":" + targetUserId + "," +
+                    "\"username\":\"" + targetName + "\"," +
+                    "\"membershipRole\":\"" + target.getAccessLevel() + "\"," +
+                    "\"canSendMessages\":" + target.isChatEnabled() + "," +
+                    "\"canManageMembers\":" + target.isManageEnabled() + "," +
+                    "\"canPostAnnouncements\":" + target.isAnnounceEnabled() + "," +
+                    "\"canAssignWorkouts\":" + target.isWorkoutEnabled() + "," +
+                    "\"changedByUserId\":" + originatorId + "," +
+                    "\"changedByUsername\":\"" + originatorName + "\"}";
 
-                distributeToGroup(groupId, outgoing, null);
-                log.info("Permission updated for user {} in group {}", targetUserId, groupId);
-            } catch (Exception eror){
-                log.error("Error updating permissions", error);
-                transmitSystemAlert(originatorSession, "Error updating permissions");
-                }
-                }
-
-            /**
-             *
-             * Handles removing a member from a group in real time
-             * Only GROUP_LEADER or ADMIN can remove members
-             */
-
-            private void processGroupKick(Session originatorSession, Integer originatorid, )
-
+            distributeToGroup(groupId, outgoing, null);
+            log.info("Permission updated for user {} in group {}", targetUserId, groupId);
+        } catch (Exception error) {
+            log.error("Error updating permissions", error);
+            transmitSystemAlert(originatorSession, "Error updating permissions");
         }
+    }
+
+    /**
+     *
+     * Handles removing a member from a group in real time
+     * Only GROUP_LEADER or ADMIN can remove members
+     */
+
+    private void processGroupKick(Session originatorSession, Integer originatorId, String originatorName, JsonNode payload) {
+        try {
+            int groupRef = payload.get("groupId").asInt();
+            int kickedUserId = payload.get("targetUserId").asInt();
+
+            Optional<GroupMembership> requesterLookup = groupAccessRepo
+                    .findByGroupIdAndUserId(groupRef, originatorId);
+            if (requesterLookup.isEmpty() ||
+                    !requesterLookup.get().isManageEnabled()) {
+                transmitSystemAlert(originatorSession,
+                        "You do not have permission to remove members");
+                return;
+            }
+
+            Optional<GroupMembership> kickedLookup = groupAccessRepo
+                    .findByGroupIdAndUserId(groupRef, kickedUserId);
+            if (kickedLookup.isEmpty()) {
+                transmitSystemAlert(originatorSession,
+                        "Target user is not a member of this group");
+                return;
+            }
+
+            Optional<User> kickedAccount = accountStore.findById(kickedUserId);
+            String kickedName = kickedAccount.map(User::getAccountName).orElse("Unknown");
+
+            groupAccessRepo.delete(kickedLookup.get());
+
+            String outgoing = "{\"eventType\":\"GROUP_MEMBER_REMOVED\"," +
+                    "\"groupId\":" + groupRef + "," +
+                    "\"targetUserId\":" + kickedUserId + "," +
+                    "\"targetUsername\":\"" + kickedName + "\"," +
+                    "\"removedByUserId\":" + originatorId + "," +
+                    "\"removedByUsername\":\"" + originatorName + "\"}";
+
+            distributeToGroup(groupRef, outgoing, null);
+            log.info("User {} removed from group {} by {}",
+                    kickedUserId, groupRef, originatorId);
+        } catch (Exception error) {
+            log.error("Error removing member", error);
+            transmitSystemAlert(originatorSession, "Error removing member");
+        }
+    }
+
+    private void processMessageRemoval(Session originatorSession, Integer originatorId, JsonNode payload) {
+        try {
+            long msgId = payload.get("messageId").asLong();
+
+            Message located = messageStore.findById(msgId).orElse(null);
+            if (located == null) {
+                transmitSystemAlert(originatorSession, "Message not found");
+                return;
+            }
+
+            if (located.getOriginatorId() != originatorId) {
+                transmitSystemAlert(originatorSession,
+                        "You can only delete your own messages");
+                return;
+            }
+
+            int groupRef = located.getGroupId();
+            messageStore.delete(located);
+
+            String outgoing = "{\"eventType\":\"MESSAGE_DELETED\"," +
+                    "\"messageId\":" + msgId + "," +
+                    "\"groupId\":" + groupRef + "}";
+            distributeToGroup(groupRef, outgoing, null);
+
+            log.info("Message {} deleted by {}", msgId, originatorId);
+        } catch (Exception error) {
+            log.error("Error deleting message", error);
+            transmitSystemAlert(originatorSession, "Error deleting message");
+        }
+    }
+
+
+    private void processGroupExit(Session originatorSession, Integer originatorId, String originatorName, JsonNode payload) {
+        try {
+            int groupRef = payload.get("groupId").asInt();
+
+            Optional<GroupMembership> memberLookup = groupAccessRepo
+                    .findByGroupIdAndUserId(groupRef, originatorId);
+
+            if (memberLookup.isEmpty()) {
+                transmitSystemAlert(originatorSession,
+                        "You are not a member of this group");
+                return;
+            }
+
+            groupAccessRepo.delete(memberLookup.get());
+
+            String outgoing = "{\"eventType\":\"GROUP_MEMBER_LEFT\"," +
+                    "\"groupId\":" + groupRef + "," +
+                    "\"userId\":" + originatorId + "," +
+                    "\"username\":\"" + originatorName + "\"}";
+
+            distributeToGroup(groupRef, outgoing, null);
+            log.info("User {} left group {}", originatorId, groupRef);
+        } catch (Exception error) {
+            log.error("Error leaving group", error);
+            transmitSystemAlert(originatorSession, "Error leaving group");
+        }
+    }
+
+    private void processGroupEntry(Session originatorSession, Integer originatorId, String originatorName, JsonNode payload) {
+        try {
+            int groupRef = payload.get("groupId").asInt();
+
+            if (groupAccessRepo.existsByGroupIdAndUserId(groupRef, originatorId)) {
+                transmitSystemAlert(originatorSession,
+                        "You are already a member of this group");
+                return;
+            }
+
+            Optional<User> accountLookup = accountStore.findById(originatorId);
+            String accountRole = accountLookup.map(User::getRole).orElse("Client");
+            String entryLevel = accountRole.equals("Trainer") ? "TRAINER" : "MEMBER";
+
+            GroupMembership freshMembership = new GroupMembership(
+                    groupRef, originatorId, entryLevel);
+            groupAccessRepo.save(freshMembership);
+
+            String outgoing = "{\"eventType\":\"GROUP_MEMBER_JOINED\"," +
+                    "\"groupId\":" + groupRef + "," +
+                    "\"userId\":" + originatorId + "," +
+                    "\"username\":\"" + originatorName + "\"}";
+
+            distributeToGroup(groupRef, outgoing, null);
+            log.info("User {} joined group {}", originatorId, groupRef);
+        } catch (Exception error) {
+            log.error("Error joining group", error);
+            transmitSystemAlert(originatorSession, "Error joining group");
+        }
+    }
+
+    private void distributeToGroup(int groupRef, String msgText, Session excludedSession) {
+        List<GroupMembership> memberList = groupAccessRepo.findByGroupId(groupRef);
+
+        for (GroupMembership m : memberList) {
+            Optional<User> accountLookup = accountStore.findById(m.getUserId());
+            if (accountLookup.isEmpty()) continue;
+
+            String memberName = accountLookup.get().getAccountName();
+            Session memberSession = liveConnections.get(memberName);
+
+            if (memberSession != null && memberSession.isOpen()
+                    && !memberSession.equals(excludedSession)) {
+                transmitToSession(memberSession, msgText);
+            }
+        }
+    }
+
+    private String formatMessageEvent(String eventType, Message msg, String authorName) {
+        return "{\"eventType\":\"" + eventType + "\"," +
+                "\"message\":{" +
+                "\"id\":" + msg.getId() + "," +
+                "\"originatorId\":" + msg.getOriginatorId() + "," +
+                "\"username\":\"" + authorName + "\"," +
+                "\"groupId\":" + msg.getGroupId() + "," +
+                "\"targetUserId\":" + msg.getTargetUserId() + "," +
+                "\"messageType\":\"" + msg.getMessageType() + "\"," +
+                "\"textBody\":\"" + msg.getTextBody() + "\"," +
+                "\"createdTimestamp\":\"" + msg.getCreatedTimestamp() + "\"," +
+                "\"editTimestamp\":" + (msg.getEditTimestamp() != null ?
+                "\"" + msg.getEditTimestamp() + "\"" : "null") +
+                "}}";
+    }
+}
+
+
 
 /*
 @Controller      // this is needed for this to be an endpoint to springboot

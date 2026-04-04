@@ -31,7 +31,11 @@ public class Message {
     @Column (name = "sender_id", nullable = false)
     private Integer originatorId;
 
-    @Column(name = "recipient_id", nullable = false)
+    @Column(name = "group_id")
+    private Integer groupRef;
+
+
+    @Column(name = "recipient_id", nullable = true)
     private Integer targetUserId;
 
     @Lob
@@ -47,6 +51,9 @@ public class Message {
     @Column(name = "is_read")
     private Boolean readFlag = false;
 
+    @Column(name = "message_type")
+    private String msgCategory = "NORMAL";
+
     @Column(name = "edited_at")
     private LocalDateTime editTimestamp;
 
@@ -61,26 +68,32 @@ public class Message {
     }
 
     public Long getId(){
+
         return id;
     }
 
     public void setId(Long id){
+
         this.id = id;
     }
 
     public Integer getOriginatorId(){
+
         return originatorId;
     }
 
     public void setOriginatorId(Integer originatorId){
+
         this.originatorId = originatorId;
     }
 
     public Integer getTargetUserId(){
+
         return targetUserId;
     }
 
     public void setTargetUserId(Integer targetUserId){
+
         this.targetUserId = targetUserId;
     }
 
@@ -89,37 +102,46 @@ public class Message {
     }
 
     public void setTextBody(String textBody){
+
         this.textBody = textBody;
     }
 
     public LocalDateTime getCreatedTimestamp(){
+
         return createdTimestamp;
     }
 
     public void setCreatedTimestamp(LocalDateTime createdTimestamp){
+
         this.createdTimestamp = createdTimestamp;
     }
 
     public Boolean getActiveFlag(){
+
         return activeFlag;
     }
 
     public void setActiveFlag(Boolean activeFlag){
+
         this.activeFlag = activeFlag;
     }
 
     public Boolean getReadFlag(){
+
         return readFlag;
     }
 
     public void setReadFlag(Boolean readFlag){
+
         this.readFlag = readFlag;
     }
 
     public LocalDateTime getEditTimestamp(){
+
         return editTimestamp;
     }
     public void setEditTimestamp(LocalDateTime editTimestamp){
+
         this.editTimestamp = editTimestamp;
     }
 

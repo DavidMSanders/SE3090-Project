@@ -16,6 +16,9 @@ public interface MessageRepository extends JpaRepository<Message, Long>{
     List<Message> fetchConversation(@Param("firstPerson") Integer firstPerson, @Param("secondPerson") Integer secondPerson);
     List <Message> findByOriginatorIdAndActiveFlagTrueOrderByCreatedTimestampDesc(Integer originatorId);
     List <Message> findByTargetUserIdAndActiveFlagTrueOrderByCreatedTimestampDesc(Integer targetUserId);
+    List<Message> findByGroupIdOrderByCreatedTimestampAsc(Integer groupId);
+    List<Message> findByGroupId(Integer groupId);
+
 
     @Query("SELECT m FROM Message m WHERE " + "(m.originatorId = :personId OR m.targetUserId = :personId) " +
             "AND m.activeFlag = true " + "ORDER BY m.createdTimestamp DESC")
