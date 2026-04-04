@@ -1,5 +1,6 @@
 package com.example.androidexample;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -33,6 +34,8 @@ public class GroupChatActivity extends AppCompatActivity {
 
     private Button btnBackFromChat;
 
+    private Button btnUpdateGroup;
+
 
     private MessageAdapter messageAdapter;
     private final ArrayList<Message> messageList = new ArrayList<>();
@@ -40,6 +43,12 @@ public class GroupChatActivity extends AppCompatActivity {
     private int currentUserId;
     private String currentUsername;
     private int currentGroupId;
+    private String groupName;
+    private String groupDescription;
+    private String groupType;
+
+
+
 
     //membership booleans and role
     private boolean canSendMessages = false;
@@ -72,7 +81,7 @@ public class GroupChatActivity extends AppCompatActivity {
         btnBackFromChat = findViewById(R.id.btnBackFromChat);
 
         btnAnnouncement = findViewById(R.id.btnAnnouncement);
-
+        btnUpdateGroup = findViewById(R.id.btnUpdateGroup);
 
         KeepUser user = new KeepUser(this);
         currentUserId = user.getUserId();
@@ -83,6 +92,10 @@ public class GroupChatActivity extends AppCompatActivity {
 
         currentGroupId = getIntent().getIntExtra("groupId", -1);
 
+        groupName = getIntent().getStringExtra("groupName");
+        groupDescription = getIntent().getStringExtra("groupDescription");
+        groupType = getIntent().getStringExtra("groupType");
+
         setupRecyclerView();
         fetchMembershipAndInit();
         //had to be put inside INIT function
@@ -90,6 +103,17 @@ public class GroupChatActivity extends AppCompatActivity {
         //setupWebSocket();
         setupSendButton();
         setupAnnouncementButton();
+
+        btnUpdateGroup.setOnClickListener(v -> {
+            Intent intent = new Intent(GroupChatActivity.this, Activity_Update_Group.class);
+
+            intent.putExtra("groupId", currentGroupId);
+            intent.putExtra("groupName", groupName);
+            intent.putExtra("groupDescription", groupDescription);
+            intent.putExtra("groupType", groupType);
+
+            startActivity(intent);
+        });
 
         btnBackFromChat.setOnClickListener(v -> {
             finish();
@@ -375,6 +399,13 @@ public class GroupChatActivity extends AppCompatActivity {
                     btnSendMessage.setEnabled(canSendMessages);
                     if(!canSendMessages){
                         btnSendMessage.setText("MUTED");
+                    }
+
+                    //update group button visibility
+                    if ("GROUP_LEADER".equals(membershipRole)) {
+                        btnUpdateGroup.setVisibility(View.VISIBLE);
+                    } else {
+                        btnUpdateGroup.setVisibility(View.GONE);
                     }
 
                     setupWebSocket();

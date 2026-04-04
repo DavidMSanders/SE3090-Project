@@ -18,7 +18,7 @@
         android:text="Back"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
-
+    <!-- Hidden announcement only for those with the announcement permissionnnn-->
     <Button
         android:id="@+id/btnAnnouncement"
         android:layout_width="wrap_content"
@@ -31,6 +31,18 @@
         app:layout_constraintStart_toStartOf="parent"
         android:layout_marginStart="12dp"
         android:layout_marginTop="6dp"/>
+
+    <!-- Update Group Button -->
+    <Button
+        android:id="@+id/btnUpdateGroup"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Update Group"
+        android:visibility="gone"
+
+        app:layout_constraintTop_toBottomOf="@id/btnAnnouncement"
+        app:layout_constraintStart_toStartOf="@id/btnAnnouncement"
+        android:layout_marginTop="8dp"/>
 
     <TextView
         android:id="@+id/tvChatGroupTitle"
@@ -55,7 +67,7 @@
         android:background="#DADADA"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/btnAnnouncement" />
+        app:layout_constraintTop_toBottomOf="@id/btnUpdateGroup" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvChatMessages"

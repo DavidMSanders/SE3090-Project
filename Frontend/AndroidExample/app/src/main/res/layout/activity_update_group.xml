@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+
+    <Button
+        android:id="@+id/btnBackFromUpdateGroup"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Back"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/tvUpdateGroupTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="Update Group"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="@id/btnBackFromUpdateGroup"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/btnBackFromUpdateGroup"
+        app:layout_constraintTop_toTopOf="@id/btnBackFromUpdateGroup" />
+
+    <TextView
+        android:id="@+id/tvCurrentGroupIdLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="28dp"
+        android:text="Group ID"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btnBackFromUpdateGroup" />
+
+    <TextView
+        android:id="@+id/tvCurrentGroupId"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="1"
+        app:layout_constraintBaseline_toBaselineOf="@id/tvCurrentGroupIdLabel"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/tvCurrentGroupIdLabel"
+        android:layout_marginStart="12dp" />
+
+    <TextView
+        android:id="@+id/tvGroupTypeLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="Group Type"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvCurrentGroupIdLabel" />
+
+    <TextView
+        android:id="@+id/tvGroupType"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Trainer Group"
+        app:layout_constraintBaseline_toBaselineOf="@id/tvGroupTypeLabel"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/tvGroupTypeLabel"
+        android:layout_marginStart="12dp" />
+
+    <TextView
+        android:id="@+id/tvGroupNameLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="28dp"
+        android:text="Group Name"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvGroupTypeLabel" />
+
+    <EditText
+        android:id="@+id/etUpdateGroupName"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:hint="Enter updated group name"
+        android:inputType="textCapWords"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvGroupNameLabel"
+        android:layout_marginTop="8dp" />
+
+    <TextView
+        android:id="@+id/tvGroupDescriptionLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="Group Description"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/etUpdateGroupName" />
+
+    <EditText
+        android:id="@+id/etUpdateGroupDescription"
+        android:layout_width="0dp"
+        android:layout_height="120dp"
+        android:gravity="top|start"
+        android:hint="Enter updated group description"
+        android:inputType="textMultiLine"
+        android:minLines="4"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvGroupDescriptionLabel"
+        android:layout_marginTop="8dp" />
+
+    <Button
+        android:id="@+id/btnSaveGroupUpdate"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:text="Save Group Changes"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/etUpdateGroupDescription" />
+
+    <TextView
+        android:id="@+id/tvUpdateGroupResult"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text=""
+        android:textSize="14sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btnSaveGroupUpdate" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

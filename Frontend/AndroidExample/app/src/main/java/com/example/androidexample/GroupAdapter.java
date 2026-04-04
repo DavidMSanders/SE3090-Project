@@ -77,8 +77,13 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHol
             Intent intent = new Intent(context, GroupChatActivity.class);
             intent.putExtra("groupId", group.getGroupID());
             intent.putExtra("groupName", group.getGroupName());
+
+            intent.putExtra("groupDescription", group.getGroupDescription());
+            intent.putExtra("groupType", group.getGroupType());
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(intent);
+
+
 
 
         });
