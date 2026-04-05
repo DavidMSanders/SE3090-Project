@@ -16,10 +16,11 @@
         android:layout_marginStart="8dp"
         android:background="@drawable/bg_other_message"
         android:padding="10dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintWidth_percent="0.7">
 
         <ImageButton
@@ -54,8 +55,8 @@
             android:lineSpacingExtra="2dp"
             android:text="Other's message"
             android:textSize="16sp"
-            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tvUsername" />
 
         <TextView

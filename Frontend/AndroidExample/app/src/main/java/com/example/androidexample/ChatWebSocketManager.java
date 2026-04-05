@@ -117,6 +117,25 @@ public class ChatWebSocketManager {
         }
     }
 
+    public void sendEditMessage(long messageId, String newText) {
+        if (webSocket != null) {
+            try {
+                JSONObject payload = new JSONObject();
+                payload.put("eventType", "EDIT");
+                payload.put("messageId", messageId);
+                payload.put("textBody", newText);
+
+                String json = payload.toString();
+                Log.d("WS", "Sending edit: " + json);
+                webSocket.send(json);
+            } catch (Exception e) {
+                Log.e("WS", "Failed to build edit payload", e);
+            }
+        } else {
+            Log.e("WS", "Cannot send edit — webSocket is null");
+        }
+    }
+
     public void disconnect() {
         if (webSocket != null) {
             webSocket.close(1000, "Closed");

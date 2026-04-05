@@ -69,6 +69,9 @@ public class GroupChatActivity extends AppCompatActivity {
     private boolean sendAsDirect= false;
     private Integer pendingTargetUserId = null;
 
+    private boolean isEditingMessage = false;
+    private Long editingMessageId = null;
+
 
     private static final String BASE_URL = "http://coms-3090-035.class.las.iastate.edu:8080";
 
@@ -159,8 +162,15 @@ public class GroupChatActivity extends AppCompatActivity {
                     @Override
                     public void onEditMessage(Message message) {
                         // For now, just put existing text into input box for editing
+
+                        isEditingMessage = true;
+                        editingMessageId = message.getMessageId();
+
+
                         etMessageInput.setText(message.getTextBody());
                         etMessageInput.setSelection(etMessageInput.getText().length());
+
+                        btnSendMessage.setText("Save Edit");
 
                         Toast.makeText(
                                 GroupChatActivity.this,
@@ -364,6 +374,17 @@ public class GroupChatActivity extends AppCompatActivity {
                 Toast.makeText(GroupChatActivity.this,
                         "Error: not connected to chat",
                         Toast.LENGTH_LONG).show();
+                return;
+            }
+
+            // EDIT existing message
+            if (isEditingMessage && editingMessageId != null) {
+                chatWebSocketManager.sendEditMessage(editingMessageId, text);
+
+                etMessageInput.setText("");
+                isEditingMessage = false;
+                editingMessageId = null;
+                btnSendMessage.setText("Send");
                 return;
             }
 
@@ -615,7 +636,7 @@ public class GroupChatActivity extends AppCompatActivity {
 
             dialog.dismiss();
         });
-
+        dialog.show();
     }
 
     //fake rn
@@ -632,14 +653,14 @@ public class GroupChatActivity extends AppCompatActivity {
             //payload.put("requestUserId", currentUserId);
             payload.put("targetUserId", targetUserId);
 
-            // full overwrite style
+            // full overwrite
             payload.put("membershipRole", "MEMBER");
             payload.put("canSendMessages", newCanSendMessages);
             payload.put("canManageMembers", newCanManageMembers);
             payload.put("canPostAnnouncements", newCanPostAnnouncements);
             payload.put("canAssignWorkouts", newCanAssignWorkouts);
 
-            // TODO:
+
             // Later send this to backend via ws
 
              chatWebSocketManager.sendPermissionUpdate(payload);
