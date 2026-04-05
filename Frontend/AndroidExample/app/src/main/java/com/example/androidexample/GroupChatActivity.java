@@ -2,6 +2,7 @@ package com.example.androidexample;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -73,6 +74,7 @@ public class GroupChatActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.d("TEST_LOG", "App started");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_group_chat);
         recyclerViewMessages = findViewById(R.id.rvChatMessages);
@@ -143,7 +145,7 @@ public class GroupChatActivity extends AppCompatActivity {
                         Toast.makeText(
                                 GroupChatActivity.this,
                                 "Next message will be direct to " + message.getUsername(),
-                                Toast.LENGTH_SHORT
+                                Toast.LENGTH_LONG
                         ).show();
                     }
 
@@ -163,7 +165,7 @@ public class GroupChatActivity extends AppCompatActivity {
                         Toast.makeText(
                                 GroupChatActivity.this,
                                 "Editing your message",
-                                Toast.LENGTH_SHORT
+                                Toast.LENGTH_LONG
                         ).show();
                     }
                 }
@@ -203,7 +205,7 @@ public class GroupChatActivity extends AppCompatActivity {
                     error -> Toast.makeText(
                             GroupChatActivity.this,
                             "Failed to load chat history",
-                            Toast.LENGTH_SHORT
+                            Toast.LENGTH_LONG
                     ).show()
             );
 
@@ -213,37 +215,93 @@ public class GroupChatActivity extends AppCompatActivity {
 
 
     private void setupWebSocket() {
+        Log.d("CHAT_TRACE", "setupWebSocket() called. currentUserId=" + currentUserId
+                + ", currentGroupId=" + currentGroupId);
         chatWebSocketManager = new ChatWebSocketManager();
 
         chatWebSocketManager.connect(currentUserId, new ChatWebSocketManager.SocketConnectListener() {
             @Override
             public void onConnected() {
+                Log.d("CHAT_TRACE", "Socket onConnected() fired");
                 chatWebSocketManager.setGroupEventListener(currentGroupId, new ChatWebSocketManager.GroupEventListener() {
                     @Override
                     public void onEventReceived(ChatSocketEvent event) {
+                        Log.d("CHAT_TRACE", "onEventReceived() fired. eventType="
+                                + (event != null ? event.getEventType() : "null"));
                         runOnUiThread(() -> handleSocketEvent(event));
                     }
                 });
+
+                Log.d("CHAT_TRACE", "setGroupEventListener() finished for groupId=" + currentGroupId);
             }
 
             @Override
             public void onError(String errorMessage) {
+                Log.e("CHAT_TRACE", "Socket onError(): " + errorMessage);
                 runOnUiThread(() ->
-                        Toast.makeText(GroupChatActivity.this, errorMessage, Toast.LENGTH_SHORT).show()
+                        Toast.makeText(GroupChatActivity.this, errorMessage, Toast.LENGTH_LONG).show()
                 );
             }
         });
     }
 
     private void handleSocketEvent(ChatSocketEvent event) {
+        Log.d("CHAT_TRACE", "handleSocketEvent() called. eventType="
+                + (event != null ? event.getEventType() : "null"));
+
         if (event == null || event.getEventType() == null) return;
 
         switch (event.getEventType()) {
+
+            //handle CONNECTED event from backend
+            case "CONNECTED":
+                // backend confirmed connection — do nothing or log
+                break;
+
+            //handle ERROR event from backend
+            // was receiving [SYSTEM] text — now receives JSON ERROR event
+            case "ERROR":
+                new AlertDialog.Builder(GroupChatActivity.this)
+                        .setTitle("Send Error")
+                        .setMessage(event.getErrorMessage())
+                        .setPositiveButton("OK", null)
+                        .show();
+                break;
+
             case "MESSAGE_CREATED":
+                Log.d("CHAT_TRACE", "MESSAGE_CREATED case hit");
+                /*
+                if (event.getMessage() != null &&
+                        canSeeMessage(event.getMessage())) {
+                    messageAdapter.addMessage(event.getMessage());
+                    recyclerViewMessages.scrollToPosition(
+                            messageAdapter.getItemCount() - 1);
+                }
+                */
+
+                Log.d("CHAT_UI", "MESSAGE_CREATED received");
+                Log.d("CHAT_UI", "event message = " + event.getMessage());
+                if (event.getMessage() != null) {
+                    Log.d("CHAT_UI", "originatorId=" + event.getMessage().getOriginatorId()
+                            + ", currentUserId=" + currentUserId
+                            + ", type=" + event.getMessage().getMessageType()
+                            + ", targetUserId=" + event.getMessage().getTargetUserId()
+                            + ", canSee=" + canSeeMessage(event.getMessage()));
+                    Log.d("CHAT_TRACE", "messageId=" + event.getMessage().getMessageId()
+                            + ", originatorId=" + event.getMessage().getOriginatorId()
+                            + ", groupId=" + event.getMessage().getGroupId()
+                            + ", type=" + event.getMessage().getMessageType()
+                            + ", canSee=" + canSeeMessage(event.getMessage()));
+                }
+                else{
+                    Log.d("CHAT_TRACE", "event.getMessage() is null");
+                }
                 if (event.getMessage() != null && canSeeMessage(event.getMessage())) {
                     messageAdapter.addMessage(event.getMessage());
+                    Log.d("CHAT_TRACE", "messageAdapter.addMessage() called");
                     recyclerViewMessages.scrollToPosition(messageAdapter.getItemCount() - 1);
                 }
+
                 break;
 
             case "MESSAGE_UPDATED":
@@ -259,45 +317,31 @@ public class GroupChatActivity extends AppCompatActivity {
                 break;
 
             case "GROUP_MEMBER_REMOVED":
-                // slightly redundant as user communication can already be blocked
-                //likely would require a whole another tracking table related to banning
-                // currently leaving unimplemented as functionally this should be enough without
                 break;
 
-
             case "GROUP_PERMISSION_UPDATED":
-                // Only react if this permission update is for the current user
-                if (event.getTargetUserId() != null && event.getTargetUserId() == currentUserId) {
-
-                    // update local permission state
+                if (event.getTargetUserId() != null &&
+                        event.getTargetUserId() == currentUserId) {
                     if (event.getMembershipRole() != null) {
                         membershipRole = event.getMembershipRole();
                     }
-
                     canSendMessages = event.isCanSendMessages();
                     canManageMembers = event.isCanManageMembers();
                     canPostAnnouncements = event.isCanPostAnnouncements();
                     canAssignWorkouts = event.isCanAssignWorkouts();
-
-                    // refresh buttons/visibility
                     updatePermissionUI();
-
-                    // adapter menu logic depends on canManageMembers
                     setupAdapter();
-
-                    // re-filter direct messages based on new permissions
                     loadInitialMessages();
-
                     Toast.makeText(
                             GroupChatActivity.this,
                             "Your group permissions were updated",
-                            Toast.LENGTH_SHORT
+                            Toast.LENGTH_LONG
                     ).show();
                 }
                 break;
-
         }
     }
+
     private void setupSendButton() {
         btnSendMessage.setOnClickListener(v -> {
             String text = etMessageInput.getText().toString().trim();
@@ -306,19 +350,35 @@ public class GroupChatActivity extends AppCompatActivity {
                 return;
             }
 
+            // check groupId is valid before sending
+            // if -1 the intent extra was not passed correctly
+            if (currentGroupId == -1) {
+                Toast.makeText(GroupChatActivity.this,
+                        "Error: invalid group ID",
+                        Toast.LENGTH_LONG).show();
+                return;
+            }
+
+            // check WebSocket is connected before sending
+            if (chatWebSocketManager == null) {
+                Toast.makeText(GroupChatActivity.this,
+                        "Error: not connected to chat",
+                        Toast.LENGTH_LONG).show();
+                return;
+            }
+
             String messageType = resolveOutgoingMessageType();
 
             SendMessageRequest request = new SendMessageRequest(
                     currentGroupId,
                     messageType,
-                    sendAsDirect ? pendingTargetUserId:null,
+                    sendAsDirect ? pendingTargetUserId : null,
                     text
             );
 
             chatWebSocketManager.sendGroupMessage(request);
             etMessageInput.setText("");
 
-            // reset one-time modes after sending
             if (sendAsAnnouncement) {
                 disableAnnouncementMode();
             }
@@ -328,7 +388,6 @@ public class GroupChatActivity extends AppCompatActivity {
             }
         });
     }
-
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -415,7 +474,7 @@ public class GroupChatActivity extends AppCompatActivity {
                     Toast.makeText(
                             GroupChatActivity.this,
                             "Failed to load membership",
-                            Toast.LENGTH_SHORT
+                            Toast.LENGTH_LONG
                     ).show();
 
                     // fallback: everything false
@@ -476,10 +535,10 @@ public class GroupChatActivity extends AppCompatActivity {
             //toggle between announcement modes
             if (sendAsAnnouncement) {
                 disableAnnouncementMode();
-                //Toast.makeText(this, "Announcement mode cancelled", Toast.LENGTH_SHORT).show();
+                //Toast.makeText(this, "Announcement mode cancelled", Toast.LENGTH_LONG).show();
             } else {
                 enableAnnouncementMode();
-                //Toast.makeText(this, "Your next message will be sent as an announcement", Toast.LENGTH_SHORT).show();
+                //Toast.makeText(this, "Your next message will be sent as an announcement", Toast.LENGTH_LONG).show();
             }
         });
     }
@@ -513,7 +572,7 @@ public class GroupChatActivity extends AppCompatActivity {
                 error -> Toast.makeText(
                         GroupChatActivity.this,
                         "Failed to load target membership",
-                        Toast.LENGTH_SHORT
+                        Toast.LENGTH_LONG
                 ).show()
         );
 
@@ -568,7 +627,7 @@ public class GroupChatActivity extends AppCompatActivity {
         try {
             JSONObject payload = new JSONObject();
 
-            payload.put("eventType" ,"GROUP_PERMISSION_UPDATED");
+            payload.put("eventType" ,"UPDATE_PERMISSIONS");
             payload.put("groupId", currentGroupId);
             //payload.put("requestUserId", currentUserId);
             payload.put("targetUserId", targetUserId);
@@ -583,17 +642,17 @@ public class GroupChatActivity extends AppCompatActivity {
             // TODO:
             // Later send this to backend via ws
 
-            // chatWebSocketManager.sendPermissionUpdate(payload);
+             chatWebSocketManager.sendPermissionUpdate(payload);
 
             Toast.makeText(
                     this,
                     "Permissions saved for user " + targetUserId,
-                    Toast.LENGTH_SHORT
+                    Toast.LENGTH_LONG
             ).show();
 
         } catch (JSONException e) {
             e.printStackTrace();
-            Toast.makeText(this, "Failed to build permission update", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Failed to build permission update", Toast.LENGTH_LONG).show();
         }
     }
 

@@ -1,3 +1,4 @@
+
 package com.example.androidexample;
 
 import android.util.Log;
@@ -28,8 +29,10 @@ public class ChatWebSocketManager {
     }
 
     public void connect(int userId, SocketConnectListener listener) {
-
-        String url = "ws://coms-3090-035.class.las.iastate.edu:8080/chat/" + userId;
+        //confirmed uses userId not username
+        String url = "ws://coms-3090-035.class.las.iastate.edu:8080/chat/"
+                + userId;
+        Log.d("CHAT_TRACE", "connect() called. url=" + url);
 
         Request request = new Request.Builder().url(url).build();
 
@@ -37,49 +40,88 @@ public class ChatWebSocketManager {
 
             @Override
             public void onOpen(WebSocket webSocket, Response response) {
+                Log.d("CHAT_TRACE", "WebSocket onOpen()");
                 listener.onConnected();
             }
 
             @Override
             public void onMessage(WebSocket webSocket, String text) {
+                Log.d("WS_IN", "RAW: " + text);
                 try {
                     JSONObject json = new JSONObject(text);
                     ChatSocketEvent event = ChatSocketEvent.fromJson(json);
 
                     if (eventListener != null) {
-                        if (event.getGroupId() == null || activeGroupId == null || event.getGroupId().equals(activeGroupId)) {
+                        boolean isGlobalEvent =
+                                "CONNECTED".equals(event.getEventType()) ||
+                                        "ERROR".equals(event.getEventType());
+
+                        boolean passesFilter =
+                                isGlobalEvent ||
+                                        event.getGroupId() == null ||
+                                        activeGroupId == null ||
+                                        event.getGroupId().equals(activeGroupId);
+
+                        Log.d("CHAT_TRACE", "eventListener != null, passesFilter=" + passesFilter);
+
+                        if (passesFilter) {
                             eventListener.onEventReceived(event);
                         }
-
+                    } else {
+                        Log.d("CHAT_TRACE", "eventListener is null when message arrived");
                     }
-
                 } catch (Exception e) {
-                    Log.e("WS", "Invalid JSON: " + text);
+                    //logged "Invalid JSON" for all errors
+                    // logs the actual error message now for debugging
+                    Log.e("CHAT_TRACE", "Error parsing socket message: " + text, e);
+                    Log.e("WS", "Error parsing event: " + text +
+                            " — " + e.getMessage());
                 }
             }
 
             @Override
-            public void onFailure(WebSocket webSocket, Throwable t, Response response) {
+            public void onFailure(WebSocket webSocket, Throwable t,
+                                  Response response) {
+                Log.e("CHAT_TRACE", "WebSocket onFailure()", t);
                 listener.onError(t.getMessage());
             }
         });
     }
 
-    public void setGroupEventListener(int groupId, GroupEventListener listener) {
+    public void setGroupEventListener(int groupId,
+                                      GroupEventListener listener) {
         this.activeGroupId = groupId;
         this.eventListener = listener;
+        Log.d("CHAT_TRACE", "setGroupEventListener(): activeGroupId=" + activeGroupId);
     }
 
     public void sendGroupMessage(SendMessageRequest request) {
         if (webSocket != null) {
-            webSocket.send(request.toJson().toString());
+            //log what is being sent for debugging
+            String json = request.toJson().toString();
+            Log.d("WS", "Sending: " + json);
+            webSocket.send(json);
+        } else {
+            //log if webSocket is null
+            Log.e("WS", "Cannot send — webSocket is null");
+        }
+    }
+
+    public void sendPermissionUpdate(JSONObject payload) {
+        if (webSocket != null) {
+            String json = payload.toString();
+            Log.d("WS", "Sending permission update: " + json);
+            webSocket.send(json);
+        } else {
+            Log.e("WS", "Cannot send permission update — webSocket is null");
         }
     }
 
     public void disconnect() {
         if (webSocket != null) {
             webSocket.close(1000, "Closed");
-            webSocket = null; //clear after dc
+            // clear after disconnect
+            webSocket = null;
         }
     }
 }

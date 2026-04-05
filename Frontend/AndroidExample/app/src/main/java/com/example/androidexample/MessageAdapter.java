@@ -44,23 +44,29 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         this.menuActionListener = menuActionListener;
     }
 
+
     @Override
     public int getItemViewType(int position) {
         Message message = messageList.get(position);
 
-        //select Type of Message based on priority and messageType eg announcement > our > direct > trainer > other
+        // Priority:
+        // announcement > direct > trainer > our normal > other normal
 
-        if("ANNOUNCEMENT".equalsIgnoreCase(message.getMessageType())) {
+        if ("ANNOUNCEMENT".equalsIgnoreCase(message.getMessageType())) {
             return Type_Announcement_Message;
-        } else if (message.getOriginatorId() == currentUserId ){
-            return Type_Our_Message;
-        } else if("DIRECT".equalsIgnoreCase(message.getMessageType())
+
+        } else if ("DIRECT".equalsIgnoreCase(message.getMessageType())
                 && (message.getOriginatorId() == currentUserId
                 || (message.getTargetUserId() != null
-                && message.getTargetUserId() == currentUserId))){
-                return Type_Direct_Message;
+                && message.getTargetUserId() == currentUserId))) {
+            return Type_Direct_Message;
+
         } else if ("TRAINER".equalsIgnoreCase(message.getMessageType())) {
             return Type_Trainer_Message;
+
+        } else if (message.getOriginatorId() == currentUserId) {
+            return Type_Our_Message;
+
         } else {
             return Type_Other_Message;
         }

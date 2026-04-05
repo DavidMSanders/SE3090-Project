@@ -1,17 +1,18 @@
+
 package com.example.androidexample;
+
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
+
 public class ChatSocketEvent {
 
-    //chat event fields
-    private String eventType; // MESSAGE_CREATED, MESSAGE_UPDATED, MESSAGE_DELETED, etc.
+    private String eventType;
     private Message message;
     private Long messageId;
     private Integer groupId;
 
-    //permission-update fields
     private Integer targetUserId;
     private String membershipRole;
     private Boolean canSendMessages;
@@ -19,7 +20,13 @@ public class ChatSocketEvent {
     private Boolean canPostAnnouncements;
     private Boolean canAssignWorkouts;
 
+    // ADDED: CONNECTED event fields
+    private Integer userId;
+    private String username;
+    private String role;
 
+    // ADDED: ERROR event field
+    private String errorMessage;
 
     public ChatSocketEvent() {}
 
@@ -27,37 +34,38 @@ public class ChatSocketEvent {
     public Message getMessage() { return message; }
     public Long getMessageId() { return messageId; }
     public Integer getGroupId() { return groupId; }
+    public Integer getTargetUserId() { return targetUserId; }
+    public String getMembershipRole() { return membershipRole; }
 
-    public Integer getTargetUserId() {
-        return targetUserId;
-    }
+    // ADDED: getters for CONNECTED event
+    public Integer getUserId() { return userId; }
+    public String getUsername() { return username; }
+    public String getRole() { return role; }
 
-    public String getMembershipRole() {
-        return membershipRole;
-    }
+    // ADDED: getter for ERROR event
+    public String getErrorMessage() { return errorMessage; }
 
     public boolean isCanSendMessages() {
         return canSendMessages != null && canSendMessages;
     }
-
     public boolean isCanManageMembers() {
         return canManageMembers != null && canManageMembers;
     }
-
     public boolean isCanPostAnnouncements() {
         return canPostAnnouncements != null && canPostAnnouncements;
     }
-
     public boolean isCanAssignWorkouts() {
         return canAssignWorkouts != null && canAssignWorkouts;
     }
 
-
-    public void setEventType(String eventType) { this.eventType = eventType; }
+    public void setEventType(String eventType) {
+        this.eventType = eventType;
+    }
     public void setMessage(Message message) { this.message = message; }
-    public void setMessageId(Long messageId) { this.messageId = messageId; }
+    public void setMessageId(Long messageId) {
+        this.messageId = messageId;
+    }
     public void setGroupId(Integer groupId) { this.groupId = groupId; }
-
     public void setTargetUserId(Integer targetUserId) {
         this.targetUserId = targetUserId;
     }
@@ -77,14 +85,36 @@ public class ChatSocketEvent {
         this.canAssignWorkouts = canAssignWorkouts;
     }
 
-
-    public static ChatSocketEvent fromJson(JSONObject json) throws JSONException {
+    public static ChatSocketEvent fromJson(JSONObject json)
+            throws JSONException {
         ChatSocketEvent event = new ChatSocketEvent();
 
         event.setEventType(json.optString("eventType", ""));
 
+        //parse CONNECTED event fields
+        if (json.has("userId") && !json.isNull("userId")) {
+            event.userId = json.getInt("userId");
+        }
+        if (json.has("username") && !json.isNull("username")) {
+            event.username = json.optString("username");
+        }
+        if (json.has("role") && !json.isNull("role")) {
+            event.role = json.optString("role");
+        }
+
+        //was always trying to parse "message" as JSONObject
+        //Backend sends "message" as String for ERROR events
+        // and as JSONObject for MESSAGE_CREATED/UPDATED events
         if (json.has("message") && !json.isNull("message")) {
-            event.setMessage(Message.fromJson(json.getJSONObject("message")));
+            Object messageField = json.get("message");
+            if (messageField instanceof JSONObject) {
+                //MESSAGE_CREATED/UPDATED — parse as Message object
+                event.setMessage(Message.fromJson(
+                        (JSONObject) messageField));
+            } else if (messageField instanceof String) {
+                //ERROR event — store as error string
+                event.errorMessage = (String) messageField;
+            }
         }
 
         if (json.has("messageId") && !json.isNull("messageId")) {
@@ -95,7 +125,6 @@ public class ChatSocketEvent {
             event.setGroupId(json.getInt("groupId"));
         }
 
-        // Permission update fields
         if (json.has("targetUserId") && !json.isNull("targetUserId")) {
             event.setTargetUserId(json.getInt("targetUserId"));
         }
@@ -104,23 +133,26 @@ public class ChatSocketEvent {
             event.setMembershipRole(json.getString("membershipRole"));
         }
 
-        if (json.has("canSendMessages") && !json.isNull("canSendMessages")) {
+        if (json.has("canSendMessages") &&
+                !json.isNull("canSendMessages")) {
             event.setCanSendMessages(json.getBoolean("canSendMessages"));
         }
-
-        if (json.has("canManageMembers") && !json.isNull("canManageMembers")) {
-            event.setCanManageMembers(json.getBoolean("canManageMembers"));
+        if (json.has("canManageMembers") &&
+                !json.isNull("canManageMembers")) {
+            event.setCanManageMembers(
+                    json.getBoolean("canManageMembers"));
         }
-
-        if (json.has("canPostAnnouncements") && !json.isNull("canPostAnnouncements")) {
-            event.setCanPostAnnouncements(json.getBoolean("canPostAnnouncements"));
+        if (json.has("canPostAnnouncements") &&
+                !json.isNull("canPostAnnouncements")) {
+            event.setCanPostAnnouncements(
+                    json.getBoolean("canPostAnnouncements"));
         }
-
-        if (json.has("canAssignWorkouts") && !json.isNull("canAssignWorkouts")) {
-            event.setCanAssignWorkouts(json.getBoolean("canAssignWorkouts"));
+        if (json.has("canAssignWorkouts") &&
+                !json.isNull("canAssignWorkouts")) {
+            event.setCanAssignWorkouts(
+                    json.getBoolean("canAssignWorkouts"));
         }
 
         return event;
     }
 }
-
