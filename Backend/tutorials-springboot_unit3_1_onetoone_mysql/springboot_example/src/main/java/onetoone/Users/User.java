@@ -113,6 +113,8 @@ public void setRole(String role){
                 isEnabled + ", role'" + role + '\'' + '}';
  }
 
+
+
  /*
     /*
      * @OneToOne creates a relation between the current entity/table(Laptop) with the entity/table defined below it(User)

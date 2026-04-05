@@ -107,7 +107,7 @@ public class GroupController {
     //@ApiResponses(value = {
             //@ApiResponse(responseCode = "200", description = "Groups retrieved successfully")
     //})
-            @GetMapping
+    @GetMapping
     public ResponseEntity<List<Map<String, Object>>> fetchAllGroups(
             @RequestParam int userId,
             @RequestParam(required = false) String search){
@@ -214,6 +214,15 @@ public class GroupController {
     String entryLevel = accountRole.equals("Trainer") ? "TRAINER" : "MEMBER";
 
     GroupMembership newMembership = new GroupMembership(groupId, incoming.getUserId(), entryLevel);
+
+    if (accountRole.equals("Admin")) {
+        newMembership.setChatEnabled(true);
+        newMembership.setManageEnabled(true);
+        newMembership.setAnnounceEnabled(true);
+        newMembership.setWorkoutEnabled(true);
+    }
+
+
     membershipRepo.save(newMembership);
 
     result.put("membershipId", newMembership.getMembershipId());
@@ -232,8 +241,8 @@ public class GroupController {
             //@ApiResponse(responseCode = "200", description = "Left group successfully"),
             //@ApiResponse(responseCode = "404", description = "User not a member of this group")
     //})
-@DeleteMapping("/{groupId}/leave")
-public ResponseEntity<Map<String, String>> leaveGroup(@PathVariable int groupId, @RequestBody JoinRequest incoming){
+    @DeleteMapping("/{groupId}/leave")
+    public ResponseEntity<Map<String, String>> leaveGroup(@PathVariable int groupId, @RequestBody JoinRequest incoming){
     Map <String, String> result = new HashMap<>();
 
     Optional<GroupMembership> membershipQuery = membershipRepo.findByGroupIdAndUserId(groupId, incoming.getUserId());
@@ -316,7 +325,8 @@ public ResponseEntity<Map<String, Object>> fetchMemberById(@PathVariable int gro
     @GetMapping("/{groupId}/messages")
 public ResponseEntity<List<Map<String, Object>>> fetchGroupMessages(@PathVariable int groupId){
         List<Map<String, Object>> result = new ArrayList<>();
-        List<onetoone.Chat_Messages.Message> chatLog = messageRepo.findByGroupRefOrderByCreatedTimestampAsc(groupId);
+        List<onetoone.Chat_Messages.Message> chatLog = messageRepo
+                .findByGroupRefOrderByCreatedTimestampAsc(groupId);
         for (onetoone.Chat_Messages.Message entry : chatLog) {
             Map<String, Object> messageData = new HashMap<>();
             messageData.put("id", entry.getId());

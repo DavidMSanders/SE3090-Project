@@ -33,16 +33,23 @@ import java.time.format.DateTimeFormatter;
  *Endpoint: ws://server:8080/chat/{username}
  */
 @Component
-@ServerEndpoint(value = "/chat/{username}")
+@ServerEndpoint(value = "/chat/{userId}")
 public class ChatWebSocket {
     private static MessageRepository messageStore;
+
     private static UserRepository accountStore;
+
     private static GroupMembershipRepository groupAccessRepo;
-    private static Map<String, Session> liveConnections = new ConcurrentHashMap<>();
+
+    private static Map<INteger, Session> liveConnections = new ConcurrentHashMap<>();
+
     private static Map<Session, String> sessionToUsername = new ConcurrentHashMap<>();
+
     private static Map<Session, Integer> sessionToUserId = new ConcurrentHashMap<>();
-    private final Logger log = LoggerFactory.getLogger(ChatWebSocket.class);
-    private final ObjectMapper payloadParser = new ObjectMapper();
+
+    private static final Logger log = LoggerFactory.getLogger(ChatWebSocket.class);
+
+    private static final ObjectMapper payloadParser = new ObjectMapper();
 
 
     @Autowired

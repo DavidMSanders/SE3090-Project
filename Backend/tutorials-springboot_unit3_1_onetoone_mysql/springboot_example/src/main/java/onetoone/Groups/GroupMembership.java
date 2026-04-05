@@ -41,8 +41,8 @@ import jakarta.persistence.*;
 
         public void setPermissionByRole(String role){
             switch(role){
-                case "GROUP_LEADER":
-                case "ADMIN":
+                case "Group_Leader":
+                case "Admin":
                     this.chatEnabled = true;
                     this.manageEnabled = true;
                     this.announceEnabled = true;
@@ -104,7 +104,7 @@ import jakarta.persistence.*;
         }
 
         public boolean isManageEnabled() {
-            return manageEnabled;
+            return manageEnabled();
         }
 
         public void setManageEnabled(boolean manageEnabled){

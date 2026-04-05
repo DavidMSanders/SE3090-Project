@@ -53,7 +53,51 @@ public class GroupMembershipController {
     }
 
     /**
-     * Update a memmbers permissions
+     *
+     * Checks if a user is ADMIN or GROUP_LEADER in a group
+     * If yes returns all permissions as true
+     *
+     */
+
+    @GetMapping("/user/{userId}/group/{groupId}/check-admin")
+    public ResponseEntity<Map<String, Object>> verifyAdminStatus(@PathVariable int userId, @PathVariable int groupId) {
+        Map<String, Object> adminCheck = new HashMap<>();
+
+        Optional<GroupMembership> memberLookup = membershipRepo.findByGroupIdAndUserId(groupId, userId);
+
+        if (memberLookup.isEmpty()) {
+            adminCheck.put("message", "Membership not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(adminCheck);
+        }
+
+        GroupMembership foundMembership = memberLookup.get();
+        String accessLevel = foundMembership.getAccessLevel();
+
+        adminCheck.put("userId", userId);
+        adminCheck.put("groupId", groupId);
+        adminCheck.put("membershipRole", accessLevel);
+
+        if (accessLevel.equals("ADMIN") || accessLevel.equals("GROUP_LEADER")) {
+            adminCheck.put("isAdmin", true);
+            adminCheck.put("canSendMessages", true);
+            adminCheck.put("canManageMembers", true);
+            adminCheck.put("canPostAnnouncements", true);
+            adminCheck.put("canAssignWorkouts", true);
+            adminCheck.put("message", "User has admin permissions in this group");
+        } else {
+            adminCheck.put("isAdmin", false);
+            adminCheck.put("canSendMessages", foundMembership.isChatEnabled());
+            adminCheck.put("canManageMembers", foundMembership.isManageEnabled());
+            adminCheck.put("canPostAnnouncements", foundMembership.isAnnounceEnabled());
+            adminCheck.put("canAssignWorkouts", foundMembership.isWorkoutEnabled());
+            adminCheck.put("message", "User does not have admin permissions in this group");
+        }
+
+        return ResponseEntity.ok(adminCheck);
+    }
+
+    /**
+     * Update a members permissions
      * Only GROUP_LEADER or Admin can do this
      *
      * @param membershipId

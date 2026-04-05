@@ -96,11 +96,67 @@ public class UserController {
         }
     }
 
+    /**
+     * Sets a user's role to Trainer
+     */
+
+    @PutMapping("/{userId}/set-trainer")
+    public ResponseEntity<Map<String, Object>> setTrainerRole(@PathVariable int userId){
+        Map<String, Object> result = new HashMap<>();
+        User found = userRepository.findById(userId).orElse(null);
+        if (found == null){
+            result.put("message", "User not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
+    }
+
+        found.setRole("Trainer");
+        userRepository.save(found);
+
+        result.put("message", "User role updated successfully");
+        result.put("userId", found.getUserId());
+        result.put("role", found.getRole());
+        return ResponseEntity.ok(result);
+
+}
+
+    @PutMapping("/{userId}/set-admin")
+    public ResponseEntity<Map<String, Object>> assignAdminRole(@PathVariable int userId) {
+        Map<String, Object> responseData = new HashMap<>();
+
+        User targetAccount = userRepository.findById(userId).orElse(null);
+        if (targetAccount == null) {
+            responseData.put("message", "User not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseData);
+        }
+
+        targetAccount.setRole("Admin");
+        userRepository.save(targetAccount);
+
+        responseData.put("message", "User role updated successfully");
+        responseData.put("userId", targetAccount.getUserId());
+        responseData.put("role", targetAccount.getRole());
+        return ResponseEntity.ok(responseData);
+    }
 
 
+    @PutMapping("/{userId}/set-client")
+    public ResponseEntity<Map<String, Object>> assignClientRole(@PathVariable int userId) {
+        Map<String, Object> responseData = new HashMap<>();
 
+        User targetAccount = userRepository.findById(userId).orElse(null);
+        if (targetAccount == null) {
+            responseData.put("message", "User not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseData);
+        }
 
+        targetAccount.setRole("Client");
+        userRepository.save(targetAccount);
 
+        responseData.put("message", "User role updated successfully");
+        responseData.put("userId", targetAccount.getUserId());
+        responseData.put("role", targetAccount.getRole());
+        return ResponseEntity.ok(responseData);
+    }
 
 
     /**
@@ -160,6 +216,10 @@ public class UserController {
         this.dateOfBirth = dateOfBirth;
     }
 }
+
+
+
+
 
 
 
