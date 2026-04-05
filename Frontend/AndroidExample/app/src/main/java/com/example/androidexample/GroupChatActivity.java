@@ -101,6 +101,14 @@ public class GroupChatActivity extends AppCompatActivity {
         groupDescription = getIntent().getStringExtra("groupDescription");
         groupType = getIntent().getStringExtra("groupType");
 
+        TextView tvGroupTitle = findViewById(R.id.tvChatGroupTitle);
+
+        if (groupName != null && !groupName.trim().isEmpty()) {
+            tvGroupTitle.setText(groupName);
+        } else {
+            tvGroupTitle.setText("Group Chat");
+        }
+
         setupRecyclerView();
         fetchMembershipAndInit();
         //had to be put inside INIT function

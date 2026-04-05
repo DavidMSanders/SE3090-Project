@@ -82,6 +82,10 @@ public class GroupListActivity extends AppCompatActivity {
             Intent intent = new Intent(GroupListActivity.this, GroupCreateActivity.class);
             startActivity(intent);
         });
+
+        btnBackFromGroups.setOnClickListener(v -> {
+            finish();
+        });
     }
 
     private void getGroups(String searchQuery){
