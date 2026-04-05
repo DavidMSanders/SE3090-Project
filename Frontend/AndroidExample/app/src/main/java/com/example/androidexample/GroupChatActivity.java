@@ -567,8 +567,10 @@ public class GroupChatActivity extends AppCompatActivity {
                                       boolean newCanAssignWorkouts) {
         try {
             JSONObject payload = new JSONObject();
+
+            payload.put("eventType" ,"GROUP_PERMISSION_UPDATED");
             payload.put("groupId", currentGroupId);
-            payload.put("requestUserId", currentUserId);
+            //payload.put("requestUserId", currentUserId);
             payload.put("targetUserId", targetUserId);
 
             // full overwrite style

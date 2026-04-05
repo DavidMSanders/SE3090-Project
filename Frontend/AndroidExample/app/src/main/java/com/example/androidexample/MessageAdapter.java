@@ -54,7 +54,10 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             return Type_Announcement_Message;
         } else if (message.getOriginatorId() == currentUserId ){
             return Type_Our_Message;
-        } else if("DIRECT".equalsIgnoreCase(message.getMessageType())) {
+        } else if("DIRECT".equalsIgnoreCase(message.getMessageType())
+                && (message.getOriginatorId() == currentUserId
+                || (message.getTargetUserId() != null
+                && message.getTargetUserId() == currentUserId))){
                 return Type_Direct_Message;
         } else if ("TRAINER".equalsIgnoreCase(message.getMessageType())) {
             return Type_Trainer_Message;

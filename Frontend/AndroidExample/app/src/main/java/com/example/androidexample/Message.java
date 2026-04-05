@@ -31,6 +31,7 @@ public class Message {
         this.textBody = textBody;
         this.createdTimestamp = createdTimestamp;
         this.editTimestamp = editTimestamp;
+        this.username = username;
     }
 
     public static Message fromJson(JSONObject json) throws JSONException {
