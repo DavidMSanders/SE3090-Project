@@ -37,6 +37,8 @@ public class GroupChatActivity extends AppCompatActivity {
 
     private Button btnUpdateGroup;
 
+    private Button btnLeaveGroup;
+
 
     private MessageAdapter messageAdapter;
     private final ArrayList<Message> messageList = new ArrayList<>();
@@ -88,6 +90,9 @@ public class GroupChatActivity extends AppCompatActivity {
         btnAnnouncement = findViewById(R.id.btnAnnouncement);
         btnUpdateGroup = findViewById(R.id.btnUpdateGroup);
 
+        btnLeaveGroup = findViewById(R.id.btnLeaveGroup);
+
+
         KeepUser user = new KeepUser(this);
         currentUserId = user.getUserId();
         currentUsername = user.getUsername();
@@ -130,6 +135,27 @@ public class GroupChatActivity extends AppCompatActivity {
 
         btnBackFromChat.setOnClickListener(v -> {
             finish();
+        });
+
+        btnLeaveGroup.setOnClickListener(v -> {
+            new AlertDialog.Builder(GroupChatActivity.this)
+                    .setTitle("Leave Group")
+                    .setMessage("Are you sure you want to leave this group?")
+                    .setPositiveButton("Leave", (dialog, which) -> {
+                        if (chatWebSocketManager != null) {
+                            chatWebSocketManager.sendLeaveGroup(currentGroupId);
+                            finish();
+                        } else {
+                            Toast.makeText(
+                                    GroupChatActivity.this,
+                                    "Not connected to chat",
+                                    Toast.LENGTH_LONG
+                            ).show();
+                        }
+                    })
+                    .setNegativeButton("Cancel", null)
+                    .show();
+
         });
     }
     private void setupRecyclerView() {
@@ -186,7 +212,21 @@ public class GroupChatActivity extends AppCompatActivity {
                                 Toast.LENGTH_LONG
                         ).show();
                     }
+                    @Override
+                    public void onDeleteMessage(Message message) {
+                        new AlertDialog.Builder(GroupChatActivity.this)
+                                .setTitle("Delete Message")
+                                .setMessage("Delete this message?")
+                                .setPositiveButton("Delete", (dialog, which) -> {
+                                    if (chatWebSocketManager != null) {
+                                        chatWebSocketManager.sendDeleteMessage(message.getMessageId());
+                                    }
+                                })
+                                .setNegativeButton("Cancel", null)
+                                .show();
+                    }
                 }
+
         );
 
         recyclerViewMessages.setAdapter(messageAdapter);
@@ -335,6 +375,14 @@ public class GroupChatActivity extends AppCompatActivity {
                 break;
 
             case "GROUP_MEMBER_REMOVED":
+                if (event.getTargetUserId() != null && event.getTargetUserId() == currentUserId) {
+                    Toast.makeText(
+                            GroupChatActivity.this,
+                            "You left the group",
+                            Toast.LENGTH_LONG
+                    ).show();
+                    finish();
+                }
                 break;
 
             case "GROUP_PERMISSION_UPDATED":

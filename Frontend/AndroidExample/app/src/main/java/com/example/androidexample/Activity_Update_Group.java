@@ -1,5 +1,6 @@
 package com.example.androidexample;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
@@ -29,6 +30,8 @@ public class Activity_Update_Group extends AppCompatActivity {
 
     private int currentUserId;
 
+    private Button btnDeleteGroup;
+
     private static final String BASE_URL =
             "http://coms-3090-035.class.las.iastate.edu:8080";
 
@@ -44,6 +47,8 @@ public class Activity_Update_Group extends AppCompatActivity {
         btnBackFromUpdateGroup = findViewById(R.id.btnBackFromUpdateGroup);
         btnSaveGroupUpdate = findViewById(R.id.btnSaveGroupUpdate);
         tvUpdateGroupResult = findViewById(R.id.tvUpdateGroupResult);
+        btnDeleteGroup = findViewById(R.id.btnDeleteGroup);
+
 
         currentGroupId = getIntent().getIntExtra("groupId", -1);
         currentGroupType = getIntent().getStringExtra("groupType");
@@ -68,6 +73,7 @@ public class Activity_Update_Group extends AppCompatActivity {
         btnBackFromUpdateGroup.setOnClickListener(v -> finish());
 
         btnSaveGroupUpdate.setOnClickListener(v -> saveGroupUpdate());
+        btnDeleteGroup.setOnClickListener(v -> deleteGroup());
     }
 
     private void saveGroupUpdate() {
@@ -115,6 +121,59 @@ public class Activity_Update_Group extends AppCompatActivity {
                     Toast.makeText(
                             Activity_Update_Group.this,
                             "Failed to update group",
+                            Toast.LENGTH_SHORT
+                    ).show();
+                }
+        ) {
+            @Override
+            public String getBodyContentType() {
+                return "application/json; charset=utf-8";
+            }
+        };
+
+        VolleySingleton.getInstance(this).addToRequestQueue(request);
+    }
+
+    private void deleteGroup() {
+        if (currentGroupId == -1) {
+            Toast.makeText(this, "Invalid group ID", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String url = BASE_URL + "/api/v1/groups/" + currentGroupId;
+
+        JSONObject body = new JSONObject();
+        try {
+            body.put("requestUserId", currentUserId);
+        } catch (JSONException e) {
+            Toast.makeText(this, "Failed to build delete request", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        JsonObjectRequest request = new JsonObjectRequest(
+                Request.Method.DELETE,
+                url,
+                body,
+                response -> {
+                    tvUpdateGroupResult.setText(response.toString());
+                    Toast.makeText(
+                            Activity_Update_Group.this,
+                            "Group deleted successfully",
+                            Toast.LENGTH_SHORT
+                    ).show();
+                    Intent intent = new Intent(Activity_Update_Group.this, GroupListActivity.class);
+                    startActivity(intent);
+                },
+                error -> {
+                    if (error.networkResponse != null) {
+                        tvUpdateGroupResult.setText("Delete failed. Code: " + error.networkResponse.statusCode);
+                    } else {
+                        tvUpdateGroupResult.setText(error.toString());
+                    }
+
+                    Toast.makeText(
+                            Activity_Update_Group.this,
+                            "Failed to delete group",
                             Toast.LENGTH_SHORT
                     ).show();
                 }

@@ -20,6 +20,8 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         void onDirectMessage(Message message);
         void onEditPermissions(Message message);
         void onEditMessage(Message message);
+
+        void onDeleteMessage(Message message);
     }
     public static final int Type_Our_Message = 0;
     public static final int Type_Other_Message = 1;
@@ -307,6 +309,10 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             popupMenu.getMenu().add(0, 3, 2, "Edit Message");
         }
 
+        if(isOwnMessage || canManageMembers) {
+            popupMenu.getMenu().add(0, 4, 3, "Delete Message");
+        }
+
         popupMenu.setOnMenuItemClickListener(item -> {
             int itemId = item.getItemId();
 
@@ -323,6 +329,12 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             } else if (itemId == 3) {
                 if (menuActionListener != null) {
                     menuActionListener.onEditMessage(message);
+                }
+                return true;
+            }
+            if (itemId == 4) {
+                if (menuActionListener != null) {
+                    menuActionListener.onDeleteMessage(message);
                 }
                 return true;
             }

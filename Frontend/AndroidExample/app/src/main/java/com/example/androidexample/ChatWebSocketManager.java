@@ -135,6 +135,42 @@ public class ChatWebSocketManager {
             Log.e("WS", "Cannot send edit — webSocket is null");
         }
     }
+    public void sendDeleteMessage(long messageId) {
+        if (webSocket != null) {
+            try {
+                JSONObject payload = new JSONObject();
+                payload.put("eventType", "DELETE");
+                payload.put("messageId", messageId);
+
+                String json = payload.toString();
+                Log.d("WS", "Sending delete: " + json);
+                webSocket.send(json);
+            } catch (Exception e) {
+                Log.e("WS", "Failed to build delete payload", e);
+            }
+        } else {
+            Log.e("WS", "Cannot send delete — webSocket is null");
+        }
+    }
+
+    public void sendLeaveGroup(int groupId) {
+        if (webSocket != null) {
+            try {
+                JSONObject payload = new JSONObject();
+                payload.put("eventType", "LEAVE");
+                payload.put("groupId", groupId);
+
+                String json = payload.toString();
+                Log.d("WS", "Sending leave group: " + json);
+                webSocket.send(json);
+
+            } catch (Exception e) {
+                Log.e("WS", "Failed to build leave payload", e);
+            }
+        } else {
+            Log.e("WS", "Cannot send leave group — webSocket is null");
+        }
+    }
 
     public void disconnect() {
         if (webSocket != null) {
