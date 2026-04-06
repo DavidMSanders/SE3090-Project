@@ -1,12 +1,11 @@
 package onetoone.auth;
+
 import onetoone.Users.User;
 import onetoone.Users.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -16,6 +15,7 @@ import java.util.Map;
 /**
  *
  * Signup Controller
+ * 
  * @author Chris Lopez
  *
  */
@@ -25,10 +25,8 @@ import java.util.Map;
 
 public class SignupController {
 
-
     @Autowired
     private UserRepository userRepo;
-
 
     /**
      *
@@ -37,12 +35,12 @@ public class SignupController {
      *
      */
     @PostMapping("/signup")
-    public ResponseEntity<Map<String, String>> createAccount(@RequestBody RegistrationInfo info){
+    public ResponseEntity<Map<String, String>> createAccount(@RequestBody RegistrationInfo info) {
         Map<String, String> response = new HashMap<>();
 
-        try{
+        try {
             User existing = userRepo.findByAccountName(info.getUsername());
-            if (existing != null){
+            if (existing != null) {
                 response.put("message", "Username already exists");
                 return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
             }
@@ -53,8 +51,7 @@ public class SignupController {
             User newUser = new User(
                     info.getUsername(),
                     info.getPassword(),
-                    birthdate
-            );
+                    birthdate);
 
             // save database
             userRepo.save(newUser);
@@ -62,11 +59,25 @@ public class SignupController {
             response.put("message", "User created successfully");
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
 
-        } catch (Exception problem){
+        } catch (Exception problem) {
             response.put("message", "Error creating user: " + problem.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
+    }
 
+    @PostMapping("/login")
+    public ResponseEntity<?> loginUser(@RequestBody LoginRequest request) {
+        User foundUser = userRepo.findByAccountNameAndUserPassword(
+                request.getAccountName(),
+                request.getUserPassword());
+
+        if (foundUser != null && foundUser.isEnabled()) {
+            return ResponseEntity.ok(foundUser);
+        } else {
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Invalid username or password");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+        }
     }
 }
 
@@ -98,9 +109,11 @@ class RegistrationInfo {
     public String getPassword() {
         return password;
     }
-    public void setUsername(String username){
+
+    public void setUsername(String username) {
         this.username = username;
     }
+
     public void setPassword(String password) {
         this.password = password;
     }
@@ -108,25 +121,9 @@ class RegistrationInfo {
     public void setDateOfBirth(String dateOfBirth) {
         this.dateOfBirth = dateOfBirth;
     }
+
     public String getDateOfBirth() {
         return dateOfBirth;
     }
 
-
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
