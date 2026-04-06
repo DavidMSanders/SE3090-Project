@@ -66,18 +66,31 @@ public class SignupController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> loginUser(@RequestBody LoginRequest request) {
-        User foundUser = userRepo.findByAccountNameAndUserPassword(
-                request.getAccountName(),
-                request.getUserPassword());
+    public ResponseEntity<Map<String, Object>> loginUser(@RequestBody LoginRequest request) {
+        Map<String, Object> response = new HashMap<>();
 
-        if (foundUser != null && foundUser.isEnabled()) {
-            return ResponseEntity.ok(foundUser);
-        } else {
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "Invalid username or password");
+        String accountName = request.getAccountName();
+        String userPassword = request.getUserPassword();
+
+        if (accountName == null || userPassword == null || accountName.trim().isEmpty() || userPassword.isEmpty()) {
+            response.put("status", false);
+            response.put("message", "Username and password are required");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+
+        User foundUser = userRepo.findByAccountName(accountName.trim());
+
+        if (foundUser == null || !foundUser.isEnabled() || !userPassword.equals(foundUser.getUserPassword())) {
+            response.put("status", false);
+            response.put("message", "login failed");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
         }
+
+        response.put("status", true);
+        response.put("message", "Login successful");
+        response.put("userId", foundUser.getUserId());
+        response.put("username", foundUser.getAccountName());
+        return ResponseEntity.ok(response);
     }
 }
 
