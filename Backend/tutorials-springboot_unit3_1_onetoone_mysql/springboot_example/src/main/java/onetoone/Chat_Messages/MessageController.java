@@ -34,13 +34,16 @@ public class MessageController {
      * Includes username of sender
      */
     @GetMapping("/group/{groupId}")
-    public ResponseEntity<List<Map<String, Object>>> loadGroupHistory(@PathVariable Integer groupId){
-        List<Map<String, Object>> result  = new ArrayList<>();
-
+    public ResponseEntity<List<Map<String, Object>>> loadGroupHistory(@PathVariable Integer groupId) {
+        List<Map<String, Object>> result = new ArrayList<>();
 
         List<Message> msgHistory = msgRepo.findByGroupRefOrderByCreatedTimestampAsc(groupId);
 
-        for(Message entry : msgHistory){
+        for (Message entry : msgHistory) {
+            if (!Boolean.TRUE.equals(entry.getActiveFlag())) {
+                continue;
+            }
+
             Map<String, Object> msgData = new HashMap<>();
             msgData.put("id", entry.getId());
             msgData.put("originatorId", entry.getOriginatorId());

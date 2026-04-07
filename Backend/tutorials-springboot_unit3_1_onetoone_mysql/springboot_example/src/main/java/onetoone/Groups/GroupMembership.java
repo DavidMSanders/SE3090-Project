@@ -30,6 +30,11 @@ import jakarta.persistence.*;
         @Column(name = "workout_enabled")
         private boolean workoutEnabled = false;
 
+        public static final String ROLE_GROUP_LEADER = "GROUP_LEADER";
+        public static final String ROLE_ADMIN = "ADMIN";
+        public static final String ROLE_TRAINER = "TRAINER";
+        public static final String ROLE_MEMBER = "MEMBER";
+
         public GroupMembership(){}
 
         public GroupMembership(int groupId, int userId, String accessLevel){
@@ -41,18 +46,19 @@ import jakarta.persistence.*;
 
         public void setPermissionByRole(String role){
             switch(role){
-                case "Group_Leader":
-                case "Admin":
+                case "GROUP_LEADER":
+                case "ADMIN":
                     this.chatEnabled = true;
                     this.manageEnabled = true;
                     this.announceEnabled = true;
                     this.workoutEnabled = true;
                     break;
-                case "Trainer":
+                case "TRAINER":
                     this.chatEnabled = true;
                     this.manageEnabled = false;
                     this.announceEnabled = false;
                     this.workoutEnabled = false;
+                    break;
                 case "MEMBER":
                 default:
                     this.chatEnabled = true;
@@ -60,6 +66,21 @@ import jakarta.persistence.*;
                     this.announceEnabled = false;
                     this.workoutEnabled = false;
                     break;
+            }
+        }
+
+        public boolean isLeaderLike() {
+        return ROLE_GROUP_LEADER.equals(accessLevel) ||
+        ROLE_ADMIN.equals(accessLevel);
+        }
+
+        public static String normalizeRole(String role) {
+        if (role == null) return ROLE_MEMBER;
+        switch (role.toUpperCase()) {
+        case "GROUP_LEADER": return ROLE_GROUP_LEADER;
+        case "ADMIN": return ROLE_ADMIN;
+        case "TRAINER": return ROLE_TRAINER;
+        default: return ROLE_MEMBER;
             }
         }
 
@@ -104,11 +125,11 @@ import jakarta.persistence.*;
         }
 
         public boolean isManageEnabled() {
-            return manageEnabled();
+        return manageEnabled;
         }
 
-        public void setManageEnabled(boolean manageEnabled){
-            this.manageEnabled = manageEnabled;
+        public void setManageEnabled(boolean manageEnabled) {
+        this.manageEnabled = manageEnabled;
         }
 
         public boolean isAnnounceEnabled(){

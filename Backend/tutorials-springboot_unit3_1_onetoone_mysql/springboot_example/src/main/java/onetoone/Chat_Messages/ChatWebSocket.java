@@ -1,751 +1,579 @@
 package onetoone.Chat_Messages;
 
-import jakarta.websocket.*;
-import jakarta.websocket.server.ServerEndpoint;
-import jakarta.websocket.server.PathParam;
 
-
-//import onetoone.Groups.GroupRepository;
-import onetoone.Users.UserRepository;
-import onetoone.Users.User;
-
-import onetoone.Groups.GroupMembership;
-import onetoone.Groups.GroupMembershipRepository;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.JsonNode;
-
+import onetoone.Users.UserRepository;
+import onetoone.Users.User;
+import onetoone.Groups.GroupMembership;
+import onetoone.Groups.GroupMembershipRepository;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import jakarta.websocket.*;
+import jakarta.websocket.server.ServerEndpoint;
+import jakarta.websocket.server.PathParam;
 
 import java.io.IOException;
-
 import java.time.LocalDateTime;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.*;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-
 /**
- *@author Chris Lopez
- *Endpoint: ws://server:8080/chat/{username}
+ * @author Chris Lopez
+ * Endpoint: ws://server:8080/chat/{userId}
  */
+
 @Component
 @ServerEndpoint(value = "/chat/{userId}")
 public class ChatWebSocket {
+
+    private static final Logger log =
+            LoggerFactory.getLogger(ChatWebSocket.class);
+
+
+    private static final ObjectMapper payloadParser = new ObjectMapper()
+            .registerModule(new JavaTimeModule())
+            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
     private static MessageRepository messageStore;
-
     private static UserRepository accountStore;
-
     private static GroupMembershipRepository groupAccessRepo;
 
-    private static Map<INteger, Session> liveConnections = new ConcurrentHashMap<>();
 
-    private static Map<Session, String> sessionToUsername = new ConcurrentHashMap<>();
-
-    private static Map<Session, Integer> sessionToUserId = new ConcurrentHashMap<>();
-
-    private static final Logger log = LoggerFactory.getLogger(ChatWebSocket.class);
-
-    private static final ObjectMapper payloadParser = new ObjectMapper();
-
+    private static final Map<Integer, Session> liveConnections =
+            new ConcurrentHashMap<>();
+    private static final Map<Session, Integer> sessionToUserId =
+            new ConcurrentHashMap<>();
+    private static final Map<Session, String> sessionToUsername =
+            new ConcurrentHashMap<>();
 
     @Autowired
     public void setMessageRepository(MessageRepository repository) {
-
         ChatWebSocket.messageStore = repository;
     }
 
-
     @Autowired
     public void setUserRepository(UserRepository repository) {
-
         ChatWebSocket.accountStore = repository;
     }
 
     @Autowired
-    public void setGroupMembershipRepository(GroupMembershipRepository repository) {
+    public void setGroupMembershipRepository(
+            GroupMembershipRepository repository) {
         ChatWebSocket.groupAccessRepo = repository;
     }
 
+    /**
+     * Handles new WebSocket connections
+     *
+     */
 
     @OnOpen
-    public void handleOpen(Session clientSession, @PathParam("username") String username) throws IOException {
-        log.info("Connection attempt from username: {}", username);
+    public void handleOpen(Session clientSession, @PathParam("userId") Integer userId) throws IOException {
+        log.info("Connection attempt from userId: {}", userId);
 
-        Optional<User> accountQuery = accountStore.findFirstByAccountName(username);
-        if (accountQuery.isEmpty()) {
-            log.warn("User not found: {}", username);
-            clientSession.close(new CloseReason(CloseReason.CloseCodes.CANNOT_ACCEPT, "User not found"));
+        Optional<User> userLookup = accountStore.findById(userId);
+        if (userLookup.isEmpty()) {
+            log.warn("User not found: {}", userId);
+            clientSession.close(new CloseReason(
+                    CloseReason.CloseCodes.CANNOT_ACCEPT,  "User not found"));
             return;
         }
 
-        User account = accountQuery.get();
-        liveConnections.put(username, clientSession);
-        sessionToUsername.put(clientSession, username);
-        sessionToUserId.put(clientSession, account.getUserId());
-        log.info("User connected: {} (ID: {}, Role: {})", username, account.getUserId(), account.getRole());
+        User account = userLookup.get();
+        liveConnections.put(userId, clientSession);
+        sessionToUserId.put(clientSession, userId);
+        sessionToUsername.put(clientSession, account.getAccountName());
+        log.info("User connected: {} (ID: {}, Role: {})",
+                account.getAccountName(), account.getUserId(),
+                account.getRole());
 
-        transmitSystemAlert(clientSession, "Connected to Personal Trainer Chat");
-        transmitSystemAlert(clientSession, "Your role: " + account.getRole());
-        loadMessageHistory(clientSession, account.getUserId());
-
-        String arrivalAlert = username + " joined the chat";
-        notifyStaffMembers(arrivalAlert, account.getUserId());
+        sendEvent(clientSession, Map.of(
+                "eventType", "CONNECTED",
+                "userId", account.getUserId(),
+                "username", account.getAccountName(),
+                "role", account.getRole()
+        ));
     }
 
+    /**
+     * Handles incoming WebSocket messages
+     */
 
     @OnMessage
     public void handleMessage(Session clientSession, String incomingText) throws IOException {
-        String authorName = sessionToUsername.get(clientSession);
         Integer authorId = sessionToUserId.get(clientSession);
+        String authorName = sessionToUsername.get(clientSession);
 
-        if (authorName == null || authorId == null) {
-            log.warn("Message from unknown session");
+        if (authorId == null || authorName == null) {
+            sendError(clientSession, "Unknown session");
             return;
         }
 
         log.info("Message from {}: {}", authorName, incomingText);
 
         try {
-            JsonNode payload = payloadParser.readTree(incomingText);
-            String eventType = payload.has("eventType") ? payload.get("eventType").asText() : "";
-
+            JsonNode msgPayload = payloadParser.readTree(incomingText);
+            String eventType = text(msgPayload, "eventType", "SEND");
 
             switch (eventType) {
                 case "SEND":
-                    processChatMessage(clientSession, authorId, authorName, payload);
+                    processChatMessage(clientSession, authorId,
+                            authorName, msgPayload);
                     break;
                 case "EDIT":
-                    processMessageEdit(clientSession, authorId, payload);
+                    processMessageEdit(clientSession, authorId,
+                            authorName, msgPayload);
                     break;
                 case "DELETE":
-                    processMessageRemoval(clientSession, authorId, payload);
+                    processMessageRemoval(clientSession, authorId,
+                            msgPayload);
                     break;
                 case "UPDATE_PERMISSIONS":
-                    processAccessChange(clientSession, authorId, authorName, payload);
+                    processAccessChange(clientSession, authorId,
+                            authorName, msgPayload);
                     break;
                 case "REMOVE_MEMBER":
-                    processGroupKick(clientSession, authorId, authorName, payload);
+                    processGroupKick(clientSession, authorId,
+                            authorName, msgPayload);
                     break;
                 case "LEAVE":
-                    processGroupExit(clientSession, authorId, authorName, payload);
+                    processGroupExit(clientSession, authorId,
+                            authorName, msgPayload);
                     break;
                 case "JOIN":
-                    processGroupEntry(clientSession, authorId, authorName, payload);
+                    processGroupEntry(clientSession, authorId,
+                            authorName, msgPayload);
                     break;
                 default:
-                    if (incomingText.startsWith("@")) {
-                        processDirectMessage(clientSession, authorId,
-                                authorName, incomingText);
-                    } else {
-                        processStaffBroadcast(clientSession, authorId,
-                                authorName, incomingText);
-                    }
+                    sendError(clientSession,
+                            "Unsupported eventType: " + eventType);
             }
         } catch (Exception e) {
-            if (incomingText.startsWith("@")) {
-                processDirectMessage(clientSession, authorId, authorName, incomingText);
-            } else {
-                processStaffBroadcast(clientSession, authorId, authorName, incomingText);
-            }
+            log.error("WebSocket message processing error: {}",
+                    e.getMessage());
+            sendError(clientSession, "Invalid message payload");
         }
     }
 
+    /**
+     * Handles WebSocket disconnections
+     */
 
     @OnClose
-    public void handleClose(Session clientSession) throws IOException {
-        String username = sessionToUsername.get(clientSession);
-        Integer userId = sessionToUserId.get(clientSession);
+    public void handleClose(Session clientSession) {
+        Integer userId = sessionToUserId.remove(clientSession);
+        sessionToUsername.remove(clientSession);
 
-        if (username != null) {
-            liveConnections.remove(username);
-            sessionToUsername.remove(clientSession);
-            sessionToUserId.remove(clientSession);
-            log.info("User disconnected: {} (ID: {})", username, userId);
-
-            String departureAlert = username + " left the chat";
-            notifyStaffMembers(departureAlert, userId);
+        if (userId != null) {
+            liveConnections.remove(userId);
+            log.info("User disconnected: {}", userId);
         }
     }
+
+    /**
+     * Handles WebSocket errors
+     */
 
     @OnError
     public void handleError(Session clientSession, Throwable error) {
         log.error("WebSocket error", error);
     }
 
-    private void processDirectMessage(Session originatorSession, Integer originatorId, String originatorName, String fullText) {
+    /**
+     * Handles sending a message to a group
+     */
+
+    private void processChatMessage(Session originatorSession, Integer originatorId, String originatorName, JsonNode msgPayload) {
         try {
-            String[] components = fullText.substring(1).split(" ", 2);
-            if (components.length < 2) {
-                transmitSystemAlert(originatorSession, "Invalid format. Use: @username message");
+            int groupRef = requiredInt(msgPayload, "groupId");
+            String msgBody = text(msgPayload, "textBody", "").trim();
+            String msgType = Message.normalizeMessageType(
+                    text(msgPayload, "messageType", "NORMAL"));
+            Integer recipientId = nullableInt(msgPayload, "targetUserId");
+
+            if (msgBody.isEmpty()) {
+                sendError(originatorSession, "textBody is required");
                 return;
             }
 
-            String destinationName = components[0];
-            String messagePayload = components[1];
-
-            Optional<User> destinationQuery = accountStore.findFirstByAccountName(destinationName);
-            if (destinationQuery.isEmpty()) {
-                transmitSystemAlert(originatorSession, "User not found: " + destinationName);
+            Optional<GroupMembership> memberLookup = groupAccessRepo.findByGroupIdAndUserId(groupRef, originatorId);
+            if (memberLookup.isEmpty()) {
+                sendError(originatorSession,
+                        "You are not a member of this group");
                 return;
             }
 
-            User destinationAccount = destinationQuery.get();
-            Integer destinationId = destinationAccount.getUserId();
-            Message messageRecord = new Message(originatorId, destinationId, messagePayload);
-            messageStore.save(messageRecord);
-            String displayText = composeTimestampedMessage(originatorName, messagePayload, messageRecord.getCreatedTimestamp());
+            GroupMembership foundMembership = memberLookup.get();
 
-            Session destinationSession = liveConnections.get(destinationName);
-            if (destinationSession != null && destinationSession.isOpen()) {
-                transmitToSession(destinationSession, displayText);
+            if (!foundMembership.isChatEnabled()) {
+                sendError(originatorSession, "You do not have permission to send messages");
+                return;
             }
 
-            transmitToSession(originatorSession, "[To " + destinationName + "] " + displayText);
-            alertStaffOfPrivateChat(originatorId, destinationId, originatorName, destinationName, displayText);
-            log.info("Private message: {} -> {}", originatorName, destinationName);
+            if ("ANNOUNCEMENT".equals(msgType) && !foundMembership.isAnnounceEnabled()) {
+                sendError(originatorSession, "You do not have permission to post announcements");
+                return;
+            }
+
+            if ("TRAINER".equals(msgType) && !(foundMembership.isWorkoutEnabled() || GroupMembership.ROLE_TRAINER.equals(
+                    foundMembership.getAccessLevel())
+                    || foundMembership.isLeaderLike())) {
+                sendError(originatorSession, "You do not have permission to send trainer messages");
+                return;
+            }
+
+            Message storedMsg = messageStore.save(
+                    new Message(originatorId, groupRef, recipientId, msgBody, msgType));
+
+            Map<String, Object> outgoingEvent = formatMessageEvent("MESSAGE_CREATED", storedMsg, originatorName);
+            distributeToGroup(groupRef, outgoingEvent, null);
+
         } catch (Exception error) {
-            log.error("Error in private message", error);
-            transmitSystemAlert(originatorSession, "Error sending message");
-        }
-    }
-
-    private void processStaffBroadcast(Session originatorSession, Integer originatorId, String originatorName, String messagePayload) {
-        String broadcastText = "[BROADCAST] " + composeTimestampedMessage(originatorName, messagePayload, LocalDateTime.now());
-        notifyStaffMembers(broadcastText, originatorId);
-        transmitSystemAlert(originatorSession, "Broadcast sent to all staff");
-    }
-
-    private void transmitToSession(Session destination, String messageText) {
-        if (destination != null && destination.isOpen()) {
-            try {
-                destination.getBasicRemote().sendText(messageText);
-            } catch (IOException error) {
-                log.error("Error sending to session", error);
-            }
-        }
-    }
-
-    private void transmitSystemAlert(Session destination, String alertText) {
-        transmitToSession(destination, "[SYSTEM] " + alertText);
-    }
-
-    private void notifyStaffMembers(String notification, Integer excludedId) {
-        sessionToUserId.forEach((connection, accountId) -> {
-            if (accountId.equals(excludedId)) {
-                return;
-            }
-
-            Optional<User> accountQuery = accountStore.findById(accountId);
-            if (accountQuery.isPresent()) {
-                User account = accountQuery.get();
-                String accountRole = account.getRole();
-
-                if (accountRole.equals("Trainer") || accountRole.equals("Manager") || accountRole.equals("Admin")) {
-                    transmitToSession(connection, notification);
-                }
-            }
-
-        });
-
-    }
-
-    private void alertStaffOfPrivateChat(Integer originatorId, Integer destinationId, String originatorName, String destinationName,
-                                         String messageDisplay) {
-        sessionToUserId.forEach((connection, accountId) -> {
-            if (accountId.equals(originatorId) || accountId.equals(destinationId)) {
-                return;
-            }
-            Optional<User> accountQuery = accountStore.findById(accountId);
-            if (accountQuery.isPresent()) {
-                User account = accountQuery.get();
-                String accountRole = account.getRole();
-
-                if (accountRole.equals("Trainer") || accountRole.equals("Manager") || accountRole.equals("Admin")) {
-                    String monitorNotice = String.format("[MONITOR] %s -> %s: %s", originatorName, destinationName, messageDisplay);
-                    transmitToSession(connection, monitorNotice);
-                }
-            }
-        });
-    }
-
-    private void loadMessageHistory(Session destination, Integer accountId) {
-        try {
-            List<Message> historicalMessages = messageStore.retrieveAllMessagesForUser(accountId);
-
-            if (historicalMessages.isEmpty()) {
-                transmitSystemAlert(destination, "No message history");
-                return;
-            }
-
-            transmitSystemAlert(destination, "=== Recent Messages (last 50) ===");
-
-            int maxDisplay = Math.min(historicalMessages.size(), 50);
-            for (int position = maxDisplay - 1; position >= 0; position--) {
-                Message record = historicalMessages.get(position);
-
-                Optional<User> authorQuery = accountStore.findById(record.getOriginatorId());
-                String authorName = authorQuery.map(User::getAccountName).orElse("Unknown");
-
-                String displayText = composeTimestampedMessage(authorName, record.getTextBody(), record.getCreatedTimestamp());
-                transmitToSession(destination, displayText);
-            }
-
-            transmitSystemAlert(destination, "=== End of History ===");
-        } catch (Exception error) {
-            log.error("Error sending history", error);
-        }
-    }
-
-    private String composeTimestampedMessage(String authorName, String bodyText, LocalDateTime timestamp) {
-        DateTimeFormatter timeFormat = DateTimeFormatter.ofPattern("HH:mm:ss");
-        return String.format("[%s] %s: %s", timestamp.format(timeFormat), authorName, bodyText);
-
-
-    }
-
-    private void processChatMessage(Session originatorSession, Integer originatorId, String originatorName, JsonNode payload) {
-        try {
-            int groupId = payload.get("groupId").asInt();
-            String textBody = payload.get("textBody").asText();
-            String messageType = payload.has("messageType") ? payload.get("messageType").asText() : "NORMAL";
-            Integer targetUserId = payload.has("targetUserId") && !payload.get("targetUserId").isNull() ? payload.get("targetUserId").asInt() : null;
-
-            Optional<GroupMembership> membershipQuery = groupAccessRepo.findByGroupIdAndUserId(groupId, originatorId);
-
-            if (membershipQuery.isEmpty()) {
-                transmitSystemAlert(originatorSession, "You are not a member of this group");
-                return;
-            }
-
-            if (!membershipQuery.get().isChatEnabled()) {
-                transmitSystemAlert(originatorSession, "MESSAGE_REJECTED: You do not have permission to send messages");
-                return;
-            }
-            Message newMessage = new Message(originatorId, targetUserId, textBody);
-            newMessage.setGroupId(groupId);
-            newMessage.setMessageType(messageType);
-            messageStore.save(newMessage);
-
-            String outgoing = formatMessageEvent(
-                    "MESSAGE_CREATED", newMessage, originatorName);
-            distributeToGroup(groupId, outgoing, null);
-
-            log.info("Message sent by {} to group {}", originatorName, groupId);
-        } catch (Exception error) {
-            log.error("Error sending message", error);
-            transmitSystemAlert(originatorSession, "Error sending message");
-
+            log.error("Error in processChatMessage: {}", error.getMessage());
+            sendError(originatorSession, "Error sending message: " + error.getMessage());
         }
     }
 
     /**
      * Handles editing an existing message
-     * Only the original sender can edit their message
      */
-    private void processMessageEdit(Session originatorSession, Integer originatorId, JsonNode payload) {
+
+    private void processMessageEdit(Session originatorSession, Integer originatorId, String originatorName, JsonNode msgPayload) {
         try {
-            long messageId = payload.get("messageId").asLong();
-            String updatedText = payload.get("newTextBody").asText();
+            Long msgId = (long) requiredInt(msgPayload, "messageId");
+            String revisedBody = text(msgPayload, "textBody", "").trim();
 
-            Message found = messageStore.findById(messageId).orElse(null);
-            if (found == null) {
-                transmitSystemAlert(originatorSession, "Message not found");
+            Message locatedMsg = messageStore.findById(msgId).orElse(null);
+            if (locatedMsg == null ||
+                    !Boolean.TRUE.equals(locatedMsg.getActiveFlag())) {
+                sendError(originatorSession, "Message not found");
                 return;
             }
 
-            if (found.getOriginatorId() != originatorId) {
-                transmitSystemAlert(originatorSession, "You can only edit your own messages");
+            if (!Objects.equals(locatedMsg.getOriginatorId(), originatorId)) {
+                sendError(originatorSession, "You can only edit your own messages");
                 return;
             }
 
-            found.setTextBody(updatedText);
-            found.setEditTimestamp(LocalDateTime.now());
-            messageStore.save(found);
+            if (revisedBody.isEmpty()) {
+                sendError(originatorSession, "textBody is required");
+                return;
+            }
 
-            Optional<User> authorQuery = accountStore.findById(originatorId);
-            String authorName = authorQuery.map(User::getAccountName).orElse("Unknown");
+            locatedMsg.setTextBody(revisedBody);
+            locatedMsg.setEditTimestamp(LocalDateTime.now());
+            locatedMsg = messageStore.save(locatedMsg);
 
-            String outgoing = formatMessageEvent("MESSAGE_UPDATED", found, authorName);
-            distributeToGroup(found.getGroupId(), outgoing, null);
+            Map<String, Object> outgoingEvent = formatMessageEvent(
+                    "MESSAGE_UPDATED", locatedMsg, originatorName);
+            distributeToGroup(locatedMsg.getGroupId(), outgoingEvent, null);
 
-            log.info("Message {} edited by {}", messageId, originatorId);
         } catch (Exception error) {
-            log.error("Error editing message", error);
-            transmitSystemAlert(originatorSession, "Error editing message");
+            log.error("Error in processMessageEdit: {}", error.getMessage());
+            sendError(originatorSession, "Error editing message: " + error.getMessage());
         }
     }
 
     /**
-     * Handles updating a member's permissions in real time
-     * Only GROUP_LEADER or ADMIN can update permissions
+     * Handles deleting a message
      */
 
-    private void processAccessChange(Session originatorSession, Integer originatorId, String originatorName, JsonNode payload) {
+    private void processMessageRemoval(Session originatorSession, Integer originatorId, JsonNode msgPayload) {
         try {
-            int groupId = payload.get("groupId").asInt();
-            int targetUserId = payload.get("targetUserId").asInt();
+            Long msgId = (long) requiredInt(msgPayload, "messageId");
 
-            Optional<GroupMembership> requesterQuery = groupAccessRepo.findByGroupIdAndUserId(groupId, originatorId);
-            if (requesterQuery.isEmpty() || !requesterQuery.get().isManageEnabled()) {
-                transmitSystemAlert(originatorSession, "You do not have permission to update permissions");
+            Message locatedMsg = messageStore.findById(msgId).orElse(null);
+            if (locatedMsg == null ||
+                    !Boolean.TRUE.equals(locatedMsg.getActiveFlag())) {
+                sendError(originatorSession, "Message not found");
                 return;
             }
 
-            Optional<GroupMembership> targetQuery = groupAccessRepo.findByGroupIdAndUserId(groupId, targetUserId);
-            if (targetQuery.isEmpty()) {
-                transmitSystemAlert(originatorSession, "Target user is not a member of this group");
+            if (!Objects.equals(locatedMsg.getOriginatorId(), originatorId)) {
+                sendError(originatorSession, "You can only delete your own messages");
                 return;
             }
 
-            GroupMembership target = targetQuery.get();
-            if (target.getAccessLevel().equals("GROUP_LEADER") || target.getAccessLevel().equals("ADMIN")) {
-                transmitSystemAlert(originatorSession, "Cannot change GROUP_LEADER or ADMIN permissions");
-                return;
-            }
+            locatedMsg.setActiveFlag(false);
+            messageStore.save(locatedMsg);
 
-            target.setAccessLevel(payload.get("membershipRole").asText());
-            target.setChatEnabled(payload.get("canSendMessages").asBoolean());
-            target.setManageEnabled(payload.get("canManageMembers").asBoolean());
-            target.setAnnounceEnabled(payload.get("canPostAnnouncements").asBoolean());
-            target.setWorkoutEnabled(payload.get("canAssignWorkouts").asBoolean());
-            groupAccessRepo.save(target);
+            Map<String, Object> outgoingEvent = new LinkedHashMap<>();
+            outgoingEvent.put("eventType", "MESSAGE_DELETED");
+            outgoingEvent.put("messageId", locatedMsg.getId());
+            outgoingEvent.put("groupId", locatedMsg.getGroupId());
+            distributeToGroup(locatedMsg.getGroupId(), outgoingEvent, null);
 
-            Optional<User> targetAccount = accountStore.findById(targetUserId);
-            String targetName = targetAccount.map(User::getAccountName).orElse("Unknown");
-
-            String outgoing = "{\"eventType\":\"GROUP_PERMISSION_UPDATED\"," +
-                    "\"groupId\":" + groupId + "," +
-                    "\"targetUserId\":" + targetUserId + "," +
-                    "\"username\":\"" + targetName + "\"," +
-                    "\"membershipRole\":\"" + target.getAccessLevel() + "\"," +
-                    "\"canSendMessages\":" + target.isChatEnabled() + "," +
-                    "\"canManageMembers\":" + target.isManageEnabled() + "," +
-                    "\"canPostAnnouncements\":" + target.isAnnounceEnabled() + "," +
-                    "\"canAssignWorkouts\":" + target.isWorkoutEnabled() + "," +
-                    "\"changedByUserId\":" + originatorId + "," +
-                    "\"changedByUsername\":\"" + originatorName + "\"}";
-
-            distributeToGroup(groupId, outgoing, null);
-            log.info("Permission updated for user {} in group {}", targetUserId, groupId);
         } catch (Exception error) {
-            log.error("Error updating permissions", error);
-            transmitSystemAlert(originatorSession, "Error updating permissions");
+            log.error("Error in processMessageRemoval: {}", error.getMessage());
+            sendError(originatorSession, "Error deleting message: " + error.getMessage());
         }
     }
 
     /**
-     *
-     * Handles removing a member from a group in real time
-     * Only GROUP_LEADER or ADMIN can remove members
+     * Handles updating member permissions
      */
 
-    private void processGroupKick(Session originatorSession, Integer originatorId, String originatorName, JsonNode payload) {
+    private void processAccessChange(Session originatorSession, Integer originatorId, String originatorName, JsonNode msgPayload) {
         try {
-            int groupRef = payload.get("groupId").asInt();
-            int kickedUserId = payload.get("targetUserId").asInt();
+            int groupRef = requiredInt(msgPayload, "groupId");
+            int targetUserId = requiredInt(msgPayload, "targetUserId");
 
-            Optional<GroupMembership> requesterLookup = groupAccessRepo
-                    .findByGroupIdAndUserId(groupRef, originatorId);
-            if (requesterLookup.isEmpty() ||
-                    !requesterLookup.get().isManageEnabled()) {
-                transmitSystemAlert(originatorSession,
-                        "You do not have permission to remove members");
+            Optional<GroupMembership> supervisorLookup = groupAccessRepo.findByGroupIdAndUserId(groupRef, originatorId);
+            if (supervisorLookup.isEmpty() || !supervisorLookup.get().isManageEnabled()) {
+                sendError(originatorSession, "You do not have permission to update permissions");
                 return;
             }
 
-            Optional<GroupMembership> kickedLookup = groupAccessRepo
-                    .findByGroupIdAndUserId(groupRef, kickedUserId);
-            if (kickedLookup.isEmpty()) {
-                transmitSystemAlert(originatorSession,
-                        "Target user is not a member of this group");
+            Optional<GroupMembership> targetLookup = groupAccessRepo.findByGroupIdAndUserId(groupRef, targetUserId);
+            if (targetLookup.isEmpty()) {
+                sendError(originatorSession, "Target user is not a member of this group");
                 return;
             }
 
+            GroupMembership targetMembership = targetLookup.get();
+            if (targetMembership.isLeaderLike()) {
+                sendError(originatorSession, "Cannot change GROUP_LEADER or ADMIN permissions");
+                return;
+            }
+
+            targetMembership.setAccessLevel(GroupMembership.normalizeRole(
+                    text(msgPayload, "membershipRole", targetMembership.getAccessLevel())));
+            targetMembership.setChatEnabled(bool(msgPayload, "canSendMessages", targetMembership.isChatEnabled()));
+            targetMembership.setManageEnabled(bool(msgPayload, "canManageMembers", targetMembership.isManageEnabled()));
+            targetMembership.setAnnounceEnabled(bool(msgPayload, "canPostAnnouncements",
+                    targetMembership.isAnnounceEnabled()));
+            targetMembership.setWorkoutEnabled(bool(msgPayload, "canAssignWorkouts", targetMembership.isWorkoutEnabled()));
+            groupAccessRepo.save(targetMembership);
+
+            Optional<User> targetAccount =
+                    accountStore.findById(targetUserId);
+
+            Map<String, Object> outgoingEvent = new LinkedHashMap<>();
+            outgoingEvent.put("eventType", "GROUP_PERMISSION_UPDATED");
+            outgoingEvent.put("groupId", groupRef);
+            outgoingEvent.put("targetUserId", targetUserId);
+            outgoingEvent.put("username", targetAccount.map(User::getAccountName).orElse("Unknown"));
+            outgoingEvent.put("membershipRole", targetMembership.getAccessLevel());
+            outgoingEvent.put("canSendMessages", targetMembership.isChatEnabled());
+            outgoingEvent.put("canManageMembers", targetMembership.isManageEnabled());
+            outgoingEvent.put("canPostAnnouncements", targetMembership.isAnnounceEnabled());
+            outgoingEvent.put("canAssignWorkouts", targetMembership.isWorkoutEnabled());
+            outgoingEvent.put("changedByUserId", originatorId);
+            outgoingEvent.put("changedByUsername", originatorName);
+
+            distributeToGroup(groupRef, outgoingEvent, null);
+
+        } catch (Exception error) {
+            log.error("Error in processAccessChange: {}", error.getMessage());
+            sendError(originatorSession, "Error updating permissions: " + error.getMessage());
+        }
+    }
+
+    /**
+     * Handles removing a member from a group
+     */
+
+    private void processGroupKick(Session originatorSession, Integer originatorId, String originatorName, JsonNode msgPayload) {
+        try {
+            int groupRef = requiredInt(msgPayload, "groupId");
+            int kickedUserId = requiredInt(msgPayload, "targetUserId");
+
+            Optional<GroupMembership> supervisorLookup = groupAccessRepo.findByGroupIdAndUserId(groupRef, originatorId);
+            if (supervisorLookup.isEmpty() || !supervisorLookup.get().isManageEnabled()) {
+                sendError(originatorSession, "You do not have permission to remove members");
+                return;
+            }
+
+            Optional<GroupMembership> kickedMemberLookup = groupAccessRepo.findByGroupIdAndUserId(groupRef, kickedUserId);
+            if (kickedMemberLookup.isEmpty()) {
+                sendError(originatorSession, "Target user is not a member of this group");
+                return;
+            }
+
+            if (kickedMemberLookup.get().isLeaderLike()) {
+                sendError(originatorSession, "Cannot remove GROUP_LEADER or ADMIN");
+                return;
+            }
+
+            groupAccessRepo.delete(kickedMemberLookup.get());
             Optional<User> kickedAccount = accountStore.findById(kickedUserId);
-            String kickedName = kickedAccount.map(User::getAccountName).orElse("Unknown");
 
-            groupAccessRepo.delete(kickedLookup.get());
+            Map<String, Object> outgoingEvent = new LinkedHashMap<>();
+            outgoingEvent.put("eventType", "GROUP_MEMBER_REMOVED");
+            outgoingEvent.put("groupId", groupRef);
+            outgoingEvent.put("targetUserId", kickedUserId);
+            outgoingEvent.put("username", kickedAccount.map(User::getAccountName).orElse("Unknown"));
+            outgoingEvent.put("removedByUserId", originatorId);
+            outgoingEvent.put("removedByUsername", originatorName);
 
-            String outgoing = "{\"eventType\":\"GROUP_MEMBER_REMOVED\"," +
-                    "\"groupId\":" + groupRef + "," +
-                    "\"targetUserId\":" + kickedUserId + "," +
-                    "\"targetUsername\":\"" + kickedName + "\"," +
-                    "\"removedByUserId\":" + originatorId + "," +
-                    "\"removedByUsername\":\"" + originatorName + "\"}";
+            distributeToGroup(groupRef, outgoingEvent, null);
 
-            distributeToGroup(groupRef, outgoing, null);
-            log.info("User {} removed from group {} by {}",
-                    kickedUserId, groupRef, originatorId);
         } catch (Exception error) {
-            log.error("Error removing member", error);
-            transmitSystemAlert(originatorSession, "Error removing member");
+            log.error("Error in processGroupKick: {}", error.getMessage());
+            sendError(originatorSession, "Error removing member: " + error.getMessage());
         }
     }
 
-    private void processMessageRemoval(Session originatorSession, Integer originatorId, JsonNode payload) {
+    /**
+     * Handles a user leaving a group
+     */
+
+    private void processGroupExit(Session originatorSession, Integer originatorId, String originatorName, JsonNode msgPayload) {
         try {
-            long msgId = payload.get("messageId").asLong();
+            int groupRef = requiredInt(msgPayload, "groupId");
 
-            Message located = messageStore.findById(msgId).orElse(null);
-            if (located == null) {
-                transmitSystemAlert(originatorSession, "Message not found");
+            Optional<GroupMembership> exitMemberLookup = groupAccessRepo.findByGroupIdAndUserId(groupRef, originatorId);
+            if (exitMemberLookup.isEmpty()) {
+                sendError(originatorSession, "You are not a member of this group");
                 return;
             }
 
-            if (located.getOriginatorId() != originatorId) {
-                transmitSystemAlert(originatorSession,
-                        "You can only delete your own messages");
-                return;
-            }
+            groupAccessRepo.delete(exitMemberLookup.get());
 
-            int groupRef = located.getGroupId();
-            messageStore.delete(located);
+            Map<String, Object> outgoingEvent = new LinkedHashMap<>();
+            outgoingEvent.put("eventType", "GROUP_MEMBER_LEFT");
+            outgoingEvent.put("groupId", groupRef);
+            outgoingEvent.put("userId", originatorId);
+            outgoingEvent.put("username", originatorName);
 
-            String outgoing = "{\"eventType\":\"MESSAGE_DELETED\"," +
-                    "\"messageId\":" + msgId + "," +
-                    "\"groupId\":" + groupRef + "}";
-            distributeToGroup(groupRef, outgoing, null);
+            distributeToGroup(groupRef, outgoingEvent, null);
 
-            log.info("Message {} deleted by {}", msgId, originatorId);
         } catch (Exception error) {
-            log.error("Error deleting message", error);
-            transmitSystemAlert(originatorSession, "Error deleting message");
+            log.error("Error in processGroupExit: {}", error.getMessage());
+            sendError(originatorSession, "Error leaving group: " + error.getMessage());
         }
     }
 
+    /**
+     * Handles a user joining a group
+     */
 
-    private void processGroupExit(Session originatorSession, Integer originatorId, String originatorName, JsonNode payload) {
+    private void processGroupEntry(Session originatorSession, Integer originatorId, String originatorName, JsonNode msgPayload) {
         try {
-            int groupRef = payload.get("groupId").asInt();
+            int groupRef = requiredInt(msgPayload, "groupId");
 
-            Optional<GroupMembership> memberLookup = groupAccessRepo
-                    .findByGroupIdAndUserId(groupRef, originatorId);
-
-            if (memberLookup.isEmpty()) {
-                transmitSystemAlert(originatorSession,
-                        "You are not a member of this group");
+            if (groupAccessRepo.existsByGroupIdAndUserId(
+                    groupRef, originatorId)) {
+                sendError(originatorSession, "You are already a member of this group");
                 return;
             }
 
-            groupAccessRepo.delete(memberLookup.get());
+            Optional<User> joinerLookup = accountStore.findById(originatorId);
+            String joinerRole = joinerLookup.map(User::getRole).orElse("Client");
 
-            String outgoing = "{\"eventType\":\"GROUP_MEMBER_LEFT\"," +
-                    "\"groupId\":" + groupRef + "," +
-                    "\"userId\":" + originatorId + "," +
-                    "\"username\":\"" + originatorName + "\"}";
+            String entryLevel = "Trainer".equalsIgnoreCase(joinerRole) ? GroupMembership.ROLE_TRAINER : GroupMembership.ROLE_MEMBER;
 
-            distributeToGroup(groupRef, outgoing, null);
-            log.info("User {} left group {}", originatorId, groupRef);
+            GroupMembership newMembership = groupAccessRepo.save(
+                    new GroupMembership(groupRef, originatorId, entryLevel));
+
+            Map<String, Object> outgoingEvent = new LinkedHashMap<>();
+            outgoingEvent.put("eventType", "GROUP_MEMBER_JOINED");
+            outgoingEvent.put("groupId", groupRef);
+            outgoingEvent.put("membershipId", newMembership.getMembershipId());
+            outgoingEvent.put("userId", originatorId);
+            outgoingEvent.put("username", originatorName);
+            outgoingEvent.put("membershipRole", newMembership.getAccessLevel());
+
+            distributeToGroup(groupRef, outgoingEvent, null);
+
         } catch (Exception error) {
-            log.error("Error leaving group", error);
-            transmitSystemAlert(originatorSession, "Error leaving group");
+            log.error("Error in processGroupEntry: {}", error.getMessage());
+            sendError(originatorSession, "Error joining group: " + error.getMessage());
         }
     }
 
-    private void processGroupEntry(Session originatorSession, Integer originatorId, String originatorName, JsonNode payload) {
+    /**
+     * Broadcasts to all active members of a group
+     */
+
+    private void distributeToGroup(int groupRef,
+                                   Map<String, Object> outgoingEvent, Session excludedSession) {
+        List<GroupMembership> groupMemberList = groupAccessRepo.findByGroupId(groupRef);
+
+        for (GroupMembership membership : groupMemberList) {
+            Session memberSession = liveConnections.get(membership.getUserId());
+
+            if (memberSession != null && memberSession.isOpen() && !memberSession.equals(excludedSession)) {
+                sendEvent(memberSession, outgoingEvent);
+            }
+        }
+    }
+
+    /**
+     * Builds a JSON message event map from a Message object
+     */
+
+    private Map<String, Object> formatMessageEvent(String eventType,
+                                                   Message msg, String authorName) {
+        Map<String, Object> msgData = new LinkedHashMap<>();
+        msgData.put("id", msg.getId());
+        msgData.put("originatorId", msg.getOriginatorId());
+        msgData.put("username", authorName);
+        msgData.put("groupId", msg.getGroupId());
+        msgData.put("targetUserId", msg.getTargetUserId());
+        msgData.put("messageType", msg.getMessageType());
+        msgData.put("textBody", msg.getTextBody());
+
+        msgData.put("createdTimestamp",
+                msg.getCreatedTimestamp() != null ? msg.getCreatedTimestamp().toString() : null);
+
+        msgData.put("editTimestamp",
+                msg.getEditTimestamp() != null ? msg.getEditTimestamp().toString() : null);
+
+        Map<String, Object> outgoingEvent = new LinkedHashMap<>();
+        outgoingEvent.put("eventType", eventType);
+        outgoingEvent.put("message", msgData);
+        return outgoingEvent;
+    }
+
+
+    private void sendEvent(Session destination,
+                           Map<String, Object> outgoingEvent) {
+        if (destination == null || !destination.isOpen()) return;
         try {
-            int groupRef = payload.get("groupId").asInt();
-
-            if (groupAccessRepo.existsByGroupIdAndUserId(groupRef, originatorId)) {
-                transmitSystemAlert(originatorSession,
-                        "You are already a member of this group");
-                return;
-            }
-
-            Optional<User> accountLookup = accountStore.findById(originatorId);
-            String accountRole = accountLookup.map(User::getRole).orElse("Client");
-            String entryLevel = accountRole.equals("Trainer") ? "TRAINER" : "MEMBER";
-
-            GroupMembership freshMembership = new GroupMembership(
-                    groupRef, originatorId, entryLevel);
-            groupAccessRepo.save(freshMembership);
-
-            String outgoing = "{\"eventType\":\"GROUP_MEMBER_JOINED\"," +
-                    "\"groupId\":" + groupRef + "," +
-                    "\"userId\":" + originatorId + "," +
-                    "\"username\":\"" + originatorName + "\"}";
-
-            distributeToGroup(groupRef, outgoing, null);
-            log.info("User {} joined group {}", originatorId, groupRef);
-        } catch (Exception error) {
-            log.error("Error joining group", error);
-            transmitSystemAlert(originatorSession, "Error joining group");
+            destination.getBasicRemote().sendText(payloadParser.writeValueAsString(outgoingEvent));
+        } catch (IOException e) {
+            log.error("Error sending WebSocket event", e);
         }
     }
 
-    private void distributeToGroup(int groupRef, String msgText, Session excludedSession) {
-        List<GroupMembership> memberList = groupAccessRepo.findByGroupId(groupRef);
-
-        for (GroupMembership m : memberList) {
-            Optional<User> accountLookup = accountStore.findById(m.getUserId());
-            if (accountLookup.isEmpty()) continue;
-
-            String memberName = accountLookup.get().getAccountName();
-            Session memberSession = liveConnections.get(memberName);
-
-            if (memberSession != null && memberSession.isOpen()
-                    && !memberSession.equals(excludedSession)) {
-                transmitToSession(memberSession, msgText);
-            }
-        }
+    private void sendError(Session session, String errorMsg) {
+        sendEvent(session, Map.of("eventType", "ERROR", "message", errorMsg
+        ));
     }
 
-    private String formatMessageEvent(String eventType, Message msg, String authorName) {
-        return "{\"eventType\":\"" + eventType + "\"," +
-                "\"message\":{" +
-                "\"id\":" + msg.getId() + "," +
-                "\"originatorId\":" + msg.getOriginatorId() + "," +
-                "\"username\":\"" + authorName + "\"," +
-                "\"groupId\":" + msg.getGroupId() + "," +
-                "\"targetUserId\":" + msg.getTargetUserId() + "," +
-                "\"messageType\":\"" + msg.getMessageType() + "\"," +
-                "\"textBody\":\"" + msg.getTextBody() + "\"," +
-                "\"createdTimestamp\":\"" + msg.getCreatedTimestamp() + "\"," +
-                "\"editTimestamp\":" + (msg.getEditTimestamp() != null ?
-                "\"" + msg.getEditTimestamp() + "\"" : "null") +
-                "}}";
+
+    private int requiredInt(JsonNode node, String fieldName) {
+        if (!node.has(fieldName) || node.get(fieldName).isNull()) {
+            throw new IllegalArgumentException(fieldName + " is required");
+        }
+        return node.get(fieldName).asInt();
+    }
+
+    private Integer nullableInt(JsonNode node, String fieldName) {
+        if (!node.has(fieldName))
+         return null;
+        JsonNode field = node.get(fieldName);
+        if (field == null || field.isNull())
+         return null;
+        return field.asInt();
+    }
+
+    private String text(JsonNode node, String fieldName,
+                        String defaultValue) {
+        return node.has(fieldName) && !node.get(fieldName).isNull() ? node.get(fieldName).asText() : defaultValue;
+    }
+
+    /**
+     * Gets a boolean from JSON payload with default value
+     */
+
+    private boolean bool(JsonNode node, String fieldName, boolean defaultValue) {
+        return node.has(fieldName) && !node.get(fieldName).isNull() ? node.get(fieldName).asBoolean() : defaultValue;
     }
 }
-
-
-
-/*
-@Controller      // this is needed for this to be an endpoint to springboot
-
-@ServerEndpoint(value = "/chat/{username}")  // this is Websocket url
-public class ChatSocket {
-
-  // cannot autowire static directly (instead we do it by the below
-  // method
-	private static MessageRepository msgRepo; 
-
-	/*
-   * Grabs the MessageRepository singleton from the Spring Application
-   * Context.  This works because of the @Controller annotation on this
-   * class and because the variable is declared as static.
-   * There are other ways to set this. However, this approach is
-   * easiest.
-
-	@Autowired
-	public void setMessageRepository(MessageRepository repo) {
-		msgRepo = repo;  // we are setting the static variable
-	}
-
-	// Store all socket session and their corresponding username.
-	private static Map<Session, String> sessionUsernameMap = new Hashtable<>();
-	private static Map<String, Session> usernameSessionMap = new Hashtable<>();
-
-	private final Logger logger = LoggerFactory.getLogger(ChatSocket.class);
-
-	@OnOpen
-	public void onOpen(Session session, @PathParam("username") String username) 
-      throws IOException {
-
-		logger.info("Entered into Open");
-
-    // store connecting user information
-		sessionUsernameMap.put(session, username);
-		usernameSessionMap.put(username, session);
-
-		//Send chat history to the newly connected user
-		sendMessageToPArticularUser(username, getChatHistory());
-		
-    // broadcast that new user joined
-		String message = "User:" + username + " has Joined the Chat";
-		broadcast(message);
-	}
-
-
-	@OnMessage
-	public void onMessage(Session session, String message) throws IOException {
-
-		// Handle new messages
-		logger.info("Entered into Message: Got Message:" + message);
-		String username = sessionUsernameMap.get(session);
-
-    // Direct message to a user using the format "@username <message>"
-		if (message.startsWith("@")) {
-			String destUsername = message.split(" ")[0].substring(1); 
-
-      // send the message to the sender and receiver
-			sendMessageToPArticularUser(destUsername, "[DM] " + username + ": " + message);
-			sendMessageToPArticularUser(username, "[DM] " + username + ": " + message);
-
-		} 
-    else { // broadcast
-			broadcast(username + ": " + message);
-		}
-
-		// Saving chat history to repository
-		msgRepo.save(new Message(username, message));
-	}
-
-
-	@OnClose
-	public void onClose(Session session) throws IOException {
-		logger.info("Entered into Close");
-
-    // remove the user connection information
-		String username = sessionUsernameMap.get(session);
-		sessionUsernameMap.remove(session);
-		usernameSessionMap.remove(username);
-
-    // broadcase that the user disconnected
-		String message = username + " disconnected";
-		broadcast(message);
-	}
-
-
-	@OnError
-	public void onError(Session session, Throwable throwable) {
-		// Do error handling here
-		logger.info("Entered into Error");
-		throwable.printStackTrace();
-	}
-
-
-	private void sendMessageToPArticularUser(String username, String message) {
-		try {
-			usernameSessionMap.get(username).getBasicRemote().sendText(message);
-		} 
-    catch (IOException e) {
-			logger.info("Exception: " + e.getMessage().toString());
-			e.printStackTrace();
-		}
-	}
-
-
-	private void broadcast(String message) {
-		sessionUsernameMap.forEach((session, username) -> {
-			try {
-				session.getBasicRemote().sendText(message);
-			} 
-      catch (IOException e) {
-				logger.info("Exception: " + e.getMessage().toString());
-				e.printStackTrace();
-			}
-
-		});
-
-	}
-	
-
-  // Gets the Chat history from the repository
-	private String getChatHistory() {
-		List<Message> messages = msgRepo.findAll();
-
-		// convert the list to a string
-		StringBuilder sb = new StringBuilder();
-		if (messages != null && messages.size() != 0) {
-			for (Message message : messages) {
-				sb.append(message.getUserName() + ": " + message.getContent() + "\n");
-			}
-		}
-		return sb.toString();
-	} */
-
- // end of Class

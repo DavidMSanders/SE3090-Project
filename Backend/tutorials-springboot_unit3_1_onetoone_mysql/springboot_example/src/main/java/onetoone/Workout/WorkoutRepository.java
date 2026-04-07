@@ -11,5 +11,4 @@ Workout Repository INterface
 
 @Repository
 public interface WorkoutRepository extends JpaRepository<Workout, Integer>{
-    //The JPA Repository uses the CRUD Operations
 }
