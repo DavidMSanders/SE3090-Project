@@ -45,3 +45,4 @@ public class JournalController {
         return journalService.getEntriesForMonth(userId, year, month);
     }
 }
+

@@ -17,3 +17,4 @@ public interface CalendarEventRepository extends JpaRepository<CalendarEvent, Lo
 
     List<CalendarEvent> findByUserIdAndEventDateBetween(Long userId, LocalDate start, LocalDate end);
 }
+
