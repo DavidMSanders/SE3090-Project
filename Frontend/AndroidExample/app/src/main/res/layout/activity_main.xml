@@ -29,6 +29,73 @@
         app:layout_constraintTop_toBottomOf="@id/tvCurrentUser"
         app:layout_constraintStart_toStartOf="parent"
         android:layout_marginBottom="4dp"/>
+
+    <ScrollView
+        android:id="@+id/scrollButtons"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toBottomOf="@id/btnLogout"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <Button
+                android:id="@+id/btnWorkoutPlans"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Workout Plans"
+                android:layout_marginBottom="8dp"/>
+
+            <Button
+                android:id="@+id/btnTestingPage"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Testing Page"
+                android:layout_marginBottom="8dp"/>
+
+            <Button
+                android:id="@+id/btnGroupList"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Group List"
+                android:layout_marginBottom="8dp"/>
+
+            <Button
+                android:id="@+id/WorkoutList"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Workout List"
+                android:layout_marginBottom="8dp"/>
+
+            <Button
+                android:id="@+id/btnGoToSignup"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Sign up"
+                android:layout_marginBottom="8dp"/>
+
+            <Button
+                android:id="@+id/btnGoToWorkout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Go to Workout Page"
+                android:layout_marginBottom="8dp"/>
+
+            <Button
+                android:id="@+id/btnGoToDelete"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Go to Delete Page"
+                android:layout_marginBottom="16dp"/>
+
+        </LinearLayout>
+    </ScrollView>
+<!--
     <Button
         android:id="@+id/btnTestingPage"
         android:layout_width="0dp"
@@ -36,6 +103,16 @@
         android:text="Testing Page"
         android:layout_marginBottom="4dp"
         app:layout_constraintBottom_toTopOf = "@id/btnGroupList"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <Button
+        android:id="@+id/btnWorkoutPlans"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Workout Plans"
+        android:layout_marginBottom="4dp"
+        app:layout_constraintBottom_toTopOf = "@id/btnTestingPage"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 
@@ -87,6 +164,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent" />
+-->
 
     <TextView
         android:id="@+id/textView"
