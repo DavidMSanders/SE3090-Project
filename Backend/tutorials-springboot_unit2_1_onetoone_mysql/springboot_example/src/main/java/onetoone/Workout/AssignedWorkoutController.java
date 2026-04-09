@@ -29,17 +29,26 @@ public class AssignedWorkoutController {
     // 6. POST /assigned-workouts
     @PostMapping
     public ResponseEntity<Map<String, Object>> assignWorkout(@RequestBody Map<String, Object> req) {
-        Long trainerId = Long.valueOf(req.get("trainerId").toString());
-        Long workoutPlanId = Long.valueOf(req.get("workoutPlanId").toString());
-        Long clientId = Long.valueOf(req.get("clientId").toString());
+        Long workoutPlanId = req.get("workoutPlanId") != null ? Long.valueOf(req.get("workoutPlanId").toString()) : null;
+        Long clientId = req.get("clientId") != null ? Long.valueOf(req.get("clientId").toString()) : null;
         Long groupId = req.get("groupId") != null ? Long.valueOf(req.get("groupId").toString()) : null;
-        String scheduledDate = req.get("scheduledDate").toString();
+        String scheduledDate = req.get("scheduledDate") != null ? req.get("scheduledDate").toString() : null;
 
-        User trainer = userRepo.findById(trainerId.intValue()).orElse(null);
-        User client = userRepo.findById(clientId.intValue()).orElse(null);
+        if (workoutPlanId == null || clientId == null || scheduledDate == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
         WorkoutPlan plan = planRepo.findById(workoutPlanId).orElse(null);
+        User client = userRepo.findById(clientId.intValue()).orElse(null);
 
-        if (trainer == null || client == null || plan == null) {
+        if (plan == null || client == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        User trainer = plan.getTrainerId() != null ? userRepo.findById(plan.getTrainerId().intValue()).orElse(null) : null;
+        Long trainerId = trainer != null ? Long.valueOf(trainer.getUserId()) : null;
+
+        if (trainer == null) {
             return ResponseEntity.badRequest().build();
         }
 
