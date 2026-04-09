@@ -21,32 +21,27 @@ public class JournalController {
     public JournalEntry createEntry(
             @RequestParam Long userId,
             @RequestParam String date,
-            @RequestParam String content
-    ) {
+            @RequestParam String content) {
         return journalService.createEntry(
                 userId,
                 LocalDate.parse(date),
-                content
-        );
+                content);
     }
 
     @GetMapping("/date")
     public List<JournalEntry> getEntriesByDate(
             @RequestParam Long userId,
-            @RequestParam String date
-    ) {
+            @RequestParam String date) {
         return journalService.getEntriesForDate(
                 userId,
-                LocalDate.parse(date)
-        );
+                LocalDate.parse(date));
     }
 
     @GetMapping("/month")
     public List<JournalEntry> getEntriesByMonth(
             @RequestParam long userId,
             @RequestParam int year,
-            @RequestParam int month
-    ) {
+            @RequestParam int month) {
         return journalService.getEntriesForMonth(userId, year, month);
     }
 }

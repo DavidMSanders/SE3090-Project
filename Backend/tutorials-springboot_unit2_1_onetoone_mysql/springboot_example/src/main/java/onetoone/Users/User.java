@@ -28,6 +28,7 @@ public class User {
     private String accountName;
     private String userPassword;
     private LocalDate birthDate;
+    private String role;
     private boolean isEnabled;
 
     public User() {
@@ -77,6 +78,14 @@ public class User {
         this.birthDate = birthDate;
     }
 
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
+
     public boolean isEnabled() {
 
         return isEnabled;
@@ -92,7 +101,7 @@ public class User {
     public String toString() {
         return "User {" +
                 "UserId =" + id + ", accountName='" + accountName + '\'' + ", birthDate=" + birthDate + " isEnabled=" +
-                isEnabled + '}';
+                isEnabled + ", role='" + role + '\'' + '}';
     }
 
     /**
