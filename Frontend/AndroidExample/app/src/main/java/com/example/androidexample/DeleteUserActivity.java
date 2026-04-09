@@ -34,6 +34,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Activity for deleting user.
+ */
 public class DeleteUserActivity extends AppCompatActivity {
 
 
@@ -47,6 +50,10 @@ public class DeleteUserActivity extends AppCompatActivity {
     private static final String DELETE_BY_INFO_URL =
             "http://coms-3090-035.class.las.iastate.edu:8080/api/v1/users/delete";
 
+    /**
+     * Initializes delete user activity. Sets up UI elements and click listeners.
+     * @param savedInstanceState
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -98,7 +105,11 @@ public class DeleteUserActivity extends AppCompatActivity {
             sendDeleteRequest(username, dob);
         });
     }
-
+    /**
+     * Sends delete request to backend by username and dob
+     * @param username String
+     * @param dob String
+     */
     private void sendDeleteRequest(String username, String dob) {
         JSONObject body = new JSONObject();
         try {
@@ -124,6 +135,10 @@ public class DeleteUserActivity extends AppCompatActivity {
                             Toast.LENGTH_LONG).show();
                 }
         ) {
+            /**
+             * Sets content type to JSON
+             * @return
+             */
             @Override
             public String getBodyContentType() {
                 return "application/json; charset=utf-8";
@@ -133,6 +148,10 @@ public class DeleteUserActivity extends AppCompatActivity {
         VolleySingleton.getInstance(this).addToRequestQueue(request);
     }
 
+    /**
+     * Sends delete request to backend by ID
+     * @param idStr userId as a string
+     */
     private void sendDeleteByIdRequest(String idStr) {
         String url = DELETE_URL + "/" + idStr;
 
@@ -155,7 +174,11 @@ public class DeleteUserActivity extends AppCompatActivity {
         VolleySingleton.getInstance(this).addToRequestQueue(request);
     }
 
-
+    /**
+     * Converts Volley error to readable string
+     * @param error
+     * @return String VolleyError
+     */
     private String readableVolleyError(VolleyError error) {
             if(error == null) return "Unknown error";
             if(error.networkResponse != null) {

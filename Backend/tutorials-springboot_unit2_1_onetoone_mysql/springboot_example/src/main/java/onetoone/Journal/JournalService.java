@@ -31,3 +31,4 @@ public class JournalService {
         return journalRepository.findByUserIdAndEntryDateBetween(userId, start, end);
     }
 }
+
