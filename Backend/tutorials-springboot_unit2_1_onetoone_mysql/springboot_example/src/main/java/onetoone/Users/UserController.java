@@ -1,4 +1,5 @@
 package onetoone.Users;
+
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
@@ -19,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
  * 
  * @author Chris Lopez
  * 
- */ 
+ */
 
 @RestController
 @RequestMapping("/api/v1/users")
@@ -48,8 +49,7 @@ public class UserController {
 
             User accountToDelete = userRepository.findByAccountNameAndBirthDate(
                     requestData.getUsername(),
-            parsedBirthDate
-            );
+                    parsedBirthDate);
 
             if (accountToDelete != null) {
                 userRepository.delete(accountToDelete);
@@ -66,21 +66,17 @@ public class UserController {
         }
     }
 
-
-
-
     /**
      * DELETE by ID
      *
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Map<String, String>> deleteUserByID(@PathVariable int id){
+    public ResponseEntity<Map<String, String>> deleteUserByID(@PathVariable int id) {
         Map<String, String> responseMap = new HashMap<>();
 
         User foundAccount = userRepository.findById(id).orElse(null);
 
-
-        if (foundAccount != null){
+        if (foundAccount != null) {
             userRepository.delete(foundAccount);
             responseMap.put("message", "User deleted sucessfully");
 
@@ -91,13 +87,6 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseMap);
         }
     }
-
-
-
-
-
-
-
 
     /**
      * Get
@@ -126,13 +115,32 @@ public class UserController {
     public ResponseEntity<?> getAllUsers() {
         return ResponseEntity.ok(userRepository.findAll());
     }
+
+    /**
+     * @author Matthew Smith
+     */
+    @PostMapping("/login")
+    public ResponseEntity<?> loginUser(@RequestBody LoginRequest request) {
+
+        User foundUser = userRepository.findByAccountNameAndUserPassword(
+                request.getAccountName(),
+                request.getUserPassword());
+
+        if (foundUser != null && foundUser.isEnabled()) {
+            return ResponseEntity.ok(foundUser);
+        } else {
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Invalid username or password");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+        }
+    }
 }
 
 /**
  * Request body class for delete endpoint
  */
 
-    class DeleteRequest {
+class DeleteRequest {
     private String username;
     private String dateOfBirth;
 
@@ -156,63 +164,59 @@ public class UserController {
         this.dateOfBirth = dateOfBirth;
     }
 
-
-
-
 }
-
-
 
 /*
  * @Autowired
-    LaptopRepository laptopRepository;
-
-    private String success = "{\"message\":\"success\"}";
-    private String failure = "{\"message\":\"failure\"}";
-
-    @GetMapping(path = "/users")
-    List<User> getAllUsers(){
-        return userRepository.findAll();
-    }
-
-    @GetMapping(path = "/users/{id}")
-    User getUserById( @PathVariable int id){
-        return userRepository.findById(id);
-    }
-
-    @PostMapping(path = "/users")
-    String createUser(@RequestBody User user){
-        if (user == null)
-            return failure;
-        userRepository.save(user);
-        return success;
-    }
-
-    @PutMapping("/users/{id}")
-    User updateUser(@PathVariable int id, @RequestBody User request){
-        User user = userRepository.findById(id);
-        if(user == null)
-            return null;
-        userRepository.save(request);
-        return userRepository.findById(id);
-    }   
-    
-    @PutMapping("/users/{userId}/laptops/{laptopId}")
-    String assignLaptopToUser(@PathVariable int userId,@PathVariable int laptopId){
-        User user = userRepository.findById(userId);
-        Laptop laptop = laptopRepository.findById(laptopId);
-        if(user == null || laptop == null)
-            return failure;
-        laptop.setUser(user);
-        user.setLaptop(laptop);
-        userRepository.save(user);
-        return success;
-    }
-
-    @DeleteMapping(path = "/users/{id}")
-    String deleteUser(@PathVariable int id){
-        userRepository.deleteById(id);
-        return success;
-    }
-}
+ * LaptopRepository laptopRepository;
+ * 
+ * private String success = "{\"message\":\"success\"}";
+ * private String failure = "{\"message\":\"failure\"}";
+ * 
+ * @GetMapping(path = "/users")
+ * List<User> getAllUsers(){
+ * return userRepository.findAll();
+ * }
+ * 
+ * @GetMapping(path = "/users/{id}")
+ * User getUserById( @PathVariable int id){
+ * return userRepository.findById(id);
+ * }
+ * 
+ * @PostMapping(path = "/users")
+ * String createUser(@RequestBody User user){
+ * if (user == null)
+ * return failure;
+ * userRepository.save(user);
+ * return success;
+ * }
+ * 
+ * @PutMapping("/users/{id}")
+ * User updateUser(@PathVariable int id, @RequestBody User request){
+ * User user = userRepository.findById(id);
+ * if(user == null)
+ * return null;
+ * userRepository.save(request);
+ * return userRepository.findById(id);
+ * }
+ * 
+ * @PutMapping("/users/{userId}/laptops/{laptopId}")
+ * String assignLaptopToUser(@PathVariable int userId,@PathVariable int
+ * laptopId){
+ * User user = userRepository.findById(userId);
+ * Laptop laptop = laptopRepository.findById(laptopId);
+ * if(user == null || laptop == null)
+ * return failure;
+ * laptop.setUser(user);
+ * user.setLaptop(laptop);
+ * userRepository.save(user);
+ * return success;
+ * }
+ * 
+ * @DeleteMapping(path = "/users/{id}")
+ * String deleteUser(@PathVariable int id){
+ * userRepository.deleteById(id);
+ * return success;
+ * }
+ * }
  **/

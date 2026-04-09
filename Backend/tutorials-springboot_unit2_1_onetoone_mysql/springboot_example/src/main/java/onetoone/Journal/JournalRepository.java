@@ -13,6 +13,5 @@ public interface JournalRepository extends JpaRepository<JournalEntry, Long> {
     List<JournalEntry> findByUserIdAndEntryDateBetween(
             Long userId,
             LocalDate start,
-            LocalDate end
-    );
+            LocalDate end);
 }
