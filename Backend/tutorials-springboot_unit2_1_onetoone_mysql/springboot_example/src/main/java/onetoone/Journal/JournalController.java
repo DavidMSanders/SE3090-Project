@@ -1,7 +1,7 @@
-package __rk1.backend.controller;
+package onetoone.Journal;
 
-import __rk1.backend.model.JournalEntry;
-import __rk1.backend.service.JournalService;
+import onetoone.Journal.JournalEntry;
+import onetoone.Journal.JournalService;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -50,3 +50,4 @@ public class JournalController {
         return journalService.getEntriesForMonth(userId, year, month);
     }
 }
+

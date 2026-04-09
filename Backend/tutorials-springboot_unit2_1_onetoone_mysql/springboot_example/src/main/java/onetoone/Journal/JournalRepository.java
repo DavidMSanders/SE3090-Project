@@ -1,6 +1,6 @@
-package __rk1.backend.repository;
+package onetoone.Journal;
 
-import __rk1.backend.model.JournalEntry;
+import onetoone.Journal.JournalEntry;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDate;

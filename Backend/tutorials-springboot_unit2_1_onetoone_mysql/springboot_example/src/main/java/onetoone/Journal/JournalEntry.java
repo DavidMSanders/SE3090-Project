@@ -1,4 +1,4 @@
-package __rk1.backend.model;
+package onetoone.Journal;
 import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -52,3 +52,4 @@ public class JournalEntry {
 
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 }
+

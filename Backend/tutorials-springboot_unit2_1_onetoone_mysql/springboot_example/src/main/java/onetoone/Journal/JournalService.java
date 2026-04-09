@@ -1,7 +1,7 @@
-package __rk1.backend.service;
+package onetoone.Journal;
 
-import __rk1.backend.model.JournalEntry;
-import __rk1.backend.repository.JournalRepository;
+import onetoone.Journal.JournalEntry;
+import onetoone.Journal.JournalRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -31,3 +31,4 @@ public class JournalService {
         return journalRepository.findByUserIdAndEntryDateBetween(userId, start, end);
     }
 }
+

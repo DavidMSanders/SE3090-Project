@@ -1,7 +1,7 @@
-package __rk1.backend.service;
+package onetoone.Calender;
 
-import __rk1.backend.model.CalendarEvent;
-import __rk1.backend.repository.CalendarEventRepository;
+import onetoone.Calender.CalendarEvent;
+import onetoone.Calender.CalendarEventRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -67,3 +67,4 @@ public class CalendarEventService {
         return false;
     }
 }
+
