@@ -115,15 +115,15 @@ public class CalendarController {
         foundEvent.setEventLabel(body.get("title").toString());
     }
     if(body.containsKey("date")){
-        foundEvent.setScheduledDate(LocalDate.parse)(body.get("date").toString()));
+        foundEvent.setScheduledDate(LocalDate.parse(body.get("date").toString()));
     }
     if (body.containsKey("notes")){
         foundEvent.setEventNotes(body.get("notes").toString());
     }
 
-    event = eventRepo.save(event);
+    foundEvent = eventRepo.save(foundEvent);
     result.put("message", "Event updated sucessfully");
-    result.putAll(buildEventMap(event));
+    result.putAll(buildEventMap(foundEvent));
     return ResponseEntity.ok(result);
     }
 
@@ -164,11 +164,6 @@ public class CalendarController {
                 currentDate = currentDate.plusDays(1);
             }
 
-            DayOfWeek targetDay = DayOfWeek.valueOf(repeatDay);
-            LocalDate currentDate = LocalDate.now();
-            while (currentDate.getDayOfWeek() != targetDay) {
-                currentDate = currentDate.plusDays(1);
-            }
 
             int createdCount = 0;
             for (int weekNum = 0;
@@ -198,7 +193,7 @@ public class CalendarController {
     @GetMapping("/users/{userId}/events/recurring")
     public ResponseEntity<List<Map<String, Object>>> getRecurringEvents(@PathVariable Long userId) {
         List<RecurrenceRule> ruleList = ruleRepo.findByOwnerId(userId);
-        List<Map<String, Object>> rule = new ArrayList<>();
+        List<Map<String, Object>> result = new ArrayList<>();
         for (RecurrenceRule rule : ruleList) {
             Map<String, Object> ruleMap = new HashMap<>();
             ruleMap.put("recurrenceId", rule.getRuleKey());
@@ -209,9 +204,10 @@ public class CalendarController {
             result.add(ruleMap);
         }
         return ResponseEntity.ok(result);
+    }
 
         @DeleteMapping("/events/recurring/{recurrenceId}")
-        public ResponseEntity<Map<String, Object>> deleteRecurringEvent (@PathVariable Long recurrenceId){
+        public ResponseEntity<Map<String, Object>> deleteRecurringEvent (@PathVariable Long recurrenceId) {
             Map<String, Object> result = new HashMap<>();
             List<CalendarEvent> linkedEvents = eventRepo.findByRuleRef(recurrenceId);
             int deletedCount = linkedEvents.size();
@@ -238,7 +234,7 @@ public class CalendarController {
             }
 
             Long attendeeId = Long.valueOf(body.get("userId").toString());
-            if (participantRepo.existsByEventRefAndAttendeeId) (eventId, attendeeId){
+            if (participantRepo.existsByEventRefAndAttendeeId (eventId, attendeeId)){
                 result.put("message", "User is already a participant");
                 return ResponseEntity.status(HttpStatus.CONFLICT).body(result);
             }
