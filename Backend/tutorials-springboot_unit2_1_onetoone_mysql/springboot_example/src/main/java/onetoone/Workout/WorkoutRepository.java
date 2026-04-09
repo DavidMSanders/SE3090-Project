@@ -1,6 +1,5 @@
 package onetoone.Workout;
 
-import jakarta.persistence.criteria.CriteriaBuilder;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -10,6 +9,6 @@ Workout Repository INterface
  */
 
 @Repository
-public interface WorkoutRepository extends JpaRepository<Workout, Integer>{
-    //The JPA Repository uses the CRUD Operations
+public interface WorkoutRepository extends JpaRepository<Workout, Long> {
+    // The JPA Repository uses the CRUD Operations
 }

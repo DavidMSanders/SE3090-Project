@@ -61,4 +61,23 @@ public class GroupController {
     public List<GroupMembership> getMembers(@PathVariable Long groupId) {
         return membershipRepo.findByGroup_GroupId(groupId);
     }
+
+    // 18. GET /groups/{groupId}/assignable-clients?trainerId=3
+    @GetMapping("/{groupId}/assignable-clients")
+    public ResponseEntity<java.util.List<java.util.Map<String, Object>>> getAssignableClients(
+            @PathVariable Long groupId, @RequestParam int trainerId) {
+        java.util.List<java.util.Map<String, Object>> res = new java.util.ArrayList<>();
+        for (GroupMembership gm : membershipRepo.findAll()) {
+            if (gm.getGroup() != null && gm.getGroup().getGroupId().equals(groupId)) {
+                User u = gm.getUser();
+                if (u != null && u.getUserId() != trainerId && "Client".equalsIgnoreCase(u.getRole())) {
+                    java.util.Map<String, Object> map = new java.util.HashMap<>();
+                    map.put("userId", u.getUserId());
+                    map.put("username", u.getAccountName());
+                    res.add(map);
+                }
+            }
+        }
+        return ResponseEntity.ok(res);
+    }
 }

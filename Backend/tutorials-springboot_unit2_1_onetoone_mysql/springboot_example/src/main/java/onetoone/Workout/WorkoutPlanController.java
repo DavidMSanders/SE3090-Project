@@ -3,9 +3,9 @@ package onetoone.Workout;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
-import java.time.format.DateTimeFormatter;
+import java.util.Map;
 
 /**
  * @author Matthew Smith
@@ -16,39 +16,57 @@ public class WorkoutPlanController {
 
     @Autowired
     private WorkoutPlanRepository planRepo;
-    @Autowired
-    private WorkoutRepository workoutRepo;
 
+    // 1. POST /workout-plans
     @PostMapping
     public WorkoutPlan createPlan(@RequestBody WorkoutPlan plan) {
         return planRepo.save(plan);
     }
 
+    // 2. GET /workout-plans/trainer/{trainerId}
     @GetMapping("/trainer/{trainerId}")
     public List<WorkoutPlan> getPlansByTrainer(@PathVariable Long trainerId) {
         return planRepo.findByTrainerId(trainerId);
     }
 
-    @PostMapping("/{planId}/assign/user/{userId}")
-    public ResponseEntity<?> assignPlanToUser(@PathVariable Long planId, @PathVariable Long userId,
-            @RequestParam String date) {
-        WorkoutPlan plan = planRepo.findById(planId).orElse(null);
+    // 3. GET /workout-plans/{workoutPlanId}
+    @GetMapping("/{workoutPlanId}")
+    public ResponseEntity<WorkoutPlan> getPlan(@PathVariable Long workoutPlanId) {
+        return planRepo.findById(workoutPlanId).map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    // 4. PUT /workout-plans/{workoutPlanId}
+    @PutMapping("/{workoutPlanId}")
+    public ResponseEntity<Map<String, Object>> updatePlan(@PathVariable Long workoutPlanId,
+            @RequestBody WorkoutPlan incoming) {
+        WorkoutPlan plan = planRepo.findById(workoutPlanId).orElse(null);
         if (plan == null)
-            return ResponseEntity.badRequest().body("Plan not found");
+            return ResponseEntity.notFound().build();
 
-        DateTimeFormatter pattern = DateTimeFormatter.ofPattern("MM/dd/yyyy");
-        LocalDate parsedDate = LocalDate.parse(date, pattern);
+        if (incoming.getTrainerId() != null)
+            plan.setTrainerId(incoming.getTrainerId());
+        if (incoming.getPlanName() != null)
+            plan.setPlanName(incoming.getPlanName());
+        if (incoming.getPlanDescription() != null)
+            plan.setPlanDescription(incoming.getPlanDescription());
 
-        Workout workout = new Workout();
-        workout.setUserId(userId);
-        workout.setWorkoutPlanId(planId);
-        workout.setCreatedByUserId(plan.getTrainerId());
-        workout.setWorkoutName(plan.getPlanName());
-        workout.setWorkoutDescription(plan.getPlanDescription());
-        workout.setScheduledDate(parsedDate);
-        workout.setStatus("assigned");
-        workout.setSourceType("assigned_from_plan");
+        planRepo.save(plan);
+        Map<String, Object> res = new HashMap<>();
+        res.put("message", "Workout plan updated");
+        res.put("workoutPlanId", plan.getWorkoutPlanId());
+        return ResponseEntity.ok(res);
+    }
 
-        return ResponseEntity.ok(workoutRepo.save(workout));
+    // 5. DELETE /workout-plans/{workoutPlanId}
+    @DeleteMapping("/{workoutPlanId}")
+    public ResponseEntity<Map<String, String>> deletePlan(@PathVariable Long workoutPlanId) {
+        if (planRepo.existsById(workoutPlanId)) {
+            planRepo.deleteById(workoutPlanId);
+            Map<String, String> res = new HashMap<>();
+            res.put("message", "Workout plan deleted");
+            return ResponseEntity.ok(res);
+        }
+        return ResponseEntity.notFound().build();
     }
 }
