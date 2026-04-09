@@ -4,62 +4,152 @@ import org.json.JSONException;
 import org.json.JSONObject;
 public class Workout {
 
-        private int id;
-        private String name;
-        private String date;
-        private int durationMinutes;
-
+        private int workoutId;
+        private int userId;
+        private Integer assignedWorkoutId; //nullable obviously
+        private int createdByUserId;
+        private String WorkoutName;
         private String description;
+        private Integer durationMinutes; //nullable for assigned-workouts
+        private String scheduledDate;
+        private String status;
+        private String sourceType;
+
+        //extra field we should probably add later
+        private String createdByUsername;
 
 
-        public Workout(int id, String name, String date, int durationMinutes, String description){
-            this.id = id;
-            this.name = name;
-            this.date = date;
-            this.durationMinutes = durationMinutes;
+
+
+
+        public Workout(int workoutId, int userId,
+                       Integer assignedWorkoutId,
+                       int createdByUserId, String workoutName,
+                       String description, Integer durationMinutes,
+                       String scheduledDate, String status,
+                       String sourceType){
+            this.workoutId = workoutId;
+            this.userId = userId;
+            this.assignedWorkoutId = assignedWorkoutId;
+            this.createdByUserId = createdByUserId;
+            this.WorkoutName = workoutName;
             this.description = description;
+            this.durationMinutes = durationMinutes;
+            this.scheduledDate = scheduledDate;
+            this.status = status;
+            this.sourceType = sourceType;
         }
 
+
+
         //Convert Json to a Workout object
-    public static Workout fromJson(JSONObject json) throws JSONException {
-        return new Workout(
-        json.getInt("id"),
-        json.getString("name"),
-        json.getString("date"),
-        json.getInt("durationMinutes"),
-        json.getString("description")
-        );
-    }
+        public static Workout fromJson(JSONObject json) throws JSONException {
+            return new Workout(
+                    json.getInt("workoutId"),
+                    json.getInt("userId"),
+                    json.isNull("assignedWorkoutId") ? null : json.getInt("assignedWorkoutId"),
+                    json.getInt("createdByUserId"),
+                    json.getString("workoutName"),
+                    json.optString("workoutDescription", ""),
+                    json.isNull("durationMinutes") ? null : json.getInt("durationMinutes"),
+                    json.getString("scheduledDate"),
+                    json.getString("status"),
+                    json.getString("sourceType")
+            );
+        }
 
-    @Override
-    public String toString() {
-        return "Workout ID: " + id + "\n"+
-                "Name: " + name + "\n" +
-                "Date: " + date + "\n" +
-                "Duration: " + durationMinutes + " minutes\n" +
-                "Description: " + description;
-    }
+//    @Override
+//    public String toString() {
+//        return "Workout ID: " + id + "\n"+
+//                "Name: " + name + "\n" +
+//                "Date: " + date + "\n" +
+//                "Duration: " + durationMinutes + " minutes\n" +
+//                "Description: " + description;
+//    }
 
-    public JSONObject toJson() throws JSONException {
+
+    // For updating a self-created workout only
+    public JSONObject toUpdateJson() throws JSONException {
         JSONObject json = new JSONObject();
-        json.put("id", id);
-        json.put("name", name);
-        json.put("date", date);
-        json.put("durationMinutes", durationMinutes);
-        json.put("description", description);
+        json.put("workoutName", WorkoutName);
+        json.put("workoutDescription", description);
+        json.put("durationMinutes", durationMinutes == null ? JSONObject.NULL : durationMinutes);
+        json.put("scheduledDate", scheduledDate);
         return json;
     }
-    public int getID() {return id;}
-    public String getName() {return name;}
-    public String getDate() {return date;}
-    public int getDuration() {return durationMinutes;}
-    public String getDescription() {return description;}
+    public int getWorkoutId() {
+            return workoutId;
+        }
 
-    //set functions
-    public void setName(String name){this.name = name;}
-    public void setDate(String date){this.date = date;}
-    public void setDuration(int duration){this.durationMinutes = duration;}
-    public void setDescription(String description){this.description = description;}
+    public void setWorkoutId(int workoutId) {
+        this.workoutId = workoutId;
+    }
+
+    public int getUserId() {
+        return userId;
+    }
+    public void setUserId(int userId) {
+        this.userId = userId;
+    }
+    public Integer getAssignedWorkoutId() {
+        return assignedWorkoutId;
+    }
+    public void setAssignedWorkoutId(Integer assignedWorkoutId) {
+        this.assignedWorkoutId = assignedWorkoutId;
+    }
+    public int getCreatedByUserId() {
+        return createdByUserId;
+    }
+    public void setCreatedByUserId(int createdByUserId) {
+        this.createdByUserId = createdByUserId;
+    }
+    public String getWorkoutName() {
+        return WorkoutName;
+    }
+    public void setWorkoutName(String workoutName) {
+        WorkoutName = workoutName;
+    }
+    public String getDescription() {
+        return description;
+    }
+    public void setDescription(String description) {
+        this.description = description;
+    }
+    public Integer getDurationMinutes() {
+        return durationMinutes;
+    }
+    public void setDurationMinutes(Integer durationMinutes) {
+        this.durationMinutes = durationMinutes;
+    }
+    public String getScheduledDate() {
+        return scheduledDate;
+    }
+    public void setScheduledDate(String scheduledDate) {
+        this.scheduledDate = scheduledDate;
+    }
+    public String getStatus() {
+        return status;
+    }
+    public void setStatus(String status) {
+        this.status = status;
+    }
+    public String getSourceType() {
+        return sourceType;
+    }
+    public void setSourceType(String sourceType) {
+        this.sourceType = sourceType;
+    }
+
+    public boolean isSelfCreated() {
+        return "self_created".equalsIgnoreCase(sourceType);
+    }
+
+    public boolean isAssignedFromPlan() {
+        return "assigned_from_plan".equalsIgnoreCase(sourceType);
+    }
+
+
+
 
 
 }

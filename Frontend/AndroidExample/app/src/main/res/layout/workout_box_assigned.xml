@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/cardAssignedWorkout"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="4dp"
+    app:cardBackgroundColor="@android:color/holo_red_light">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="12dp">
+
+        <TextView
+            android:id="@+id/labelAssignedName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Workout Name:"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:textColor="#000000"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/txtAssignedWorkoutName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="Push Day"
+            android:textSize="20sp"
+            android:textColor="#000000"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/labelAssignedName"
+            app:layout_constraintTop_toTopOf="@id/labelAssignedName" />
+
+        <TextView
+            android:id="@+id/labelAssignedDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="Date:"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="#000000"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/txtAssignedWorkoutName" />
+
+        <TextView
+            android:id="@+id/txtAssignedWorkoutDate"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="2026-04-10"
+            android:textSize="18sp"
+            android:textColor="#000000"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/labelAssignedDate"
+            app:layout_constraintTop_toTopOf="@id/labelAssignedDate" />
+
+
+
+
+
+        <TextView
+            android:id="@+id/txtAssignedMinutesLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:text="(minutes)"
+            android:textSize="16sp"
+            android:textColor="#000000"
+            app:layout_constraintStart_toEndOf="@id/txtAssignedWorkoutDate"
+            app:layout_constraintTop_toTopOf="@id/txtAssignedWorkoutDate" />
+
+        <TextView
+            android:id="@+id/labelAssignedDescription"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Description:"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="#000000"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/txtAssignedWorkoutDate" />
+
+        <TextView
+            android:id="@+id/txtAssignedWorkoutDescription"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="Chest and triceps focus"
+            android:textSize="18sp"
+            android:textColor="#000000"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/labelAssignedDescription"
+            app:layout_constraintTop_toTopOf="@id/labelAssignedDescription" />
+
+        <TextView
+            android:id="@+id/txtAssignedWorkoutSourceType"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:text="Assigned by trainer"
+            android:textColor="#000000"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/txtAssignedWorkoutDescription" />
+
+        <TextView
+            android:id="@+id/txtAssignedWorkoutStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="Status: assigned"
+            android:textColor="#000000"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/txtAssignedWorkoutSourceType" />
+
+        <Button
+            android:id="@+id/btnAssignedAccept"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:text="ACCEPT"
+            android:backgroundTint="#2E7D32"
+            app:layout_constraintEnd_toStartOf="@id/btnAssignedReject"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/txtAssignedWorkoutStatus"
+            app:layout_constraintWidth_percent="0.45" />
+
+        <Button
+            android:id="@+id/btnAssignedReject"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_marginTop="14dp"
+            android:text="REJECT"
+            android:backgroundTint="#B71C1C"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/btnAssignedAccept"
+            app:layout_constraintTop_toBottomOf="@id/txtAssignedWorkoutStatus"
+            app:layout_constraintWidth_percent="0.45" />
+
+        <Button
+            android:id="@+id/btnAssignedComplete"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:text="COMPLETE"
+            android:backgroundTint="#1565C0"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/txtAssignedWorkoutStatus"
+            app:layout_constraintWidth_percent="0.93" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.cardview.widget.CardView>

@@ -2,6 +2,7 @@ package com.example.androidexample;
 
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -31,6 +32,8 @@ public class MainActivity extends AppCompatActivity {
 
     private Button btnGroupList;
 
+    private Button btnWorkoutPlans;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,6 +60,8 @@ public class MainActivity extends AppCompatActivity {
             tvCurrentUser.setText("Not logged in");
         }
 
+
+
         btnLogout.setOnClickListener(v -> {
             keepUser.clearUser();
 
@@ -82,6 +87,19 @@ public class MainActivity extends AppCompatActivity {
         btnGroupList = findViewById(R.id.btnGroupList);
 
         Button btnTestingPage = findViewById(R.id.btnTestingPage);
+
+        btnWorkoutPlans = findViewById(R.id.btnWorkoutPlans);
+
+        if(keepUser.getRole().equalsIgnoreCase("trainer") || keepUser.getRole().equalsIgnoreCase("admin"))
+            btnWorkoutPlans.setVisibility(View.VISIBLE);
+        else
+            btnWorkoutPlans.setVisibility(View.GONE);
+
+
+        btnWorkoutPlans.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, WorkoutPlanListActivity.class);
+            startActivity(intent);
+        });
 
         btnTestingPage.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, TestingActivity.class);
