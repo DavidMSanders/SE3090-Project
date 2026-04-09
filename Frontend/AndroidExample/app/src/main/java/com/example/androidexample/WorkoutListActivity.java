@@ -32,7 +32,8 @@ import java.util.Locale;
 import android.widget.Button;
 
 public class WorkoutListActivity extends AppCompatActivity {
-    private static final String BASE_URL = "http://coms-3090-035.class.las.iastate.edu:8080";
+    //http://coms-3090-035.class.las.iastate.edu:8080
+    private static final String BASE_URL = "https://18366156-06c4-4fa7-b2cb-53279f7fd5ad.mock.pstmn.io";
     private static final String WORKOUTS_URL = BASE_URL + "/api/v1/workouts";
 
     private RecyclerView WorkoutRecycler;
@@ -95,7 +96,7 @@ public class WorkoutListActivity extends AppCompatActivity {
 
         btnSetToday.setOnClickListener(v -> {
                     // Get the current date
-                    SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy", Locale.getDefault());
+                    SimpleDateFormat sdf = new SimpleDateFormat("MM-dd-yyyy", Locale.getDefault());
                     String today =  sdf.format(new Date());
                     createWorkoutDate.setText(today);
                 });
@@ -182,15 +183,23 @@ public class WorkoutListActivity extends AppCompatActivity {
 
 
     private void loadAllWorkouts() {
+        KeepUser keepUser = new KeepUser(this);
+        int userId = keepUser.getUserId();
+
+        String url = WORKOUTS_URL + "/user/" + userId;
+
+
         JsonArrayRequest request = new JsonArrayRequest(
                 Request.Method.GET,
-                WORKOUTS_URL,
+                url,
                 null,
                 response -> {
                     workoutList.clear();
                     for (int i = 0; i < response.length(); i++) {
                         try {
                             JSONObject workoutJson = response.getJSONObject(i);
+
+
                             Workout workout = Workout.fromJson(workoutJson);
                             workoutList.add(workout);
 
@@ -217,6 +226,10 @@ public class WorkoutListActivity extends AppCompatActivity {
             Toast.makeText(this, "Please fill out all fields", Toast.LENGTH_LONG).show();
             return;
         }
+
+        KeepUser keepUser = new KeepUser(this);
+        int userId = keepUser.getUserId();
+
         int duration = durationValue;
         /*
         try {
@@ -230,10 +243,14 @@ public class WorkoutListActivity extends AppCompatActivity {
 
         JSONObject body = new JSONObject();
         try {
-            body.put("name", name);
-            body.put("date", date);
+            body.put("userId", userId);
+            body.put("workoutName", name);
+            body.put("workoutDescription", desc);
             body.put("durationMinutes", duration);
-            body.put("description", desc);
+            body.put("scheduledDate", date);
+
+
+
         } catch (JSONException e) {
             Toast.makeText(this, "JSON error: " + e.getMessage(), Toast.LENGTH_LONG).show();
             return;
@@ -245,9 +262,9 @@ public class WorkoutListActivity extends AppCompatActivity {
                 body,
                 response -> {
                     try{
-                        Workout createdWorkout = Workout.fromJson(response);
-                        workoutList.add(0, createdWorkout); //index create workout at the top of the list
-                        adapter.notifyItemInserted(0);
+
+                        loadAllWorkouts(); // reload instead
+                        Toast.makeText(this, "Workout created!", Toast.LENGTH_LONG).show();
                         WorkoutRecycler.scrollToPosition(0);
 
                         createWorkoutName.setText("");
@@ -259,8 +276,11 @@ public class WorkoutListActivity extends AppCompatActivity {
                         txtDurationValue.setText(String.valueOf(durationValue));
 
                         createWorkoutDescription.setText("");
+
+                        loadAllWorkouts();
+                        //reload workouts from both self and assigned
                         Toast.makeText(this, "Workout created!", Toast.LENGTH_LONG).show();
-                    } catch (JSONException e) {
+                    } catch (Exception e) {
                         Toast.makeText(this, "JSON error: " + e.getMessage(), Toast.LENGTH_LONG).show();
                         loadAllWorkouts();
                     }
@@ -311,5 +331,12 @@ public class WorkoutListActivity extends AppCompatActivity {
             }
         }
     };
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        durationHandler.removeCallbacks(plusRunnable);
+        durationHandler.removeCallbacks(minusRunnable);
+    }
 
 }
