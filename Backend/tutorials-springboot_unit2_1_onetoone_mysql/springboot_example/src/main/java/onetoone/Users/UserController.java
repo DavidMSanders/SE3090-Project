@@ -5,6 +5,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
+import java.util.ArrayList;
+import onetoone.Groups.GroupMembership;
+import onetoone.Groups.GroupMembershipRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -28,6 +31,24 @@ public class UserController {
 
     @Autowired
     UserRepository userRepository;
+
+    @Autowired
+    GroupMembershipRepository membershipRepo;
+
+    // 17. GET /users/{trainerId}/assignable-groups
+    @GetMapping("/{trainerId}/assignable-groups")
+    public ResponseEntity<List<Map<String, Object>>> getAssignableGroups(@PathVariable int trainerId) {
+        List<Map<String, Object>> res = new ArrayList<>();
+        for (GroupMembership gm : membershipRepo.findAll()) {
+            if (gm.getUser() != null && gm.getUser().getUserId() == trainerId && gm.isCanAssignWorkouts()) {
+                Map<String, Object> map = new HashMap<>();
+                map.put("groupId", gm.getGroup().getGroupId());
+                map.put("groupName", gm.getGroup().getGroupName());
+                res.add(map);
+            }
+        }
+        return ResponseEntity.ok(res);
+    }
 
     /**
      * Deletes a user by username and date of birth
