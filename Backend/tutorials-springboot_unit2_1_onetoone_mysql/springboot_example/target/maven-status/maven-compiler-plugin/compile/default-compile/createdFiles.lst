@@ -1,0 +1,13 @@
+onetoone\Users\DeleteRequest.class
+onetoone\Main.class
+onetoone\Workout\Workout.class
+onetoone\auth\LoginRequest.class
+onetoone\Users\User.class
+onetoone\auth\RegistrationInfo.class
+onetoone\Workout\WorkoutRepository.class
+onetoone\auth\SignupController.class
+onetoone\Workout\WorkoutController.class
+onetoone\Users\LoginRequest.class
+onetoone\Users\UserController.class
+onetoone\Workout\WorkoutData.class
+onetoone\Users\UserRepository.class
