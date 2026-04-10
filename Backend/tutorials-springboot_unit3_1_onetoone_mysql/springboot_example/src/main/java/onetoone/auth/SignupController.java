@@ -57,6 +57,12 @@ public class SignupController {
             userRepo.save(newUser);
 
             response.put("message", "User created successfully");
+
+            response.put("userId", String.valueOf(savedUser.getUserId()));
+
+            response.put("username", savedUser.getAccountName());
+
+            response.put("role", savedUser.getRole());
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
 
         } catch (Exception problem) {
