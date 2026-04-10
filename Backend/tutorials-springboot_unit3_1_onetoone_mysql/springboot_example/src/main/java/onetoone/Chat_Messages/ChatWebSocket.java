@@ -234,9 +234,7 @@ public class ChatWebSocket {
                 return;
             }
 
-            if ("TRAINER".equals(msgType) && !(foundMembership.isWorkoutEnabled() || "Trainer".equals(
-                    foundMembership.getAccessLevel())
-                    || ("ADMIN".equals(foundMembership.getAccessLevel()) || "GROUP_LEADER".equals(foundMembership.getAccessLevel())))) {
+            if ("TRAINER".equals(msgType) && !foundMembership.isWorkoutEnabled()) {
                 sendError(originatorSession, "You do not have permission to send trainer messages");
                 return;
             }
@@ -350,10 +348,6 @@ public class ChatWebSocket {
             }
 
             GroupMembership targetMembership = targetLookup.get();
-            if (("ADMIN".equals(targetMembership.getAccessLevel()) || "GROUP_LEADER".equals(targetMembership.getAccessLevel()))) {
-                sendError(originatorSession, "Cannot change GROUP_LEADER or ADMIN permissions");
-                return;
-            }
 
             targetMembership.setAccessLevel(
                     text(msgPayload, "membershipRole", targetMembership.getAccessLevel()));
@@ -406,11 +400,6 @@ public class ChatWebSocket {
             Optional<GroupMembership> kickedMemberLookup = groupAccessRepo.findByGroupIdAndUserId(groupRef, kickedUserId);
             if (kickedMemberLookup.isEmpty()) {
                 sendError(originatorSession, "Target user is not a member of this group");
-                return;
-            }
-
-            if (("ADMIN".equals(kickedMemberLookup.get().getAccessLevel()) || "GROUP_LEADER".equals(kickedMemberLookup.get().getAccessLevel()))) {
-                sendError(originatorSession, "Cannot remove GROUP_LEADER or ADMIN");
                 return;
             }
 
