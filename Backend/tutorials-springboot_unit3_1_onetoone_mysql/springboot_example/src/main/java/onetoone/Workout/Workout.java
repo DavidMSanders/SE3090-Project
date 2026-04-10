@@ -4,9 +4,7 @@ import jakarta.persistence.*;
 import java.time.LocalDate;
 
 /**
- * Workout Entity
- * 
- * @author Chris Lopez
+ * Workout entity
  */
 @Entity
 @Table(name = "workouts")

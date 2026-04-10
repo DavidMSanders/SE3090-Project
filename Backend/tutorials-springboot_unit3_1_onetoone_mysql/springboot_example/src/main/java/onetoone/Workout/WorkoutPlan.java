@@ -4,7 +4,13 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 /**
- * @author Matthew Smith
+ * Workout plan entity
+ * Matches spec:
+ * - workoutPlanId
+ * - trainerId
+ * - planName
+ * - planDescription
+ * - createdAt
  */
 @Entity
 @Table(name = "workout_plans")
@@ -15,8 +21,6 @@ public class WorkoutPlan {
     private Long workoutPlanId;
 
     private Long trainerId;
-
-    private Long groupId;
 
     private String planName;
 
@@ -42,14 +46,6 @@ public class WorkoutPlan {
 
     public void setTrainerId(Long trainerId) {
         this.trainerId = trainerId;
-    }
-
-    public Long getGroupId() {
-        return groupId;
-    }
-
-    public void setGroupId(Long groupId) {
-        this.groupId = groupId;
     }
 
     public String getPlanName() {

@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import onetoone.Users.User;
 
 /**
- * @author Matthew Smith
+ * Assigned workout entity
  */
 @Entity
 @Table(name = "assigned_workouts")
