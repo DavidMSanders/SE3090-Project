@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import android.content.Intent;
 
@@ -18,8 +17,6 @@ public class MainActivity extends AppCompatActivity {
     //private TextView tvResponse;
     //private Button btnSend;
     private String method;
-
-    private Button btnGoToSignup;
 
     private Button btnGoToDelete;
 
@@ -34,11 +31,14 @@ public class MainActivity extends AppCompatActivity {
 
     private Button btnWorkoutPlans;
 
+    private Button btnGoToCalendar;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        AppTopBarController.setup(this);
 
         // Initialize UI components
         //etUrl = findViewById(R.id.etUrl);
@@ -50,7 +50,6 @@ public class MainActivity extends AppCompatActivity {
         //pers. user logic
         tvCurrentUser = findViewById(R.id.tvCurrentUser);
         btnLogout = findViewById(R.id.btnLogout);
-
         KeepUser keepUser = new KeepUser(this);
 
         if (keepUser.isLoggedIn()) {
@@ -60,29 +59,22 @@ public class MainActivity extends AppCompatActivity {
             tvCurrentUser.setText("Not logged in");
         }
 
-
-
         btnLogout.setOnClickListener(v -> {
+            NotificationSyncManager.getInstance(this).stop();
             keepUser.clearUser();
+            SessionManager.clearSession(this);
 
-            tvCurrentUser.setText("Not logged in");
-
-            Toast.makeText(this, "Logged out", Toast.LENGTH_SHORT).show();
-            /*
-            // Optional: send back to signup/login
-            Intent intent = new Intent(MainActivity.this, SignupActivity.class);
+            Intent intent = new Intent(MainActivity.this, LandingActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
             finish();
-            */
-
         });
-
-        btnGoToSignup = findViewById(R.id.btnGoToSignup);
 
         btnGoToDelete = findViewById(R.id.btnGoToDelete);
         btnGoToWorkout = findViewById(R.id.btnGoToWorkout);
 
         btnGoToWorkoutList = findViewById(R.id.WorkoutList);
+        btnGoToCalendar = findViewById(R.id.btnGoToCalendar);
 
         btnGroupList = findViewById(R.id.btnGroupList);
 
@@ -90,7 +82,8 @@ public class MainActivity extends AppCompatActivity {
 
         btnWorkoutPlans = findViewById(R.id.btnWorkoutPlans);
 
-        if(keepUser.getRole().equalsIgnoreCase("trainer") || keepUser.getRole().equalsIgnoreCase("admin"))
+        String role = keepUser.getRoleOrDefault();
+        if(role.equalsIgnoreCase("trainer") || role.equalsIgnoreCase("admin"))
             btnWorkoutPlans.setVisibility(View.VISIBLE);
         else
             btnWorkoutPlans.setVisibility(View.GONE);
@@ -111,13 +104,8 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
-        btnGoToSignup.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, SignupActivity.class);
-            startActivity(intent);
-        });
-
         btnGoToDelete.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, SignupActivity.class);
+            Intent intent = new Intent(MainActivity.this, DeleteUserActivity.class);
             startActivity(intent);
         });
 
@@ -130,6 +118,13 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(MainActivity.this, WorkoutListActivity.class);
             startActivity(intent);
         });
+
+        if (btnGoToCalendar != null) {
+            btnGoToCalendar.setOnClickListener(v -> {
+                Intent intent = new Intent(MainActivity.this, CalendarActivity.class);
+                startActivity(intent);
+            });
+        }
 /*
         etUrl.setText(url); // Set default URL in the input field
 
