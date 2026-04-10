@@ -1,70 +1,163 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="#F4F7FA"
+    android:fillViewport="true"
+    tools:context=".CalendarActivity">
 
-    <com.github.sundeepk.compactcalendarview.CompactCalendarView
-        android:id="@+id/calendarView"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="250dp"
-        app:compactCalendarTargetHeight="250dp"
-        app:compactCalendarTextSize="12sp"
-        app:compactCalendarBackgroundColor="#FFE0E0E0"
-        app:compactCalendarTextColor="#FF000000"
-        app:compactCalendarCurrentSelectedDayBackgroundColor="#FF0000"
-        app:compactCalendarCurrentDayBackgroundColor="#FF0000"
-        app:compactCalendarMultiEventIndicatorColor="#FF0000"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        />
-
-    <EditText
-        android:id="@+id/etEventDescription"
-        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        android:hint="Event Description"
-        app:layout_constraintTop_toBottomOf="@id/calendarView"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        android:orientation="vertical">
 
-    <Button
-        android:id="@+id/btnSaveEvent"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Save Event"
-        android:layout_marginTop="16dp"
-        app:layout_constraintTop_toBottomOf="@id/etEventDescription"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/btnEditEvent"
-        app:layout_constraintHorizontal_chainStyle="packed"
-        android:layout_marginEnd="8dp" />
+        <include layout="@layout/view_app_top_bar" />
 
-    <Button
-        android:id="@+id/btnEditEvent"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Edit Event"
-        android:layout_marginTop="16dp"
-        app:layout_constraintTop_toBottomOf="@id/etEventDescription"
-        app:layout_constraintStart_toEndOf="@id/btnSaveEvent"
-        app:layout_constraintEnd_toStartOf="@id/btnDeleteEvent"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="8dp" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
 
-    <Button
-        android:id="@+id/btnDeleteEvent"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Delete Event"
-        android:layout_marginTop="16dp"
-        android:backgroundTint="#FF0000"
-        app:layout_constraintTop_toBottomOf="@id/etEventDescription"
-        app:layout_constraintStart_toEndOf="@id/btnEditEvent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginStart="8dp" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Workout Calendar"
+                android:textColor="#102A43"
+                android:textSize="28sp"
+                android:textStyle="bold" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:layout_marginBottom="14dp"
+                android:text="Plan, update, and share sessions"
+                android:textColor="#486581"
+                android:textSize="14sp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#FFFFFFFF"
+                android:elevation="3dp"
+                android:orientation="vertical"
+                android:padding="12dp">
+
+                <com.github.sundeepk.compactcalendarview.CompactCalendarView
+                    android:id="@+id/calendarView"
+                    android:layout_width="match_parent"
+                    android:layout_height="250dp"
+                    app:compactCalendarBackgroundColor="#FFF8FAFC"
+                    app:compactCalendarCurrentDayBackgroundColor="#FF1976D2"
+                    app:compactCalendarCurrentSelectedDayBackgroundColor="#FF1565C0"
+                    app:compactCalendarMultiEventIndicatorColor="#FF0D47A1"
+                    app:compactCalendarTargetHeight="250dp"
+                    app:compactCalendarTextColor="#FF1F2933"
+                    app:compactCalendarTextSize="12sp" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                android:text="Event Details"
+                android:textColor="#102A43"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/etEventDescription"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:backgroundTint="#BCCCDC"
+                android:hint="Describe this workout"
+                android:inputType="textMultiLine"
+                android:minLines="2"
+                android:padding="10dp" />
+
+            <Spinner
+                android:id="@+id/eventTypeSpinner"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:backgroundTint="#BCCCDC"
+                android:padding="6dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:orientation="horizontal"
+                android:weightSum="3">
+
+                <Button
+                    android:id="@+id/btnSaveEvent"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:backgroundTint="#2E7D32"
+                    android:text="Save"
+                    android:textAllCaps="false"
+                    android:textColor="#FFFFFFFF" />
+
+                <Button
+                    android:id="@+id/btnEditEvent"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_weight="1"
+                    android:backgroundTint="#1565C0"
+                    android:text="Edit"
+                    android:textAllCaps="false"
+                    android:textColor="#FFFFFFFF" />
+
+                <Button
+                    android:id="@+id/btnDeleteEvent"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_weight="1"
+                    android:backgroundTint="#C62828"
+                    android:text="Delete"
+                    android:textAllCaps="false"
+                    android:textColor="#FFFFFFFF" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="Invite Participant"
+                android:textColor="#102A43"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/etShareUsername"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:backgroundTint="#BCCCDC"
+                android:hint="Enter user ID"
+                android:inputType="number"
+                android:padding="10dp" />
+
+            <Button
+                android:id="@+id/btnShareEvent"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="8dp"
+                android:backgroundTint="#0B7285"
+                android:text="Invite to Workout"
+                android:textAllCaps="false"
+                android:textColor="#FFFFFFFF" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

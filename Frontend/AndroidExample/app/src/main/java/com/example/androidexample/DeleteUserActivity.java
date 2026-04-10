@@ -58,6 +58,7 @@ public class DeleteUserActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_delete_user);
+        AppTopBarController.setup(this);
 
         usernameEditText = findViewById(R.id.delete_username_edt);
         dobEditText = findViewById(R.id.delete_dob_edt);

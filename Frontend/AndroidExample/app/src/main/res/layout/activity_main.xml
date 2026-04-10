@@ -6,34 +6,44 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#F5F5F5"
-    android:padding="16dp"
     tools:context=".MainActivity">
+
+    <include
+        android:id="@+id/appTopBar"
+        layout="@layout/view_app_top_bar"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/tvCurrentUser"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="212dp"
+        android:layout_marginTop="16dp"
         android:text="Not logged in"
         android:textSize="18sp"
         android:textStyle="bold"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/textView" />
+        app:layout_constraintTop_toBottomOf="@id/imageView" />
 
     <Button
         android:id="@+id/btnLogout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Logout"
-        app:layout_constraintTop_toBottomOf="@id/tvCurrentUser"
+        android:layout_marginTop="8dp"
+        android:layout_marginStart="8dp"
+        android:text="Sign Out"
         app:layout_constraintStart_toStartOf="parent"
-        android:layout_marginBottom="4dp"/>
+        app:layout_constraintTop_toBottomOf="@id/tvCurrentUser" />
 
     <ScrollView
         android:id="@+id/scrollButtons"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:layout_marginTop="12dp"
         app:layout_constraintTop_toBottomOf="@id/btnLogout"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -73,10 +83,10 @@
                 android:layout_marginBottom="8dp"/>
 
             <Button
-                android:id="@+id/btnGoToSignup"
+                android:id="@+id/btnGoToCalendar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Sign up"
+                android:text="Go to Calendar"
                 android:layout_marginBottom="8dp"/>
 
             <Button
@@ -127,10 +137,21 @@
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent" />
 
+    <include
+        android:id="@+id/appTopBar"
+        layout="@layout/view_app_top_bar"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
     <Button
         android:id="@+id/WorkoutList"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
         android:layout_marginBottom="48dp"
         android:text="Workout List"
         app:layout_constraintBottom_toTopOf="@id/btnGoToWorkout"
@@ -142,7 +163,20 @@
         android:id="@+id/btnGoToSignup"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
         android:text="Sign up"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/btnGoToCalendar" />
+
+    <Button
+        android:id="@+id/btnGoToCalendar"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:text="Go to Calendar"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toTopOf="@id/btnGoToWorkout" />
@@ -151,6 +185,8 @@
         android:id="@+id/btnGoToWorkout"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
         android:text="Go to Workout Page"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -160,6 +196,9 @@
         android:id="@+id/btnGoToDelete"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
         android:text="Go to Delete Page"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -168,9 +207,10 @@
 
     <TextView
         android:id="@+id/textView"
-        android:layout_width="366dp"
+        android:layout_width="0dp"
         android:layout_height="74dp"
         android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"
         android:layout_marginTop="8dp"
         android:fontFamily="sans-serif-condensed-light"
         android:text="Personal Training Suite"
@@ -178,18 +218,19 @@
         android:textSize="34sp"
         android:textStyle="bold"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/appTopBar"
         tools:text="Personal Training" />
 
     <ImageView
         android:id="@+id/imageView"
-        android:layout_width="234dp"
+        android:layout_width="0dp"
         android:layout_height="216dp"
         android:layout_marginStart="60dp"
-
-        android:layout_marginTop="48dp"
+        android:layout_marginEnd="60dp"
+        android:layout_marginTop="24dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/textView"
         app:srcCompat="@drawable/dumbell_transparent" />
 
 
