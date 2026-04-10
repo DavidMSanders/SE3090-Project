@@ -127,6 +127,11 @@ public class GroupMembershipController {
         }
         GroupMembership target = targetQuery.get();
         String currentLevel = target.getAccessLevel();
+        if (currentLevel.equals("GROUP_LEADER") || currentLevel.equals("ADMIN")) {
+            result.put("message", "Cannot change GROUP_LEADER or ADMIN permissions");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(result);
+
+        }
         target.setAccessLevel(incoming.getNewAccessLevel());
         target.setChatEnabled(incoming.isSendEnabled());
         target.setManageEnabled(incoming.isAdminEnabled());
