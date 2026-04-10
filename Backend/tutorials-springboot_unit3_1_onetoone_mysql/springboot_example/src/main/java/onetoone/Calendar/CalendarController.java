@@ -39,6 +39,11 @@ public class CalendarController {
         Map<String, Object> result = new HashMap<>();
         try {
             Long creatorId = Long.valueOf(body.get("userId").toString());
+            if (!userRepo.existsById(creatorId.intValue())) {
+                result.put("message", "User not found");
+                return ResponseEntity.status(
+                        HttpStatus.NOT_FOUND).body(result);
+            }
             String eventLabel = body.get("title").toString();
             LocalDate scheduleDate = LocalDate.parse(body.get("date").toString());
             String eventNotes = body.containsKey("notes") ? body.get("notes").toString() : null;
@@ -147,6 +152,13 @@ public class CalendarController {
         Map<String, Object> result = new HashMap<>();
         try {
             Long creatorId = Long.valueOf(body.get("userId").toString());
+
+            if (!userRepo.existsById(creatorId.intValue())) {
+                result.put("message", "User not found");
+                return ResponseEntity.status(
+                        HttpStatus.NOT_FOUND).body(result);
+            }
+
             String ruleLabel = body.get("title").toString();
             String ruleNotes = body.containsKey("notes") ? body.get("notes").toString(): null;
             String repeatDay = body.get("dayOfWeek").toString().toUpperCase();
@@ -177,8 +189,10 @@ public class CalendarController {
             }
 
             result.put("reccurrenceId", newRule.getRuleKey());
+            result.put("recurrenceId", newRule.getRuleKey());
             result.put("userId", creatorId);
             result.put("daysOfWeek", repeatDay);
+            result.put("dayOfWeek", repeatDay);
             result.put("createdCount", createdCount);
             result.put("message", "Recurrence events created sucessfully");
             return ResponseEntity.ok(result);
@@ -209,6 +223,14 @@ public class CalendarController {
         @DeleteMapping("/events/recurring/{recurrenceId}")
         public ResponseEntity<Map<String, Object>> deleteRecurringEvent (@PathVariable Long recurrenceId) {
             Map<String, Object> result = new HashMap<>();
+
+            if (!ruleRepo.existsById(recurrenceId)) {
+                result.put("message", "Recurring rule not found");
+                return ResponseEntity.status(
+                        HttpStatus.NOT_FOUND).body(result);
+            }
+
+
             List<CalendarEvent> linkedEvents = eventRepo.findByRuleRef(recurrenceId);
             int deletedCount = linkedEvents.size();
             for (CalendarEvent evt : linkedEvents) {
@@ -234,6 +256,13 @@ public class CalendarController {
             }
 
             Long attendeeId = Long.valueOf(body.get("userId").toString());
+
+            if (!userRepo.existsById(attendeeId.intValue())) {
+                result.put("message", "User not found");
+                return ResponseEntity.status(
+                        HttpStatus.NOT_FOUND).body(result);
+            }
+
             if (participantRepo.existsByEventRefAndAttendeeId (eventId, attendeeId)){
                 result.put("message", "User is already a participant");
                 return ResponseEntity.status(HttpStatus.CONFLICT).body(result);
@@ -265,7 +294,7 @@ public class CalendarController {
                 attendeeMap.put("userId", attendee.getAttendeeId());
                 attendeeMap.put("status", attendee.getInviteStatus());
                 Optional<User> accountLookup = userRepo.findById(attendee.getAttendeeId().intValue());
-                attendeeMap.put("username", accountLookup.map(User::getAccountName).orElse("Uknown"));
+                attendeeMap.put("username", accountLookup.map(User::getAccountName).orElse("Unknown"));
                 result.add(attendeeMap);
 
             }
