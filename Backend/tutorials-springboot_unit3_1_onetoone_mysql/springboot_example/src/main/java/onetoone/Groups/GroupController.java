@@ -264,62 +264,7 @@ public class GroupController {
         }
     }
 
-    /**
-     * CHANGED:
-     * Fixed version for current int-based schema.
-     * GET /groups/{groupId}/assignable-clients?trainerId=3
-     */
-    @GetMapping("/{groupId}/assignable-clients")
-    public ResponseEntity<List<Map<String, Object>>> getAssignableClients(
-            @PathVariable int groupId,
-            @RequestParam int trainerId) {
 
-        List<Map<String, Object>> res = new ArrayList<>();
-
-        Group foundGroup = groupRepo.findById(groupId).orElse(null);
-        if (foundGroup == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(res);
-        }
-
-        Optional<GroupMembership> trainerMembership =
-                membershipRepo.findByGroupIdAndUserId(groupId, trainerId);
-
-        // Require the requesting trainer to be in the group and be a TRAINER
-        // with canSendMessages enabled.
-        if (trainerMembership.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(res);
-        }
-
-        GroupMembership requester = trainerMembership.get();
-        boolean validTrainer =
-                GroupMembership.ROLE_TRAINER.equals(requester.getAccessLevel())
-                        && requester.isChatEnabled();
-
-        if (!validTrainer && !requester.isManageEnabled()) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(res);
-        }
-
-        for (GroupMembership gm : membershipRepo.findByGroupId(groupId)) {
-            if (gm.getUserId() == trainerId) {
-                continue;
-            }
-
-            Optional<User> userLookup = userRepo.findById(gm.getUserId());
-            if (userLookup.isEmpty()) {
-                continue;
-            }
-
-            User u = userLookup.get();
-            if ("Client".equalsIgnoreCase(u.getRole())) {
-                Map<String, Object> map = new HashMap<>();
-                map.put("userId", u.getUserId());
-                map.put("username", u.getAccountName());
-                res.add(map);
-            }
-        }
-
-        return ResponseEntity.ok(res);
-    }
 
     @GetMapping("/{groupId}/messages")
     public ResponseEntity<List<Map<String, Object>>> fetchGroupMessages(@PathVariable int groupId) {
