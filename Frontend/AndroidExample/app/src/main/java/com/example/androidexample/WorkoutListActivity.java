@@ -32,8 +32,8 @@ import java.util.Locale;
 import android.widget.Button;
 
 public class WorkoutListActivity extends AppCompatActivity {
-    //http://coms-3090-035.class.las.iastate.edu:8080
-    private static final String BASE_URL = "https://18366156-06c4-4fa7-b2cb-53279f7fd5ad.mock.pstmn.io";
+    //https://18366156-06c4-4fa7-b2cb-53279f7fd5ad.mock.pstmn.io
+    private static final String BASE_URL = "http://coms-3090-035.class.las.iastate.edu:8080";
     private static final String WORKOUTS_URL = BASE_URL + "/api/v1/workouts";
 
     private RecyclerView WorkoutRecycler;
@@ -96,7 +96,7 @@ public class WorkoutListActivity extends AppCompatActivity {
 
         btnSetToday.setOnClickListener(v -> {
                     // Get the current date
-                    SimpleDateFormat sdf = new SimpleDateFormat("MM-dd-yyyy", Locale.getDefault());
+                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
                     String today =  sdf.format(new Date());
                     createWorkoutDate.setText(today);
                 });

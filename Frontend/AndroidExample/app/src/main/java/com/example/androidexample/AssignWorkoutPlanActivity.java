@@ -30,8 +30,8 @@ public class AssignWorkoutPlanActivity extends AppCompatActivity {
     private Button btnAssignWorkoutPlan;
 
     //http://coms-3090-035.class.las.iastate.edu:8080
-    //hhtps
-    private static final String BASE_URL = "https://18366156-06c4-4fa7-b2cb-53279f7fd5ad.mock.pstmn.io/api/v1";
+    //hhtpshttps://18366156-06c4-4fa7-b2cb-53279f7fd5ad.mock.pstmn.io
+    private static final String BASE_URL = "http://coms-3090-035.class.las.iastate.edu:8080/api/v1";
 
     private int trainerId;
 
