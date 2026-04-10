@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.ArrayList;
 import onetoone.Groups.GroupMembership;
 import onetoone.Groups.GroupMembershipRepository;
+import onetoone.Groups.Group;
+import onetoone.Groups.GroupRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -35,15 +37,21 @@ public class UserController {
     @Autowired
     GroupMembershipRepository membershipRepo;
 
+    @Autowired
+    GroupRepository groupRepository;
+
     // 17. GET /users/{trainerId}/assignable-groups
     @GetMapping("/{trainerId}/assignable-groups")
     public ResponseEntity<List<Map<String, Object>>> getAssignableGroups(@PathVariable int trainerId) {
         List<Map<String, Object>> res = new ArrayList<>();
         for (GroupMembership gm : membershipRepo.findAll()) {
-            if (gm.getUser() != null && gm.getUser().getUserId() == trainerId && gm.isCanAssignWorkouts()) {
+            if (gm.getUserId() == trainerId && gm.isWorkoutEnabled()) {
                 Map<String, Object> map = new HashMap<>();
-                map.put("groupId", gm.getGroup().getGroupId());
-                map.put("groupName", gm.getGroup().getGroupName());
+                map.put("groupId", gm.getGroupId());
+                Group g = groupRepository.findById(gm.getGroupId()).orElse(null);
+                if (g != null) {
+                    map.put("groupTitle", g.getGroupTitle());
+                }
                 res.add(map);
             }
         }
@@ -107,6 +115,68 @@ public class UserController {
 
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseMap);
         }
+    }
+
+    /**
+     * Sets a user's role to Trainer
+     */
+
+    @PutMapping("/{userId}/set-trainer")
+    public ResponseEntity<Map<String, Object>> setTrainerRole(@PathVariable int userId){
+        Map<String, Object> result = new HashMap<>();
+        User found = userRepository.findById(userId).orElse(null);
+        if (found == null){
+            result.put("message", "User not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
+    }
+
+        found.setRole("Trainer");
+        userRepository.save(found);
+
+        result.put("message", "User role updated successfully");
+        result.put("userId", found.getUserId());
+        result.put("role", found.getRole());
+        return ResponseEntity.ok(result);
+
+}
+
+    @PutMapping("/{userId}/set-admin")
+    public ResponseEntity<Map<String, Object>> assignAdminRole(@PathVariable int userId) {
+        Map<String, Object> responseData = new HashMap<>();
+
+        User targetAccount = userRepository.findById(userId).orElse(null);
+        if (targetAccount == null) {
+            responseData.put("message", "User not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseData);
+        }
+
+        targetAccount.setRole("Admin");
+        userRepository.save(targetAccount);
+
+        responseData.put("message", "User role updated successfully");
+        responseData.put("userId", targetAccount.getUserId());
+        responseData.put("role", targetAccount.getRole());
+        return ResponseEntity.ok(responseData);
+    }
+
+
+    @PutMapping("/{userId}/set-client")
+    public ResponseEntity<Map<String, Object>> assignClientRole(@PathVariable int userId) {
+        Map<String, Object> responseData = new HashMap<>();
+
+        User targetAccount = userRepository.findById(userId).orElse(null);
+        if (targetAccount == null) {
+            responseData.put("message", "User not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseData);
+        }
+
+        targetAccount.setRole("Client");
+        userRepository.save(targetAccount);
+
+        responseData.put("message", "User role updated successfully");
+        responseData.put("userId", targetAccount.getUserId());
+        responseData.put("role", targetAccount.getRole());
+        return ResponseEntity.ok(responseData);
     }
 
     /**

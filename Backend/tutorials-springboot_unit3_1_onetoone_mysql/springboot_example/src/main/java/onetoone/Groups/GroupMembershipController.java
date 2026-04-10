@@ -27,24 +27,24 @@ public class GroupMembershipController {
      * Get a specific membership
      */
     @GetMapping("/user/{userId}/group/{groupId}")
-    public ResponseEntity<Map<String, Object>> getMembership(@PathVariable int userId, @PathVariable Long groupId) {
+    public ResponseEntity<Map<String, Object>> getMembership(@PathVariable int userId, @PathVariable int groupId) {
         Map<String, Object> result = new HashMap<>();
 
 
-        Optional<GroupMembership> membershipQuery = membershipRepo.findByGroup_GroupIdAndUser_Id(groupId, userId);
+        Optional<GroupMembership> membershipQuery = membershipRepo.findByGroupIdAndUserId(groupId, userId);
 
 
         if (membershipQuery.isPresent()) {
 
             GroupMembership m = membershipQuery.get();
             result.put("membershipId", m.getMembershipId());
-            result.put("groupId", m.getGroup().getGroupId());
-            result.put("userId", m.getUser().getUserId());
-            result.put("membershipRole", m.getMembershipRole());
-            result.put("canSendMessages", m.isCanSendMessages());
-            result.put("canManageMembers", m.isCanManageMembers());
-            result.put("canPostAnnouncements", m.isCanPostAnnouncements());
-            result.put("canAssignWorkouts", m.isCanAssignWorkouts());
+            result.put("groupId", m.getGroupId());
+            result.put("userId", m.getUserId());
+            result.put("membershipRole", m.getAccessLevel());
+            result.put("canSendMessages", m.isChatEnabled());
+            result.put("canManageMembers", m.isManageEnabled());
+            result.put("canPostAnnouncements", m.isAnnounceEnabled());
+            result.put("canAssignWorkouts", m.isWorkoutEnabled());
             return ResponseEntity.ok(result);
         } else {
             result.put("message", "Membership not found");
@@ -60,10 +60,10 @@ public class GroupMembershipController {
      */
 
     @GetMapping("/user/{userId}/group/{groupId}/check-admin")
-    public ResponseEntity<Map<String, Object>> verifyAdminStatus(@PathVariable int userId, @PathVariable Long groupId) {
+    public ResponseEntity<Map<String, Object>> verifyAdminStatus(@PathVariable int userId, @PathVariable int groupId) {
         Map<String, Object> adminCheck = new HashMap<>();
 
-        Optional<GroupMembership> memberLookup = membershipRepo.findByGroup_GroupIdAndUser_Id(groupId, userId);
+        Optional<GroupMembership> memberLookup = membershipRepo.findByGroupIdAndUserId(groupId, userId);
 
         if (memberLookup.isEmpty()) {
             adminCheck.put("message", "Membership not found");
@@ -71,7 +71,7 @@ public class GroupMembershipController {
         }
 
         GroupMembership foundMembership = memberLookup.get();
-        String accessLevel = foundMembership.getMembershipRole();
+        String accessLevel = foundMembership.getAccessLevel();
 
         adminCheck.put("userId", userId);
         adminCheck.put("groupId", groupId);
@@ -86,10 +86,10 @@ public class GroupMembershipController {
             adminCheck.put("message", "User has admin permissions in this group");
         } else {
             adminCheck.put("isAdmin", false);
-            adminCheck.put("canSendMessages", foundMembership.isCanSendMessages());
-            adminCheck.put("canManageMembers", foundMembership.isCanManageMembers());
-            adminCheck.put("canPostAnnouncements", foundMembership.isCanPostAnnouncements());
-            adminCheck.put("canAssignWorkouts", foundMembership.isCanAssignWorkouts());
+            adminCheck.put("canSendMessages", foundMembership.isChatEnabled());
+            adminCheck.put("canManageMembers", foundMembership.isManageEnabled());
+            adminCheck.put("canPostAnnouncements", foundMembership.isAnnounceEnabled());
+            adminCheck.put("canAssignWorkouts", foundMembership.isWorkoutEnabled());
             adminCheck.put("message", "User does not have admin permissions in this group");
         }
 
@@ -105,7 +105,7 @@ public class GroupMembershipController {
      * @return
      */
     @PutMapping("/{membershipId}/permissions")
-    public ResponseEntity<Map<String, Object>> updatePermission(@PathVariable Long membershipId, @RequestBody PermissionBody incoming) {
+    public ResponseEntity<Map<String, Object>> updatePermission(@PathVariable int membershipId, @RequestBody PermissionBody incoming) {
         Map<String, Object> result = new HashMap<>();
 
         Optional<GroupMembership> targetQuery = membershipRepo.findById(membershipId);
@@ -113,40 +113,40 @@ public class GroupMembershipController {
             result.put("message", "Membership not found");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
         }
-        Optional<GroupMembership> supervisorQuery = membershipRepo.findByGroup_GroupIdAndUser_Id(
-                targetQuery.get().getGroup().getGroupId(),
+        Optional<GroupMembership> supervisorQuery = membershipRepo.findByGroupIdAndUserId(
+                targetQuery.get().getGroupId(),
                 incoming.getSupervisorId());
         if (supervisorQuery.isEmpty()) {
             result.put("message", "Supervisor is not a member of this group");
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(result);
         }
-        if (!supervisorQuery.get().isCanManageMembers()) {
+        if (!supervisorQuery.get().isManageEnabled()) {
             result.put("message", "You do not have permission to update permissions");
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(result);
 
         }
         GroupMembership target = targetQuery.get();
-        String currentLevel = target.getMembershipRole();
+        String currentLevel = target.getAccessLevel();
         if (currentLevel.equals("GROUP_LEADER") || currentLevel.equals("ADMIN")) {
             result.put("message", "Cannot change GROUP_LEADER or ADMIN permissions");
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(result);
 
         }
-        target.setMembershipRole(incoming.getNewAccessLevel());
-        target.setCanSendMessages(incoming.isSendEnabled());
-        target.setCanManageMembers(incoming.isAdminEnabled());
-        target.setCanPostAnnouncements(incoming.isPostEnabled());
-        target.setCanAssignWorkouts(incoming.isAssignEnabled());
+        target.setAccessLevel(incoming.getNewAccessLevel());
+        target.setChatEnabled(incoming.isSendEnabled());
+        target.setManageEnabled(incoming.isAdminEnabled());
+        target.setAnnounceEnabled(incoming.isPostEnabled());
+        target.setWorkoutEnabled(incoming.isAssignEnabled());
         membershipRepo.save(target);
 
         result.put("membershipId", target.getMembershipId());
-        result.put("groupId", target.getGroup().getGroupId());
-        result.put("userId", target.getUser().getUserId());
-        result.put("membershipRole", target.getMembershipRole());
-        result.put("canSendMessages", target.isCanSendMessages());
-        result.put("canManageMembers", target.isCanManageMembers());
-        result.put("canPostAnnouncements", target.isCanPostAnnouncements());
-        result.put("canAssignWorkouts", target.isCanAssignWorkouts());
+        result.put("groupId", target.getGroupId());
+        result.put("userId", target.getUserId());
+        result.put("membershipRole", target.getAccessLevel());
+        result.put("canSendMessages", target.isChatEnabled());
+        result.put("canManageMembers", target.isManageEnabled());
+        result.put("canPostAnnouncements", target.isAnnounceEnabled());
+        result.put("canAssignWorkouts", target.isWorkoutEnabled());
         result.put("message", "Permissions updated successfully");
         return ResponseEntity.ok(result);
     }
@@ -156,7 +156,7 @@ public class GroupMembershipController {
      * Only Group_Leader or Admin can do this
      */
     @DeleteMapping("/{membershipId}")
-    public ResponseEntity<Map<String, Object>> removeMember(@PathVariable Long membershipId, @RequestBody KickBody incoming) {
+    public ResponseEntity<Map<String, Object>> removeMember(@PathVariable int membershipId, @RequestBody KickBody incoming) {
         Map<String, Object> result = new HashMap<>();
 
         Optional<GroupMembership> targetQuery = membershipRepo.findById(membershipId);
@@ -166,8 +166,8 @@ public class GroupMembershipController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
         }
 
-        Optional<GroupMembership> supervisorQuery = membershipRepo.findByGroup_GroupIdAndUser_Id(
-                targetQuery.get().getGroup().getGroupId(),
+        Optional<GroupMembership> supervisorQuery = membershipRepo.findByGroupIdAndUserId(
+                targetQuery.get().getGroupId(),
                 incoming.getSupervisorId());
 
         if (supervisorQuery.isEmpty()) {
@@ -175,13 +175,13 @@ public class GroupMembershipController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(result);
         }
 
-        if (!supervisorQuery.get().isCanManageMembers()) {
+        if (!supervisorQuery.get().isManageEnabled()) {
             result.put("message", "You do not have permission to remove members");
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(result);
         }
 
-        int removedUserId = targetQuery.get().getUser().getUserId();
-        Long groupId = targetQuery.get().getGroup().getGroupId();
+        int removedUserId = targetQuery.get().getUserId();
+        int groupId = targetQuery.get().getGroupId();
         Optional<User> removedUser = userRepo.findById(removedUserId);
 
         membershipRepo.delete(targetQuery.get());
@@ -280,8 +280,6 @@ public class GroupMembershipController {
                     this.supervisorId = supervisorId;
                 }
             }
-
-
 
 
 

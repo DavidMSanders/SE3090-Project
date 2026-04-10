@@ -215,7 +215,7 @@ public class ChatWebSocket {
                 return;
             }
 
-            Optional<GroupMembership> memberLookup = groupAccessRepo.findByGroup_GroupIdAndUser_Id((long)groupRef, originatorId);
+            Optional<GroupMembership> memberLookup = groupAccessRepo.findByGroupIdAndUserId(groupRef, originatorId);
             if (memberLookup.isEmpty()) {
                 sendError(originatorSession,
                         "You are not a member of this group");
@@ -224,19 +224,19 @@ public class ChatWebSocket {
 
             GroupMembership foundMembership = memberLookup.get();
 
-            if (!foundMembership.isCanSendMessages()) {
+            if (!foundMembership.isChatEnabled()) {
                 sendError(originatorSession, "You do not have permission to send messages");
                 return;
             }
 
-            if ("ANNOUNCEMENT".equals(msgType) && !foundMembership.isCanPostAnnouncements()) {
+            if ("ANNOUNCEMENT".equals(msgType) && !foundMembership.isAnnounceEnabled()) {
                 sendError(originatorSession, "You do not have permission to post announcements");
                 return;
             }
 
-            if ("TRAINER".equals(msgType) && !(foundMembership.isCanAssignWorkouts() || "Trainer".equals(
-                    foundMembership.getMembershipRole())
-                    || ("ADMIN".equals(foundMembership.getMembershipRole()) || "GROUP_LEADER".equals(foundMembership.getMembershipRole())))) {
+            if ("TRAINER".equals(msgType) && !(foundMembership.isWorkoutEnabled() || "Trainer".equals(
+                    foundMembership.getAccessLevel())
+                    || ("ADMIN".equals(foundMembership.getAccessLevel()) || "GROUP_LEADER".equals(foundMembership.getAccessLevel())))) {
                 sendError(originatorSession, "You do not have permission to send trainer messages");
                 return;
             }
@@ -337,31 +337,31 @@ public class ChatWebSocket {
             int groupRef = requiredInt(msgPayload, "groupId");
             int targetUserId = requiredInt(msgPayload, "targetUserId");
 
-            Optional<GroupMembership> supervisorLookup = groupAccessRepo.findByGroup_GroupIdAndUser_Id((long)groupRef, originatorId);
-            if (supervisorLookup.isEmpty() || !supervisorLookup.get().isCanManageMembers()) {
+            Optional<GroupMembership> supervisorLookup = groupAccessRepo.findByGroupIdAndUserId(groupRef, originatorId);
+            if (supervisorLookup.isEmpty() || !supervisorLookup.get().isManageEnabled()) {
                 sendError(originatorSession, "You do not have permission to update permissions");
                 return;
             }
 
-            Optional<GroupMembership> targetLookup = groupAccessRepo.findByGroup_GroupIdAndUser_Id((long)groupRef, targetUserId);
+            Optional<GroupMembership> targetLookup = groupAccessRepo.findByGroupIdAndUserId(groupRef, targetUserId);
             if (targetLookup.isEmpty()) {
                 sendError(originatorSession, "Target user is not a member of this group");
                 return;
             }
 
             GroupMembership targetMembership = targetLookup.get();
-            if (("ADMIN".equals(targetMembership.getMembershipRole()) || "GROUP_LEADER".equals(targetMembership.getMembershipRole()))) {
+            if (("ADMIN".equals(targetMembership.getAccessLevel()) || "GROUP_LEADER".equals(targetMembership.getAccessLevel()))) {
                 sendError(originatorSession, "Cannot change GROUP_LEADER or ADMIN permissions");
                 return;
             }
 
-            targetMembership.setMembershipRole(
-                    text(msgPayload, "membershipRole", targetMembership.getMembershipRole()));
-            targetMembership.setCanSendMessages(bool(msgPayload, "canSendMessages", targetMembership.isCanSendMessages()));
-            targetMembership.setCanManageMembers(bool(msgPayload, "canManageMembers", targetMembership.isCanManageMembers()));
-            targetMembership.setCanPostAnnouncements(bool(msgPayload, "canPostAnnouncements",
-                    targetMembership.isCanPostAnnouncements()));
-            targetMembership.setCanAssignWorkouts(bool(msgPayload, "canAssignWorkouts", targetMembership.isCanAssignWorkouts()));
+            targetMembership.setAccessLevel(
+                    text(msgPayload, "membershipRole", targetMembership.getAccessLevel()));
+            targetMembership.setChatEnabled(bool(msgPayload, "canSendMessages", targetMembership.isChatEnabled()));
+            targetMembership.setManageEnabled(bool(msgPayload, "canManageMembers", targetMembership.isManageEnabled()));
+            targetMembership.setAnnounceEnabled(bool(msgPayload, "canPostAnnouncements",
+                    targetMembership.isAnnounceEnabled()));
+            targetMembership.setWorkoutEnabled(bool(msgPayload, "canAssignWorkouts", targetMembership.isWorkoutEnabled()));
             groupAccessRepo.save(targetMembership);
 
             Optional<User> targetAccount =
@@ -372,11 +372,11 @@ public class ChatWebSocket {
             outgoingEvent.put("groupId", groupRef);
             outgoingEvent.put("targetUserId", targetUserId);
             outgoingEvent.put("username", targetAccount.map(User::getAccountName).orElse("Unknown"));
-            outgoingEvent.put("membershipRole", targetMembership.getMembershipRole());
-            outgoingEvent.put("canSendMessages", targetMembership.isCanSendMessages());
-            outgoingEvent.put("canManageMembers", targetMembership.isCanManageMembers());
-            outgoingEvent.put("canPostAnnouncements", targetMembership.isCanPostAnnouncements());
-            outgoingEvent.put("canAssignWorkouts", targetMembership.isCanAssignWorkouts());
+            outgoingEvent.put("membershipRole", targetMembership.getAccessLevel());
+            outgoingEvent.put("canSendMessages", targetMembership.isChatEnabled());
+            outgoingEvent.put("canManageMembers", targetMembership.isManageEnabled());
+            outgoingEvent.put("canPostAnnouncements", targetMembership.isAnnounceEnabled());
+            outgoingEvent.put("canAssignWorkouts", targetMembership.isWorkoutEnabled());
             outgoingEvent.put("changedByUserId", originatorId);
             outgoingEvent.put("changedByUsername", originatorName);
 
@@ -397,19 +397,19 @@ public class ChatWebSocket {
             int groupRef = requiredInt(msgPayload, "groupId");
             int kickedUserId = requiredInt(msgPayload, "targetUserId");
 
-            Optional<GroupMembership> supervisorLookup = groupAccessRepo.findByGroup_GroupIdAndUser_Id((long)groupRef, originatorId);
-            if (supervisorLookup.isEmpty() || !supervisorLookup.get().isCanManageMembers()) {
+            Optional<GroupMembership> supervisorLookup = groupAccessRepo.findByGroupIdAndUserId(groupRef, originatorId);
+            if (supervisorLookup.isEmpty() || !supervisorLookup.get().isManageEnabled()) {
                 sendError(originatorSession, "You do not have permission to remove members");
                 return;
             }
 
-            Optional<GroupMembership> kickedMemberLookup = groupAccessRepo.findByGroup_GroupIdAndUser_Id((long)groupRef, kickedUserId);
+            Optional<GroupMembership> kickedMemberLookup = groupAccessRepo.findByGroupIdAndUserId(groupRef, kickedUserId);
             if (kickedMemberLookup.isEmpty()) {
                 sendError(originatorSession, "Target user is not a member of this group");
                 return;
             }
 
-            if (("ADMIN".equals(kickedMemberLookup.get().getMembershipRole()) || "GROUP_LEADER".equals(kickedMemberLookup.get().getMembershipRole()))) {
+            if (("ADMIN".equals(kickedMemberLookup.get().getAccessLevel()) || "GROUP_LEADER".equals(kickedMemberLookup.get().getAccessLevel()))) {
                 sendError(originatorSession, "Cannot remove GROUP_LEADER or ADMIN");
                 return;
             }
@@ -441,7 +441,7 @@ public class ChatWebSocket {
         try {
             int groupRef = requiredInt(msgPayload, "groupId");
 
-            Optional<GroupMembership> exitMemberLookup = groupAccessRepo.findByGroup_GroupIdAndUser_Id((long)groupRef, originatorId);
+            Optional<GroupMembership> exitMemberLookup = groupAccessRepo.findByGroupIdAndUserId(groupRef, originatorId);
             if (exitMemberLookup.isEmpty()) {
                 sendError(originatorSession, "You are not a member of this group");
                 return;
@@ -471,8 +471,8 @@ public class ChatWebSocket {
         try {
             int groupRef = requiredInt(msgPayload, "groupId");
 
-            if (groupAccessRepo.existsByGroup_GroupIdAndUser_Id(
-                    (long)groupRef, originatorId)) {
+            if (groupAccessRepo.findByGroupIdAndUserId(
+                    groupRef, originatorId).isPresent()) {
                 sendError(originatorSession, "You are already a member of this group");
                 return;
             }
@@ -483,11 +483,9 @@ public class ChatWebSocket {
             String entryLevel = "Trainer".equalsIgnoreCase(joinerRole) ? "Trainer" : "Member";
 
             GroupMembership newMembership = new GroupMembership();
-            onetoone.Groups.Group mockG = new onetoone.Groups.Group();
-            mockG.setGroupId((long)groupRef);
-            newMembership.setGroup(mockG);
-            newMembership.setUser(joinerLookup.orElse(null));
-            newMembership.setMembershipRole(entryLevel);
+            newMembership.setGroupId(groupRef);
+            newMembership.setUserId(originatorId);
+            newMembership.setAccessLevel(entryLevel);
             newMembership = groupAccessRepo.save(newMembership);
 
             Map<String, Object> outgoingEvent = new LinkedHashMap<>();
@@ -496,7 +494,7 @@ public class ChatWebSocket {
             outgoingEvent.put("membershipId", newMembership.getMembershipId());
             outgoingEvent.put("userId", originatorId);
             outgoingEvent.put("username", originatorName);
-            outgoingEvent.put("membershipRole", newMembership.getMembershipRole());
+            outgoingEvent.put("membershipRole", newMembership.getAccessLevel());
 
             distributeToGroup(groupRef, outgoingEvent, null);
 
@@ -512,10 +510,10 @@ public class ChatWebSocket {
 
     private void distributeToGroup(int groupRef,
                                    Map<String, Object> outgoingEvent, Session excludedSession) {
-        List<GroupMembership> groupMemberList = groupAccessRepo.findByGroup_GroupId((long)groupRef);
+        List<GroupMembership> groupMemberList = groupAccessRepo.findByGroupId(groupRef);
 
         for (GroupMembership membership : groupMemberList) {
-            Session memberSession = liveConnections.get(membership.getUser().getUserId());
+            Session memberSession = liveConnections.get(membership.getUserId());
 
             if (memberSession != null && memberSession.isOpen() && !memberSession.equals(excludedSession)) {
                 sendEvent(memberSession, outgoingEvent);
