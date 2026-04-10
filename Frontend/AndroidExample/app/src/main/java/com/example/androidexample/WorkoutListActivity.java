@@ -67,6 +67,7 @@ public class WorkoutListActivity extends AppCompatActivity {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.workout_list);
+        AppTopBarController.setup(this);
         //list dashboard
         btnGoToMain1 = findViewById(R.id.btnGoToMain1);
         btnGoToMain1.setOnClickListener(v -> {
