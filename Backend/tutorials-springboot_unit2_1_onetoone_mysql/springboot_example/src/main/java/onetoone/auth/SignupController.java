@@ -80,7 +80,7 @@ public class SignupController {
 
         User foundUser = userRepo.findByAccountName(accountName.trim());
 
-        if (foundUser == null || !foundUser.isEnabled() || !userPassword.equals(foundUser.getUserPassword())) {
+        if (foundUser == null || !userPassword.equals(foundUser.getUserPassword())) {
             response.put("status", false);
             response.put("message", "login failed");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
