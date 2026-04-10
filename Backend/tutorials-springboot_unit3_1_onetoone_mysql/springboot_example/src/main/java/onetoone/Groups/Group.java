@@ -1,73 +1,63 @@
 package onetoone.Groups;
+
 import jakarta.persistence.*;
 
-
 /**
- * Group Entity
- * @author Chris Lopez
+ * @author Matthew Smith
  */
-
 @Entity
-@Table(name = "groups_table")
+@Table(name = "gym_groups")
 public class Group {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int groupId;
+    private Long groupId;
 
-    @Column(name = "group_type", nullable = false)
+    private String groupName;
+
     private String groupType;
 
-    @Column(name = "group_title", nullable = false)
-    private String groupTitle;
-
-    @Column(name = "group_details")
-    private String groupDetails;
+    @Column(columnDefinition = "TEXT")
+    private String groupDescription;
 
     public Group() {
     }
 
-    public Group(String groupTitle, String groupType, String groupDetails) {
-        this.groupDetails = groupDetails;
-        this.groupTitle = groupTitle;
+    public Group(String groupName, String groupType, String groupDescription) {
+        this.groupName = groupName;
         this.groupType = groupType;
+        this.groupDescription = groupDescription;
     }
 
-    public int getGroupId() {
+    public Long getGroupId() {
         return groupId;
     }
 
-    public void setGroupId(int groupId) {
+    public void setGroupId(Long groupId) {
         this.groupId = groupId;
     }
 
+    public String getGroupName() {
+        return groupName;
+    }
+
+    public void setGroupName(String groupName) {
+        this.groupName = groupName;
+    }
 
     public String getGroupType() {
         return groupType;
     }
 
-
-
-    public void setGroupType(String groupType) { this.groupType = groupType; }
-
-
-    public void setGroupTitle(String groupTitle) {
-        this.groupTitle = groupTitle;
+    public void setGroupType(String groupType) {
+        this.groupType = groupType;
     }
 
-    public String getGroupTitle() { return groupTitle; }
+    public String getGroupDescription() {
+        return groupDescription;
+    }
 
-
-    public String getGroupDetails() { return groupDetails; }
-
-    public void setGroupDetails(String groupDetails) { this.groupDetails = groupDetails; }
-
-
-
-    @Override
-    public String toString() {
-        return "Group{" + "groupId=" + groupId + ", groupType='" + groupType + '\'' + groupId + ", groupType='" + '\'' +
-                ", groupTitle='" + groupTitle + '\'' + ", groupDetails='" + groupDetails + '\'' + '}';
-
-
+    public void setGroupDescription(String groupDescription) {
+        this.groupDescription = groupDescription;
     }
 }

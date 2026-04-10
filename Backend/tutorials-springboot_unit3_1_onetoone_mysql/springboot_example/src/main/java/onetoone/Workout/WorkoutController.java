@@ -31,6 +31,7 @@ public class WorkoutController {
         map.put("scheduledDate", w.getScheduledDate() != null ? w.getScheduledDate().toString() : null);
         map.put("status", w.getStatus());
         map.put("sourceType", w.getSourceType());
+        map.put("durationMinutes", w.getDurationMinutes());
 
         // Find assignedWorkoutId (if linked)
         Long assignedId = null;
@@ -54,6 +55,10 @@ public class WorkoutController {
         if (incoming.get("scheduledDate") != null) {
             newWorkout.setScheduledDate(LocalDate.parse(incoming.get("scheduledDate").toString(),
                     DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+        }
+
+        if (incoming.get("durationMinutes") != null) {
+            newWorkout.setDurationMinutes(Integer.valueOf(incoming.get("durationMinutes").toString()));
         }
 
         Long userId = incoming.get("userId") != null ? Long.valueOf(incoming.get("userId").toString()) : null;
@@ -159,6 +164,9 @@ public class WorkoutController {
         if (incoming.get("scheduledDate") != null) {
             current.setScheduledDate(LocalDate.parse(incoming.get("scheduledDate").toString(),
                     DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+        }
+        if (incoming.get("durationMinutes") != null) {
+            current.setDurationMinutes(Integer.valueOf(incoming.get("durationMinutes").toString()));
         }
 
         repo.save(current);

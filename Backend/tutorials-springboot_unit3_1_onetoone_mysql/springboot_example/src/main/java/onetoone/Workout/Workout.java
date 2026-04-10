@@ -29,7 +29,7 @@ public class Workout {
     @Column(columnDefinition = "TEXT")
     private String workoutDescription;
 
-    private int durationMinutes;
+    private Integer durationMinutes;
 
     private LocalDate scheduledDate;
 
@@ -98,11 +98,11 @@ public class Workout {
         this.workoutDescription = workoutDescription;
     }
 
-    public int getDurationMinutes() {
+    public Integer getDurationMinutes() {
         return durationMinutes;
     }
 
-    public void setDurationMinutes(int durationMinutes) {
+    public void setDurationMinutes(Integer durationMinutes) {
         this.durationMinutes = durationMinutes;
     }
 

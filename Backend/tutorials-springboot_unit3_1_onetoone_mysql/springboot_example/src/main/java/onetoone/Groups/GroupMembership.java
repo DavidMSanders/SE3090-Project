@@ -1,157 +1,101 @@
 package onetoone.Groups;
 
 import jakarta.persistence.*;
+import onetoone.Users.User;
 
+/**
+ * @author Matthew Smith
+ */
 @Entity
-    @Table(name = "group_membership")
-    public class GroupMembership{
-        @Id
-        @GeneratedValue(strategy = GenerationType.IDENTITY)
-        private int membershipId;
+@Table(name = "group_memberships")
+public class GroupMembership {
 
-        @Column(name = "group_id", nullable = false)
-        private int groupId;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long membershipId;
 
-        @Column(name = "user_id", nullable = false)
-        private int userId;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "group_id", nullable = false)
+    private Group group;
 
-        @Column(name = "access_level", nullable = false)
-        private String accessLevel = "MEMBER";
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
-        @Column(name = "chat_enabled")
-        private boolean chatEnabled = true;
+    private String membershipRole;
 
-        @Column(name = "manage_enabled")
-        private boolean manageEnabled = false;
+    private boolean canSendMessages;
 
-        @Column(name = "announce_enabled")
-        private boolean announceEnabled = false;
+    private boolean canManageMembers;
 
-        @Column(name = "workout_enabled")
-        private boolean workoutEnabled = false;
+    private boolean canPostAnnouncements;
 
-        public static final String ROLE_GROUP_LEADER = "GROUP_LEADER";
-        public static final String ROLE_ADMIN = "ADMIN";
-        public static final String ROLE_TRAINER = "TRAINER";
-        public static final String ROLE_MEMBER = "MEMBER";
+    private boolean canAssignWorkouts;
 
-        public GroupMembership(){}
-
-        public GroupMembership(int groupId, int userId, String accessLevel){
-            this.groupId = groupId;
-            this.userId = userId;
-            this.accessLevel = accessLevel;
-            setPermissionByRole(accessLevel);
-        }
-
-        public void setPermissionByRole(String role){
-            switch(role){
-                case "GROUP_LEADER":
-                case "ADMIN":
-                    this.chatEnabled = true;
-                    this.manageEnabled = true;
-                    this.announceEnabled = true;
-                    this.workoutEnabled = true;
-                    break;
-                case "TRAINER":
-                    this.chatEnabled = true;
-                    this.manageEnabled = false;
-                    this.announceEnabled = false;
-                    this.workoutEnabled = false;
-                    break;
-                case "MEMBER":
-                default:
-                    this.chatEnabled = true;
-                    this.manageEnabled = false;
-                    this.announceEnabled = false;
-                    this.workoutEnabled = false;
-                    break;
-            }
-        }
-
-        public boolean isLeaderLike() {
-        return ROLE_GROUP_LEADER.equals(accessLevel) ||
-        ROLE_ADMIN.equals(accessLevel);
-        }
-
-        public static String normalizeRole(String role) {
-        if (role == null) return ROLE_MEMBER;
-        switch (role.toUpperCase()) {
-        case "GROUP_LEADER": return ROLE_GROUP_LEADER;
-        case "ADMIN": return ROLE_ADMIN;
-        case "TRAINER": return ROLE_TRAINER;
-        default: return ROLE_MEMBER;
-            }
-        }
-
-        public int getMembershipId() {
-            return membershipId;
-        }
-
-        public void setMembershipId(int membershipId){
-            this.membershipId = membershipId;
-        }
-
-        public int getGroupId(){
-            return  groupId;
-        }
-
-        public void setGroupId(int groupId){
-            this.groupId = groupId;
-        }
-
-        public int getUserId(){
-            return userId;
-        }
-
-        public void setUserId(int userId){
-            this.userId = userId;
-        }
-
-        public String getAccessLevel() {
-            return accessLevel;
-        }
-
-        public void setAccessLevel(String accessLevel) {
-            this.accessLevel = accessLevel;
-        }
-
-        public boolean isChatEnabled() {
-            return chatEnabled;
-        }
-
-        public void setChatEnabled(boolean chatEnabled){
-            this.chatEnabled = chatEnabled;
-        }
-
-        public boolean isManageEnabled() {
-        return manageEnabled;
-        }
-
-        public void setManageEnabled(boolean manageEnabled) {
-        this.manageEnabled = manageEnabled;
-        }
-
-        public boolean isAnnounceEnabled(){
-            return announceEnabled;
-        }
-        public void setAnnounceEnabled(boolean announceEnabled) {
-            this.announceEnabled = announceEnabled;
-        }
-
-        public boolean isWorkoutEnabled() {
-            return workoutEnabled;
-        }
-
-        public void setWorkoutEnabled(boolean workoutEnabled) {
-            this.workoutEnabled = workoutEnabled;
-        }
-
-        @Override
-        public String toString(){
-            return "GroupMembership{" + "membershipId=" + membershipId + ",groupId" + groupId + ", userId" + userId +
-                    ", accessLevel='" + accessLevel + '\'' + '}';
-        }
+    public GroupMembership() {
     }
 
+    public Long getMembershipId() {
+        return membershipId;
+    }
 
+    public void setMembershipId(Long membershipId) {
+        this.membershipId = membershipId;
+    }
+
+    public Group getGroup() {
+        return group;
+    }
+
+    public void setGroup(Group group) {
+        this.group = group;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    public String getMembershipRole() {
+        return membershipRole;
+    }
+
+    public void setMembershipRole(String membershipRole) {
+        this.membershipRole = membershipRole;
+    }
+
+    public boolean isCanSendMessages() {
+        return canSendMessages;
+    }
+
+    public void setCanSendMessages(boolean canSendMessages) {
+        this.canSendMessages = canSendMessages;
+    }
+
+    public boolean isCanManageMembers() {
+        return canManageMembers;
+    }
+
+    public void setCanManageMembers(boolean canManageMembers) {
+        this.canManageMembers = canManageMembers;
+    }
+
+    public boolean isCanPostAnnouncements() {
+        return canPostAnnouncements;
+    }
+
+    public void setCanPostAnnouncements(boolean canPostAnnouncements) {
+        this.canPostAnnouncements = canPostAnnouncements;
+    }
+
+    public boolean isCanAssignWorkouts() {
+        return canAssignWorkouts;
+    }
+
+    public void setCanAssignWorkouts(boolean canAssignWorkouts) {
+        this.canAssignWorkouts = canAssignWorkouts;
+    }
+}

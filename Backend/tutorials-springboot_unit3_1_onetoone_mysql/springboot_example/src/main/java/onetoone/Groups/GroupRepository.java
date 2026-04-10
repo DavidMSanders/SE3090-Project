@@ -1,14 +1,11 @@
 package onetoone.Groups;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-import java.util.List;
 
 /**
- * @author Chris Lopez
+ * @author Matthew Smith
  */
 @Repository
-public interface GroupRepository extends JpaRepository<Group, Integer> {
-        List<Group> findByGroupType(String groupType);
-    }
-
-
+public interface GroupRepository extends JpaRepository<Group, Long> {
+}

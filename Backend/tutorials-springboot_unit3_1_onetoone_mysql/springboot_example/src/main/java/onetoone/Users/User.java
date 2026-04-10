@@ -10,48 +10,41 @@ import java.time.LocalDate;
  * 
  * @author Chris Lopez
  * 
- */ 
+ */
 
 @Entity
 @Table(name = "users")
 public class User {
-
+    /*
+     * The annotation @ID marks the field below as the primary key for the table
+     * created by springboot
+     * The @GeneratedValue generates a value if not already present, The strategy in
+     * this case is to start from 1 and increment for each table
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @Column
     private String accountName;
-
-    @Column
     private String userPassword;
-
-    @Column
     private LocalDate birthDate;
-
-    @Column
+    private String role;
     private boolean isEnabled;
 
-    @Column(name = "role", nullable = false, columnDefinition = "varchar(50) default 'Client'")
-    private String role = "Client";
-
-
     public User() {
-        //this.isEnabled = true;
+        this.isEnabled = true;
     }
-
 
     public User(String accountName, String userPassword, LocalDate birthDate) {
 
         this.accountName = accountName;
         this.userPassword = userPassword;
         this.birthDate = birthDate;
-        this.role = "Client";
+        this.isEnabled = true;
 
     }
 
     public int getUserId() {
-
         return id;
     }
 
@@ -85,95 +78,131 @@ public class User {
         this.birthDate = birthDate;
     }
 
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
+
     public boolean isEnabled() {
 
         return isEnabled;
 
     }
 
-    public void setEnabled(boolean enabled){
+    public void setEnabled(boolean enabled) {
 
         isEnabled = enabled;
-}
+    }
 
-public String getRole(){
-        return role;
-}
-
-public void setRole(String role){
-        this.role = role;
-}
- @Override
- public String toString(){
+    @Override
+    public String toString() {
         return "User {" +
-                "UserId =" + id + ", accountName='" + accountName + '\'' + ", birthDate=" + birthDate + ", isEnabled=" +
-                isEnabled + ", role'" + role + '\'' + '}';
- }
+                "UserId =" + id + ", accountName='" + accountName + '\'' + ", birthDate=" + birthDate + " isEnabled=" +
+                isEnabled + ", role='" + role + '\'' + '}';
+    }
 
+    /**
+     * @author Matthew Smith
+     */
 
-
- /*
     /*
-     * @OneToOne creates a relation between the current entity/table(Laptop) with the entity/table defined below it(User)
-     * cascade is responsible propagating all changes, even to children of the class Eg: changes made to laptop within a user object will be reflected
+     * /*
+     * 
+     * @OneToOne creates a relation between the current entity/table(Laptop) with
+     * the entity/table defined below it(User)
+     * cascade is responsible propagating all changes, even to children of the class
+     * Eg: changes made to laptop within a user object will be reflected
      * in the database (more info : https://www.baeldung.com/jpa-cascade-types)
-     * @JoinColumn defines the ownership of the foreign key i.e. the user table will have a field called laptop_id
+     * 
+     * @JoinColumn defines the ownership of the foreign key i.e. the user table will
+     * have a field called laptop_id
+     * 
+     * @OneToOne(cascade = CascadeType.ALL)
+     * 
+     * @JoinColumn(name = "laptop_id")
+     * private Laptop laptop;
+     * 
+     * public User(String name, String emailId) {
+     * this.name = name;
+     * this.emailId = emailId;
+     * this.ifActive = true;
+     * }
+     * 
+     * public User() {
+     * }
+     * 
+     * // =============================== Getters and Setters for each field
+     * ================================== //
+     * 
+     * public int getId(){
+     * return id;
+     * }
+     * 
+     * public void setId(int id){
+     * this.id = id;
+     * }
+     * 
+     * public String getName(){
+     * return name;
+     * }
+     * 
+     * public void setName(String name){
+     * this.name = name;
+     * }
+     * 
+     * public String getEmailId(){
+     * return emailId;
+     * }
+     * 
+     * public void setEmailId(String emailId){
+     * this.emailId = emailId;
+     * }
+     * 
+     * public boolean getIsActive(){
+     * return ifActive;
+     * }
+     * 
+     * public void setIfActive(boolean ifActive){
+     * this.ifActive = ifActive;
+     * }
+     * 
+     * public Laptop getLaptop(){
+     * return laptop;
+     * }
+     * 
+     * public void setLaptop(Laptop laptop){
+     * this.laptop = laptop;
+     * }
+     * 
+     */
 
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "laptop_id")
-    private Laptop laptop;
+}
 
-    public User(String name, String emailId) {
-        this.name = name;
-        this.emailId = emailId;
-        this.ifActive = true;
+/**
+ * @author Matthew Smith
+ */
+
+class LoginRequest {
+
+    private String accountName;
+    private String userPassword;
+
+    public String getAccountName() {
+        return accountName;
     }
 
-    public User() {
+    public void setAccountName(String accountName) {
+        this.accountName = accountName;
     }
 
-    // =============================== Getters and Setters for each field ================================== //
-
-    public int getId(){
-        return id;
+    public String getUserPassword() {
+        return userPassword;
     }
 
-    public void setId(int id){
-        this.id = id;
+    public void setUserPassword(String userPassword) {
+        this.userPassword = userPassword;
     }
-
-    public String getName(){
-        return name;
-    }
-
-    public void setName(String name){
-        this.name = name;
-    }
-
-    public String getEmailId(){
-        return emailId;
-    }
-
-    public void setEmailId(String emailId){
-        this.emailId = emailId;
-    }
-
-    public boolean getIsActive(){
-        return ifActive;
-    }
-
-    public void setIfActive(boolean ifActive){
-        this.ifActive = ifActive;
-    }
-
-    public Laptop getLaptop(){
-        return laptop;
-    }
-
-    public void setLaptop(Laptop laptop){
-        this.laptop = laptop;
-    }
-
-    */
-    
 }
