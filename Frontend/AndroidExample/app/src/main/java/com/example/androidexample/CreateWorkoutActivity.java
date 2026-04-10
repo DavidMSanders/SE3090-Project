@@ -24,6 +24,7 @@ public class CreateWorkoutActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_workout);
+        AppTopBarController.setup(this);
 
         editName = findViewById(R.id.WorkoutName);
         editDate = findViewById(R.id.WorkoutDate);

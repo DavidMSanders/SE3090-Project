@@ -47,6 +47,12 @@ public class KeepUser {
     public int getUserId() {
         return prefs.getInt(KEY_USER_ID, -1);
     }
+
+    public String getUserIdString() {
+        int userId = getUserId();
+        return userId < 0 ? "" : String.valueOf(userId);
+    }
+
     /**
      *  Gets user session info username
      *
@@ -56,6 +62,11 @@ public class KeepUser {
         return prefs.getString(KEY_USERNAME, null);
     }
 
+    public String getDisplayUsername() {
+        String username = getUsername();
+        return username == null || username.trim().isEmpty() ? "Guest" : username.trim();
+    }
+
     /**
      *  Gets user session info role
      *
@@ -63,6 +74,11 @@ public class KeepUser {
      */
     public String getRole() {
         return prefs.getString(KEY_ROLE, null);
+    }
+
+    public String getRoleOrDefault() {
+        String role = getRole();
+        return role == null || role.trim().isEmpty() ? "normal" : role.trim();
     }
 
     /**

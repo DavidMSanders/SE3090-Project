@@ -70,7 +70,7 @@ public class SignupActivity extends AppCompatActivity {
             public void onClick(View v) {
 
                 /* when login button is pressed, use intent to switch to Login Activity */
-                Intent intent = new Intent(SignupActivity.this, CalendarActivity.class);
+                Intent intent = new Intent(SignupActivity.this, LoginActivity.class);
                 startActivity(intent);  // go to LoginActivity
             }
         });
@@ -175,13 +175,14 @@ public class SignupActivity extends AppCompatActivity {
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, SIGNUP_URL, body, response -> {
             //success
 
-
-            // save current user session for persistence
-            KeepUser keepUser = new KeepUser(SignupActivity.this);
-
             int userId = response.optInt("userId", -1);
             String savedUsername = response.optString("username", username);
             String role = response.optString("role", "normal");
+
+            // save current user session for persistence
+            SessionManager.saveLoggedInUser(this, savedUsername, userId < 0 ? "" : String.valueOf(userId));
+            AppNotificationManager.addNotification(this, "Welcome! Your account was created.");
+            KeepUser keepUser = new KeepUser(SignupActivity.this);
 
             keepUser.saveUser(userId, savedUsername, role);
 
