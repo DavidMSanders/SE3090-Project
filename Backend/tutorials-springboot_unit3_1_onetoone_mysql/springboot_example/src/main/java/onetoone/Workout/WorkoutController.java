@@ -1,35 +1,14 @@
 package onetoone.Workout;
 
-import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cglib.core.Local;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.rmi.MarshalledObject;
-import java.time.DateTimeException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-//import io.swagger.v3.oas.annotations.Operation;
-//import io.swagger.v3.oas.annotations.responses.ApiResponse;
-//import io.swagger.v3.oas.annotations.responses.ApiResponses;
-
-/**
- * Workout Controller
- * @author Chris Lopez
- */
-
+import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/workouts")
@@ -38,249 +17,170 @@ public class WorkoutController {
     @Autowired
     private WorkoutRepository repo;
 
-    /**
-     * Create - POST
-     * <p>
-     * {
-     * "name": "Push Day",
-     * "date": "02/24/2026"
-     * "durationMinutes": 60,
-     * "description": "Chest + Triceps"
-     * }
-     */
+    @Autowired
+    private AssignedWorkoutRepository assignedRepo;
 
-    @PostMapping
-    public ResponseEntity<Map<String, Object>> addWorkout(@RequestBody WorkoutData incoming) {
-        Map<String, Object> result = new HashMap<>();
-        try {
-            if (isEmpty(incoming.getName()) || isEmpty(incoming.getDate())) {
-                result.put("message", "name and date are required");
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
+    // Helper: Map Workout to spec JSON
+    private Map<String, Object> mapWorkoutToSpec(Workout w) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("workoutId", w.getWorkoutId());
+        map.put("userId", w.getUserId());
+        map.put("createdByUserId", w.getCreatedByUserId());
+        map.put("workoutName", w.getWorkoutName());
+        map.put("workoutDescription", w.getWorkoutDescription());
+        map.put("scheduledDate", w.getScheduledDate() != null ? w.getScheduledDate().toString() : null);
+        map.put("status", w.getStatus());
+        map.put("sourceType", w.getSourceType());
+
+        // Find assignedWorkoutId (if linked)
+        Long assignedId = null;
+        for (AssignedWorkout aw : assignedRepo.findAll()) {
+            if (aw.getWorkout() != null && aw.getWorkout().getWorkoutId().equals(w.getWorkoutId())) {
+                assignedId = aw.getId();
+                break;
             }
-
-            DateTimeFormatter pattern = DateTimeFormatter.ofPattern("MM/dd/yyyy");
-            LocalDate parsedDate = LocalDate.parse(incoming.getDate(), pattern);
-
-            Workout newWorkout = new Workout(
-                    incoming.getName(), parsedDate,
-                    incoming.getDurationMinutes(),
-                    incoming.getDescription());
-
-            Workout saved = repo.save(newWorkout);
-
-            result.put("id", saved.getWorkoutId());
-            result.put("name", saved.getWorkoutName());
-            result.put("date", saved.getSessionDate().format(pattern));
-            result.put("durationMinutes", saved.getMinutes());
-            result.put("description", saved.getDetails());
-
-            return ResponseEntity.status(HttpStatus.CREATED).body(result);
-        } catch (DateTimeParseException error) {
-            result.put("message", "date must be in MM/DD/YYYY format");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
-        } catch (Exception error) {
-            result.put("message", "Error creating workout: " + error.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
-
-
         }
+        map.put("assignedWorkoutId", assignedId);
+        return map;
     }
 
+    // 11. POST /workouts
+    @PostMapping
+    public ResponseEntity<Map<String, Object>> addWorkout(@RequestBody Map<String, Object> incoming) {
+        Workout newWorkout = new Workout();
+        newWorkout.setWorkoutName((String) incoming.get("workoutName"));
+        newWorkout.setWorkoutDescription((String) incoming.get("workoutDescription"));
 
-    /**
-     * READ - GET
-     * <p>
-     * {
-     * "id": 1
-     * "name": "Push Day",
-     * "date": "02/24/2026",
-     * "durationMinutes: 60,
-     * "description": "Chest + triceps"
-     * }
-     */
+        if (incoming.get("scheduledDate") != null) {
+            newWorkout.setScheduledDate(LocalDate.parse(incoming.get("scheduledDate").toString(),
+                    DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+        }
 
-    @GetMapping("/{workoutId}")
-    public ResponseEntity<Map<String, Object>> fetchWorkoutById(@PathVariable int workoutId) {
+        Long userId = incoming.get("userId") != null ? Long.valueOf(incoming.get("userId").toString()) : null;
+        newWorkout.setUserId(userId);
+        newWorkout.setCreatedByUserId(userId); // self created
+        newWorkout.setStatus("planned");
+        newWorkout.setSourceType("self_created");
+
+        Workout saved = repo.save(newWorkout);
+
         Map<String, Object> result = new HashMap<>();
-
-        Workout found = repo.findById(workoutId).orElse(null);
-
-        if (found != null) {
-            DateTimeFormatter pattern = DateTimeFormatter.ofPattern("MM/dd/yyyy");
-
-
-            result.put("id", found.getWorkoutId());
-            result.put("name", found.getWorkoutName());
-            result.put("date", found.getSessionDate().format(pattern));
-            result.put("durationMinutes", found.getMinutes());
-            result.put("description", found.getDetails());
-            return ResponseEntity.ok(result);
-        } else {
-            result.put("message", "Workout not found");
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
-        }
-    }
-
-
-    /**
-     * READ ALL - GET /api/v1/workouts
-     */
-    @GetMapping
-    public ResponseEntity<List<Map<String, Object>>> fetchAllWorkouts() {
-        List<Workout> allWorkouts = repo.findAll();
-        DateTimeFormatter pattern = DateTimeFormatter.ofPattern("MM/dd/yyyy");
-
-        List<Map<String, Object>> result = allWorkouts.stream().map(item -> {
-            Map<String, Object> workoutData = new HashMap<>();
-            workoutData.put("id", item.getWorkoutId());
-            workoutData.put("name", item.getWorkoutName());
-            workoutData.put("date", item.getSessionDate().format(pattern));
-            workoutData.put("durationMinutes", item.getMinutes());
-            workoutData.put("description", item.getDetails());
-            return workoutData;
-        }).toList();
+        result.put("workoutId", saved.getWorkoutId());
+        result.put("message", "Workout created successfully");
         return ResponseEntity.ok(result);
     }
 
-    /**
-     * UPDATE PUT /api/v1/workouts/{id}
-     * <p>
-     * {
-     * "id": 1,
-     * "name":
-     * "date"
-     * "durationMinutes"
-     * "description":
-     * }
-     */
+    // 12. GET /workouts/user/{userId}
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<Map<String, Object>>> getWorkoutsByUser(@PathVariable Long userId,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) Long groupId,
+            @RequestParam(required = false) String date) {
+        List<Workout> all = repo.findAll().stream()
+                .filter(w -> w.getUserId() != null && w.getUserId().equals(userId))
+                .filter(w -> w.getStatus() == null || !w.getStatus().equalsIgnoreCase("rejected"))
+                .collect(Collectors.toList());
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Map<String, Object>> modifyWorkout(@PathVariable int id, @RequestBody
-    WorkoutData incoming) {
-        Map<String, Object> result = new HashMap<>();
+        if (status != null) {
+            all = all.stream().filter(w -> status.equalsIgnoreCase(w.getStatus())).collect(Collectors.toList());
+        }
+        if (groupId != null) {
+            all = all.stream().filter(w -> groupId.equals(w.getGroupId())).collect(Collectors.toList());
+        }
+        if (date != null) {
+            LocalDate target = LocalDate.parse(date, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            all = all.stream().filter(w -> target.equals(w.getScheduledDate())).collect(Collectors.toList());
+        }
 
-        try {
-            Workout current = repo.findById(id).orElse(null);
+        // Custom Sort: (scheduledDate >= CURRENT_DATE) DESC, scheduledDate ASC
+        LocalDate today = LocalDate.now();
+        all.sort((a, b) -> {
+            LocalDate d1 = a.getScheduledDate() != null ? a.getScheduledDate() : LocalDate.MIN;
+            LocalDate d2 = b.getScheduledDate() != null ? b.getScheduledDate() : LocalDate.MIN;
 
-            if (current == null) {
-                result.put("message", "Workout not found");
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
-            }
+            boolean d1Future = !d1.isBefore(today);
+            boolean d2Future = !d2.isBefore(today);
 
-            if (!isEmpty(incoming.getName())) {
-                current.setWorkoutName(incoming.getName());
-            }
+            if (d1Future && !d2Future)
+                return -1;
+            if (!d1Future && d2Future)
+                return 1;
 
-            if (!isEmpty(incoming.getDate())) {
-                DateTimeFormatter pattern = DateTimeFormatter.ofPattern("MM/dd/yyyy");
-                LocalDate parsedDate = LocalDate.parse(incoming.getDate(), pattern);
-                current.setSessionDate(parsedDate);
-            }
+            return d1.compareTo(d2);
+        });
 
-            if (incoming.getDurationMinutes() > 0) {
-                current.setMinutes(incoming.getDurationMinutes());
-            }
+        List<Map<String, Object>> result = all.stream().map(this::mapWorkoutToSpec).collect(Collectors.toList());
+        return ResponseEntity.ok(result);
+    }
 
-            if (incoming.getDescription() != null) {
-                current.setDetails(incoming.getDescription());
-            }
-
-            Workout updated = repo.save(current);
-
-            DateTimeFormatter pattern = DateTimeFormatter.ofPattern("MM/dd/yyyy");
-            result.put("id", updated.getWorkoutId());
-            result.put("name", updated.getWorkoutName());
-            result.put("date", updated.getSessionDate().format(pattern));
-            result.put("durationMinutes", updated.getMinutes());
-            result.put("description", updated.getDetails());
-
-            return ResponseEntity.ok(result);
-
-
-        } catch (DateTimeParseException error) {
-            result.put("message", "date must be in MM/DD/yyyy format");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
-        } catch (Exception error) {
-            result.put("message", "Error updating workout: " + error.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
+    // 13. GET /workouts/{workoutId}
+    @GetMapping("/{workoutId}")
+    public ResponseEntity<Map<String, Object>> fetchWorkoutById(@PathVariable Long workoutId) {
+        Workout found = repo.findById(workoutId).orElse(null);
+        if (found != null) {
+            return ResponseEntity.ok(mapWorkoutToSpec(found));
+        } else {
+            return ResponseEntity.notFound().build();
         }
     }
 
-    /**
-     * Delete - DELETE /api/v1/workouts/{id}
-     */
+    // 14. PUT /workouts/{workoutId}/status
+    @PutMapping("/{workoutId}/status")
+    public ResponseEntity<Map<String, Object>> updateWorkoutStatus(@PathVariable Long workoutId,
+            @RequestBody Map<String, String> incoming) {
+        Workout current = repo.findById(workoutId).orElse(null);
+        if (current == null) {
+            return ResponseEntity.notFound().build();
+        }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Map<String, String>> removeWorkout(@PathVariable int id) {
+        current.setStatus(incoming.get("status"));
+        repo.save(current);
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("message", "Workout status updated");
+        result.put("workoutId", current.getWorkoutId());
+        result.put("status", current.getStatus());
+        return ResponseEntity.ok(result);
+    }
+
+    // 15. PUT /workouts/{workoutId}
+    @PutMapping("/{workoutId}")
+    public ResponseEntity<Map<String, Object>> modifyWorkout(@PathVariable Long workoutId,
+            @RequestBody Map<String, Object> incoming) {
+        Workout current = repo.findById(workoutId).orElse(null);
+        if (current == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        if (incoming.get("workoutName") != null)
+            current.setWorkoutName((String) incoming.get("workoutName"));
+        if (incoming.get("workoutDescription") != null)
+            current.setWorkoutDescription((String) incoming.get("workoutDescription"));
+        if (incoming.get("scheduledDate") != null) {
+            current.setScheduledDate(LocalDate.parse(incoming.get("scheduledDate").toString(),
+                    DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+        }
+
+        repo.save(current);
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("message", "Workout updated");
+        result.put("workoutId", current.getWorkoutId());
+        return ResponseEntity.ok(result);
+    }
+
+    // 16. DELETE /workouts/{workoutId}
+    @DeleteMapping("/{workoutId}")
+    public ResponseEntity<Map<String, String>> removeWorkout(@PathVariable Long workoutId) {
         Map<String, String> result = new HashMap<>();
-
-        Workout found = repo.findById(id).orElse(null);
-
+        Workout found = repo.findById(workoutId).orElse(null);
         if (found != null) {
             repo.delete(found);
-            result.put("message", "Workout deleted sucessfully");
+            result.put("message", "Workout deleted");
             return ResponseEntity.ok(result);
         } else {
             result.put("message", "Workout not found");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
         }
     }
-
-
-        private boolean isEmpty (String text){
-            return text == null || text.trim().isEmpty();
-        }
-    }
-
-
-    /**
-     * Request body class for workout endpoints
-     */
-
-    class WorkoutData {
-        private String name;
-        private String date;
-        private int durationMinutes;
-        private String description;
-
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        public String getDate() {
-            return date;
-        }
-
-        public void setDate(String date) {
-            this.date = date;
-        }
-
-        public int getDurationMinutes() {
-            return durationMinutes;
-        }
-
-        public void setDurationMinutes(int durationMinutes) {
-            this.durationMinutes = durationMinutes;
-        }
-
-        public String getDescription() {
-            return description;
-        }
-
-        public void setDescription(String description) {
-            this.description = description;
-        }
-    }
-
-
-
-
-
-
-
-
-
+}
