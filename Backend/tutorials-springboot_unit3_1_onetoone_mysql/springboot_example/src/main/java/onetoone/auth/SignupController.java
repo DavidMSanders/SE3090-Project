@@ -54,7 +54,7 @@ public class SignupController {
                     birthdate);
 
             // save database
-            userRepo.save(newUser);
+            User savedUser = userRepo.save(newUser);
 
             response.put("message", "User created successfully");
 
