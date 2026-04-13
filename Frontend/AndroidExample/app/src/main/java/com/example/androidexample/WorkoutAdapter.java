@@ -24,8 +24,8 @@ import java.util.List;
 
 public class WorkoutAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
-    // Change this when switching from mock to real backend
-    private static final String BASE_URL = "https://18366156-06c4-4fa7-b2cb-53279f7fd5ad.mock.pstmn.io";
+    // Change this when switching from mock to real backendhttps://18366156-06c4-4fa7-b2cb-53279f7fd5ad.mock.pstmn.io
+    private static final String BASE_URL = "http://coms-3090-035.class.las.iastate.edu:8080";
     private static final String WORKOUTS_URL = BASE_URL + "/api/v1/workouts";
     private static final String ASSIGNED_WORKOUTS_URL = BASE_URL + "/api/v1/assigned-workouts";
 

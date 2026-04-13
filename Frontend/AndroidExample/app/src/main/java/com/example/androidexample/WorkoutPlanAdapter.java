@@ -21,9 +21,10 @@ public class WorkoutPlanAdapter extends RecyclerView.Adapter<WorkoutPlanAdapter.
 
     private final List<WorkoutPlan> workoutPlanList;
     private Context context;
-//http://coms-3090-035.class.las.iastate.edu:8080
+//
     //https://18366156-06c4-4fa7-b2cb-53279f7fd5ad.mock.pstmn.io
-    private static final String BASE_URL = "https://18366156-06c4-4fa7-b2cb-53279f7fd5ad.mock.pstmn.io";
+// //https://18366156-06c4-4fa7-b2cb-53279f7fd5ad.mock.pstmn.io
+    private static final String BASE_URL = "http://coms-3090-035.class.las.iastate.edu:8080";
 
 
 
