@@ -41,6 +41,8 @@ public class User {
         this.userPassword = userPassword;
         this.birthDate = birthDate;
         this.isEnabled = true;
+        //add default client - CHECK FOR ISSUES
+        this.role = "Client";
 
     }
 

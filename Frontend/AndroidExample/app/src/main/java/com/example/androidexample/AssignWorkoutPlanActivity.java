@@ -135,7 +135,9 @@ public class AssignWorkoutPlanActivity extends AppCompatActivity {
                         try {
                             JSONObject obj = response.getJSONObject(i);
                             int groupId = obj.optInt("groupId");
-                            String groupName = obj.optString("groupName");
+                            String groupName = obj.optString("groupName",
+                                    obj.optString("name",
+                                            obj.optString("group_name", "Unnamed Group")));
                             groupOptions.add(new GroupOption(groupId, groupName));
                         } catch (Exception e) {
                             Toast.makeText(this, "Error parsing groups", Toast.LENGTH_SHORT).show();
