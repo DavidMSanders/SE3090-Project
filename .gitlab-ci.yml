@@ -10,11 +10,11 @@ maven-build:
   tags:
     - springboot_tag
   script:
-    - cd Backend
+    - cd Backend/tutorials-springboot_unit3_1_onetoone_mysql/springboot_example
     - mvn package
   artifacts:
     paths:
-    - Backend/target/*.jar
+    - Backend/tutorials-springboot_unit3_1_onetoone_mysql/springboot_example/target/*.jar
   only:
     refs:
       - main
@@ -26,7 +26,7 @@ maven-test:
   tags:
     - springboot_tag
   script:
-    - cd Backend
+    - cd Backend/tutorials-springboot_unit3_1_onetoone_mysql/springboot_example
     - mvn test
   only:
     refs:
@@ -39,7 +39,7 @@ auto-deploy:
   tags:
     - springboot_tag
   script:
-    - cd Backend
+    - cd Backend/tutorials-springboot_unit3_1_onetoone_mysql/springboot_example
     - sudo mv target/*.jar /target/web-demo.jar
     - sudo systemctl stop system-web-demo
     - sudo systemctl start system-web-demo
