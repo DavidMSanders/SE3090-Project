@@ -40,7 +40,7 @@ auto-deploy:
     - springboot_tag
   script:
     - cd Backend/tutorials-springboot_unit3_1_onetoone_mysql/springboot_example
-    - sudo mv target/*.jar /target/web-demo.jar
+    - sudo mv target/onetoone-1.0.0.jar /target/web-demo.jar
     - sudo systemctl stop system-web-demo
     - sudo systemctl start system-web-demo
   only:
