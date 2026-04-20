@@ -11,7 +11,7 @@ import java.util.List;
  * @author Matthew Smith
  */
 @Repository
-public interface CalendarEventRepository extends JpaRepository<CalendarEvent, Long> {
+public interface CalenderEventRepository extends JpaRepository<CalendarEvent, Long> {
 
     List<CalendarEvent> findByUserIdAndEventDate(Long userId, LocalDate eventDate);
 
