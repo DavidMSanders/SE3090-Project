@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 /**
  * @author Matthew Smith
  */
-@Entity
+@Entity(name = "CalenderEvent")
 @Table(name = "calendar_events")
 public class CalendarEvent {
 

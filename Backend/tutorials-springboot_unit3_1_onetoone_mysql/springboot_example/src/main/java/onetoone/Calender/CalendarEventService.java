@@ -1,7 +1,7 @@
 package onetoone.Calender;
 
 import onetoone.Calender.CalendarEvent;
-import onetoone.Calender.CalendarEventRepository;
+import onetoone.Calender.CalenderEventRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -14,9 +14,9 @@ import java.util.stream.Collectors;
 @Service
 public class CalendarEventService {
 
-    private final CalendarEventRepository calendarEventRepository;
+    private final CalenderEventRepository calendarEventRepository;
 
-    public CalendarEventService(CalendarEventRepository calendarEventRepository) {
+    public CalendarEventService(CalenderEventRepository calendarEventRepository) {
         this.calendarEventRepository = calendarEventRepository;
     }
 

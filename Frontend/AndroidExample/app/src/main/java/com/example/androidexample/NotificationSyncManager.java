@@ -1,6 +1,7 @@
 package com.example.androidexample;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
@@ -14,9 +15,14 @@ import com.android.volley.toolbox.StringRequest;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request.Builder;
@@ -31,6 +37,9 @@ public final class NotificationSyncManager {
 
     private static final String HTTP_BASE_URL = "http://coms-3090-035.class.las.iastate.edu:8080";
     private static final String WS_BASE_URL = "ws://coms-3090-035.class.las.iastate.edu:8080";
+    private static final long WORKOUT_CHECK_INTERVAL_MS = 60_000L;
+    private static final String WORKOUT_ALERT_PREFS = "workout_start_alerts";
+    private static final String WORKOUT_ALERT_KEY_PREFIX = "sent_";
 
     private static NotificationSyncManager instance;
 
@@ -43,6 +52,20 @@ public final class NotificationSyncManager {
     private String activeUserId = "";
     private boolean closedByUser = false;
     private int reconnectAttempts = 0;
+
+    private final Runnable workoutReminderRunnable = new Runnable() {
+        @Override
+        public void run() {
+            synchronized (NotificationSyncManager.this) {
+                if (closedByUser || activeUserId.isEmpty()) {
+                    return;
+                }
+            }
+
+            checkWorkoutStartAlerts(activeUserId);
+            mainHandler.postDelayed(this, WORKOUT_CHECK_INTERVAL_MS);
+        }
+    };
 
     public interface NotificationListCallback {
         void onSuccess(List<String> notifications);
@@ -89,6 +112,7 @@ public final class NotificationSyncManager {
 
         fetchNotificationsForUser(userId, null);
         connectWebSocket(userId);
+        startWorkoutReminderChecks(userId);
     }
 
     public synchronized void stop() {
@@ -167,7 +191,7 @@ public final class NotificationSyncManager {
                 + "&category=" + Uri.encode(category)
                 + "&message=" + Uri.encode(message);
 
-        sendNoBodyRequest(Request.Method.POST, url, callback);
+        sendNoBodyRequest(Request.Method.GET, url, callback);
     }
 
     private synchronized void connectWebSocket(String userId) {
@@ -225,6 +249,107 @@ public final class NotificationSyncManager {
         if (clearUser) {
             activeUserId = "";
         }
+    }
+
+    private synchronized void startWorkoutReminderChecks(String userId) {
+        if (userId == null || userId.trim().isEmpty()) {
+            return;
+        }
+
+        mainHandler.removeCallbacks(workoutReminderRunnable);
+        mainHandler.post(workoutReminderRunnable);
+    }
+
+    private void checkWorkoutStartAlerts(String userId) {
+        LocalDate today = LocalDate.now();
+        String url = HTTP_BASE_URL + "/api/v1/users/" + Uri.encode(userId)
+                + "/events/day?year=" + today.getYear()
+                + "&month=" + today.getMonthValue()
+                + "&day=" + today.getDayOfMonth();
+
+        JsonArrayRequest request = new JsonArrayRequest(Request.Method.GET, url, null,
+                response -> processWorkoutAlerts(response),
+                error -> Log.w(TAG, "Workout alert check failed: " + readableVolleyError(error)));
+
+        requestQueue.add(request);
+    }
+
+    private void processWorkoutAlerts(JSONArray events) {
+        if (events == null || events.length() == 0) {
+            return;
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        for (int i = 0; i < events.length(); i++) {
+            JSONObject event = events.optJSONObject(i);
+            if (event == null) {
+                continue;
+            }
+
+            String dateValue = event.optString("date", "").trim();
+            String startValue = event.optString("startTime", "").trim();
+            if (dateValue.isEmpty() || startValue.isEmpty()) {
+                continue;
+            }
+
+            LocalDate eventDate;
+            LocalTime startTime;
+            try {
+                eventDate = LocalDate.parse(dateValue);
+                startTime = LocalTime.parse(startValue);
+            } catch (Exception ignored) {
+                continue;
+            }
+
+            LocalDateTime startDateTime = LocalDateTime.of(eventDate, startTime);
+            if (now.isBefore(startDateTime) || !now.isBefore(startDateTime.plusMinutes(2))) {
+                continue;
+            }
+
+            long eventId = extractEventId(event);
+            String alertKey = eventId + "|" + dateValue + "|" + startValue;
+            if (isWorkoutAlertSent(alertKey)) {
+                continue;
+            }
+
+            String title = event.optString("title", "Workout").trim();
+            if (title.isEmpty()) {
+                title = "Workout";
+            }
+
+            AppNotificationManager.addNotification(appContext,
+                    "\u0001Workout starting now: " + title + " at " + startTime.toString());
+            markWorkoutAlertSent(alertKey);
+        }
+    }
+
+    private long extractEventId(JSONObject event) {
+        long id = event.optLong("id", -1);
+        if (id != -1) {
+            return id;
+        }
+        return event.optLong("eventId", -1);
+    }
+
+    private SharedPreferences getWorkoutAlertPrefs() {
+        return appContext.getSharedPreferences(WORKOUT_ALERT_PREFS, Context.MODE_PRIVATE);
+    }
+
+    private String sentWorkoutAlertKey() {
+        return WORKOUT_ALERT_KEY_PREFIX + activeUserId;
+    }
+
+    private boolean isWorkoutAlertSent(String alertKey) {
+        Set<String> sent = getWorkoutAlertPrefs().getStringSet(sentWorkoutAlertKey(), new HashSet<>());
+        return sent != null && sent.contains(alertKey);
+    }
+
+    private void markWorkoutAlertSent(String alertKey) {
+        SharedPreferences prefs = getWorkoutAlertPrefs();
+        Set<String> current = prefs.getStringSet(sentWorkoutAlertKey(), new HashSet<>());
+        Set<String> updated = new HashSet<>(current != null ? current : new HashSet<>());
+        updated.add(alertKey);
+        prefs.edit().putStringSet(sentWorkoutAlertKey(), updated).apply();
     }
 
     private void scheduleReconnect(String userId) {

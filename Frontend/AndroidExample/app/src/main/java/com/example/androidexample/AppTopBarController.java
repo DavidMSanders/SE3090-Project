@@ -62,6 +62,7 @@ public final class AppTopBarController {
         String username = keepUser.getDisplayUsername();
         userMenuButton.setText(username + " v");
 
+        AppNotificationManager.requestNotificationPermissionIfNeeded(activity);
         NotificationSyncManager.getInstance(activity).startForCurrentUser();
 
         if ("No notifications yet".equals(AppNotificationManager.getLatestNotification(activity))) {

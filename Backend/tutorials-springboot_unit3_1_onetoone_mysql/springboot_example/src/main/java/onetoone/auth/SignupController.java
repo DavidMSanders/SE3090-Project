@@ -96,6 +96,7 @@ public class SignupController {
         response.put("message", "Login successful");
         response.put("userId", foundUser.getUserId());
         response.put("username", foundUser.getAccountName());
+        response.put("role", foundUser.getRole());
         return ResponseEntity.ok(response);
     }
 }
