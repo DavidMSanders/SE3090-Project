@@ -82,9 +82,9 @@ android-build:
     - android_tag
   before_script:
     - export GRADLE_USER_HOME=`pwd`/.gradle
-    - chmod +x ./Frontend/gradlew
   script:
-    - cd Frontend
+    - cd Frontend/AndroidExample
+    - chmod +x gradlew
     - ./gradlew build
   only:
     refs:
@@ -99,9 +99,9 @@ android-test:
     - android_tag
   before_script:
     - export GRADLE_USER_HOME=`pwd`/.gradle
-    - chmod +x ./Frontend/gradlew
   script:
-    - cd Frontend
+    - cd Frontend/AndroidExample
+    - chmod +x gradlew
     - ./gradlew test
   only:
     refs:
