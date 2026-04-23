@@ -249,4 +249,84 @@ public class AssignedWorkoutController {
 
         return ResponseEntity.notFound().build();
     }
-}
+
+    /**
+     * GET /assigned-workouts/plan/{workoutPlanId}/summary
+     */
+    @GetMapping("/plan/{workoutPlanId}/summary")
+    public ResponseEntity<Map<String, Object>> getPlanSummary(@PathVariable Long workoutPlanId) {
+        WorkoutPlan plan = planRepo.findById(workoutPlanId).orElse(null);
+        if (plan == null) {
+            return ResponseEntity.notFound().build();
+        }
+        
+        List<AssignedWorkout> all = assignedRepo.findAll();
+        Map<String, Object> summary = buildPlanSummary(plan, all);
+        return ResponseEntity.ok(summary);
+    }
+
+    /**
+     * GET /assigned-workouts/trainer/{trainerId}/plan-summaries
+     */
+    @GetMapping("/trainer/{trainerId}/plan-summaries")
+    public ResponseEntity<List<Map<String, Object>>> getTrainerPlanSummaries(@PathVariable Long trainerId) {
+        List<WorkoutPlan> trainerPlans = planRepo.findByTrainerId(trainerId);
+        if (trainerPlans == null || trainerPlans.isEmpty()) {
+            return ResponseEntity.ok(new ArrayList<>());
+        }
+
+        List<AssignedWorkout> allAssigned = assignedRepo.findAll();
+        List<Map<String, Object>> summaries = new ArrayList<>();
+
+        for (WorkoutPlan plan : trainerPlans) {
+            summaries.add(buildPlanSummary(plan, allAssigned));
+        }
+
+        return ResponseEntity.ok(summaries);
+    }
+
+    private Map<String, Object> buildPlanSummary(WorkoutPlan plan, List<AssignedWorkout> allAssigned) {
+        List<String> acceptedUsers = new ArrayList<>();
+        List<String> rejectedUsers = new ArrayList<>();
+        List<String> completedUsers = new ArrayList<>();
+        List<String> pendingUsers = new ArrayList<>();
+
+        for (AssignedWorkout aw : allAssigned) {
+            Workout workout = aw.getWorkout();
+            if (workout == null || workout.getWorkoutPlanId() == null || !workout.getWorkoutPlanId().equals(plan.getWorkoutPlanId())) {
+                continue;
+            }
+
+            String status = workout.getStatus() != null ? workout.getStatus().toLowerCase() : "unknown";
+            String username = aw.getClient() != null ? aw.getClient().getAccountName() : "Unknown User";
+
+            if (status.equals("accepted")) {
+                acceptedUsers.add(username);
+            } else if (status.equals("rejected")) {
+                rejectedUsers.add(username);
+            } else if (status.equals("completed")) {
+                completedUsers.add(username);
+            } else {
+                // "assigned", "pending", or unhandled map to pending
+                pendingUsers.add(username);
+            }
+        }
+
+        Map<String, Object> res = new HashMap<>();
+        res.put("planId", plan.getWorkoutPlanId());
+        res.put("planName", plan.getPlanName());
+        res.put("acceptedCount", acceptedUsers.size());
+        res.put("rejectedCount", rejectedUsers.size());
+        res.put("completedCount", completedUsers.size());
+        res.put("pendingCount", pendingUsers.size());
+
+        Map<String, List<String>> userGroups = new HashMap<>();
+        userGroups.put("accepted", acceptedUsers);
+        userGroups.put("rejected", rejectedUsers);
+        userGroups.put("completed", completedUsers);
+        userGroups.put("pending", pendingUsers);
+
+        res.put("users", userGroups);
+        return res;
+    }
+}
