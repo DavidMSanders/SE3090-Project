@@ -9,6 +9,8 @@ import onetoone.Users.UserRepository;
 import onetoone.Users.User;
 import onetoone.Groups.GroupMembership;
 import onetoone.Groups.GroupMembershipRepository;
+import onetoone.ImageHandler.ImageMessage;
+import onetoone.ImageHandler.ImageMessageRepository;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,6 +45,7 @@ public class ChatWebSocket {
     private static UserRepository accountStore;
     private static GroupMembershipRepository groupAccessRepo;
 
+    private static ImageMessageRepository imageStore;
 
     private static final Map<Integer, Session> liveConnections =
             new ConcurrentHashMap<>();
@@ -65,6 +68,12 @@ public class ChatWebSocket {
     public void setGroupMembershipRepository(
             GroupMembershipRepository repository) {
         ChatWebSocket.groupAccessRepo = repository;
+    }
+
+    @Autowired
+    public void setImageMessageRepository(ImageMessageRepository repository) {
+
+        ChatWebSocket.imageStore = repository;
     }
 
     /**
@@ -147,6 +156,11 @@ public class ChatWebSocket {
                     break;
                 case "JOIN":
                     processGroupEntry(clientSession, authorId,
+                            authorName, msgPayload);
+                    break;
+
+                case "SEND_IMAGE":
+                    processImageMessage(clientSession, authorId,
                             authorName, msgPayload);
                     break;
                 default:
@@ -238,6 +252,60 @@ public class ChatWebSocket {
             sendError(originatorSession, "Error sending message: " + error.getMessage());
         }
     }
+
+    /**
+     * Handles sending an image message to a group via WebSocket
+     */
+    private void processImageMessage(Session originatorSession, Integer originatorId, String originatorName, JsonNode msgPayload) {
+        try {
+            int groupRef = requiredInt(msgPayload, "groupId");
+            String imageUrl = text(msgPayload, "imageUrl", "").trim();
+            String caption = text(msgPayload, "caption", null);
+
+            if (imageUrl.isEmpty()) {
+                sendError(originatorSession, "imageUrl is required");
+                return;
+            }
+
+            Optional<GroupMembership> memberLookup = groupAccessRepo.findByGroupIdAndUserId(groupRef, originatorId);
+            if (memberLookup.isEmpty()) {
+                sendError(originatorSession, "You are not a member of this group");
+                return;
+            }
+
+            if (!memberLookup.get().isChatEnabled()) {
+                sendError(originatorSession, "You do not have permission to send messages");
+                return;
+            }
+
+            ImageMessage savedImage = imageStore.save(
+                    new ImageMessage(
+                            originatorId.longValue(),
+                            (long) groupRef,
+                            imageUrl,
+                            caption
+                    )
+            );
+
+            Map<String, Object> outgoingEvent = new LinkedHashMap<>();
+            outgoingEvent.put("eventType", "IMAGE_CREATED");
+            outgoingEvent.put("id", savedImage.getMsgKey());
+            outgoingEvent.put("senderId", savedImage.getAuthorId());
+            outgoingEvent.put("username", originatorName);
+            outgoingEvent.put("groupId", savedImage.getChannelId());
+            outgoingEvent.put("imageUrl", savedImage.getMediaPath());
+            outgoingEvent.put("caption", savedImage.getMsgCaption());
+            outgoingEvent.put("sentAt", savedImage.getDispatchTime() != null
+                    ? savedImage.getDispatchTime().toString() : null);
+
+            distributeToGroup(groupRef, outgoingEvent, null);
+
+        } catch (Exception error) {
+            log.error("Error in processImageMessage: {}", error.getMessage());
+            sendError(originatorSession, "Error sending image: " + error.getMessage());
+        }
+    }
+
 
     /**
      * Handles editing an existing message
