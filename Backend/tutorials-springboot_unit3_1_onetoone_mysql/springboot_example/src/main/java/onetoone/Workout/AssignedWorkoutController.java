@@ -266,6 +266,42 @@ public class AssignedWorkoutController {
     }
 
     /**
+     * GET /assigned-workouts/plan/{workoutPlanId}/summary/counts
+     */
+    @GetMapping("/plan/{workoutPlanId}/summary/counts")
+    public ResponseEntity<Map<String, Object>> getPlanSummaryCounts(@PathVariable Long workoutPlanId) {
+        WorkoutPlan plan = planRepo.findById(workoutPlanId).orElse(null);
+        if (plan == null) {
+            return ResponseEntity.notFound().build();
+        }
+        
+        List<AssignedWorkout> all = assignedRepo.findAll();
+        Map<String, Object> summary = buildPlanSummary(plan, all);
+        summary.remove("users");
+        return ResponseEntity.ok(summary);
+    }
+
+    /**
+     * GET /assigned-workouts/plan/{workoutPlanId}/summary/users
+     */
+    @GetMapping("/plan/{workoutPlanId}/summary/users")
+    public ResponseEntity<Map<String, Object>> getPlanSummaryUsers(@PathVariable Long workoutPlanId) {
+        WorkoutPlan plan = planRepo.findById(workoutPlanId).orElse(null);
+        if (plan == null) {
+            return ResponseEntity.notFound().build();
+        }
+        
+        List<AssignedWorkout> all = assignedRepo.findAll();
+        Map<String, Object> summary = buildPlanSummary(plan, all);
+        
+        Map<String, Object> userOnly = new HashMap<>();
+        userOnly.put("planId", summary.get("planId"));
+        userOnly.put("planName", summary.get("planName"));
+        userOnly.put("users", summary.get("users"));
+        return ResponseEntity.ok(userOnly);
+    }
+
+    /**
      * GET /assigned-workouts/trainer/{trainerId}/plan-summaries
      */
     @GetMapping("/trainer/{trainerId}/plan-summaries")

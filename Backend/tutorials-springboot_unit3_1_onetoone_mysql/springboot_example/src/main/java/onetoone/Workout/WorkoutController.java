@@ -187,4 +187,26 @@ public class WorkoutController {
         result.put("status", current.getStatus());
         return ResponseEntity.ok(result);
     }
+
+    /**
+     * 15. DELETE /workouts/{workoutId}
+     */
+    @DeleteMapping("/{workoutId}")
+    public ResponseEntity<Map<String, String>> deleteWorkout(@PathVariable Long workoutId) {
+        Workout workout = repo.findById(workoutId).orElse(null);
+        if (workout != null) {
+            // Safely delete any AssignedWorkout references if they exist
+            List<AssignedWorkout> assignedWorkouts = assignedRepo.findAll();
+            for (AssignedWorkout aw : assignedWorkouts) {
+                if (aw.getWorkout() != null && aw.getWorkout().getWorkoutId().equals(workoutId)) {
+                    assignedRepo.delete(aw);
+                }
+            }
+            repo.deleteById(workoutId);
+            Map<String, String> res = new HashMap<>();
+            res.put("message", "Workout deleted successfully");
+            return ResponseEntity.ok(res);
+        }
+        return ResponseEntity.notFound().build();
+    }
 }
