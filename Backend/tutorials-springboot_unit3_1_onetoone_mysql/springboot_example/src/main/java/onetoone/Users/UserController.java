@@ -202,6 +202,44 @@ public class UserController {
      * Use for testing
      */
 
+    @PutMapping("/{userId}/profile")
+    public ResponseEntity<Map<String, Object>> updateUserProfile(@PathVariable int userId, @RequestBody ProfileUpdateRequest request) {
+        Map<String, Object> result = new HashMap<>();
+        User foundUser = userRepository.findById(userId).orElse(null);
+        if (foundUser == null) {
+            result.put("message", "User not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
+        }
+
+        if (request.getAccountName() != null && !request.getAccountName().trim().isEmpty()) {
+            foundUser.setAccountName(request.getAccountName());
+        }
+        if (request.getUserPassword() != null && !request.getUserPassword().trim().isEmpty()) {
+            foundUser.setUserPassword(request.getUserPassword());
+        }
+        if (request.getBirthDate() != null && !request.getBirthDate().trim().isEmpty()) {
+            try {
+                DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
+                LocalDate parsedDate = LocalDate.parse(request.getBirthDate(), dateTimeFormatter);
+                foundUser.setBirthDate(parsedDate);
+            } catch (Exception e) {
+                result.put("message", "Invalid date format. Please use MM/dd/yyyy");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
+            }
+        }
+
+        userRepository.save(foundUser);
+        result.put("message", "Profile updated successfully");
+        result.put("user", foundUser);
+        return ResponseEntity.ok(result);
+    }
+
+    /**
+     * Get
+     * Endpoint to list all users
+     * Use for testing
+     */
+
     @GetMapping
     public ResponseEntity<?> getAllUsers() {
         return ResponseEntity.ok(userRepository.findAll());
@@ -255,6 +293,36 @@ class DeleteRequest {
         this.dateOfBirth = dateOfBirth;
     }
 
+}
+
+class ProfileUpdateRequest {
+    private String accountName;
+    private String userPassword;
+    private String birthDate; // format: MM/dd/yyyy
+
+    public String getAccountName() {
+        return accountName;
+    }
+
+    public void setAccountName(String accountName) {
+        this.accountName = accountName;
+    }
+
+    public String getUserPassword() {
+        return userPassword;
+    }
+
+    public void setUserPassword(String userPassword) {
+        this.userPassword = userPassword;
+    }
+
+    public String getBirthDate() {
+        return birthDate;
+    }
+
+    public void setBirthDate(String birthDate) {
+        this.birthDate = birthDate;
+    }
 }
 
 /*
