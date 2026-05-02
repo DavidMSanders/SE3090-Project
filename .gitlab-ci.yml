@@ -1,0 +1,110 @@
+stages:
+  - mavenbuild
+  - maventest
+  - mavendeploy
+  - androidbuild
+  - androidtest
+
+maven-build:
+  stage: mavenbuild
+  tags:
+    - springboot_tag
+  
+  before_script:
+  - export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-17.0.18.0.8-2.el9.x86_64
+  - export PATH=$JAVA_HOME/bin:$PATH
+  - java -version
+  - javac -version
+  - mvn -version
+  
+  
+  script:
+    - cd Backend/tutorials-springboot_unit3_1_onetoone_mysql/springboot_example
+    - mvn package
+  artifacts:
+    paths:
+    - Backend/tutorials-springboot_unit3_1_onetoone_mysql/springboot_example/target/*.jar
+  only:
+    refs:
+      - main
+    changes:
+      - Backend/**/*
+
+maven-test:
+  stage: maventest
+  tags:
+    - springboot_tag
+  
+  before_script:
+  - export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-17.0.18.0.8-2.el9.x86_64
+  - export PATH=$JAVA_HOME/bin:$PATH
+  - java -version
+  - javac -version
+  - mvn -version
+   
+  
+  script:
+    - cd Backend/tutorials-springboot_unit3_1_onetoone_mysql/springboot_example
+    - mvn test
+  only:
+    refs:
+      - main
+    changes:
+      - Backend/**/*
+
+auto-deploy:
+  stage: mavendeploy
+  tags:
+    - springboot_tag
+
+  before_script:
+  - export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-17.0.18.0.8-2.el9.x86_64
+  - export PATH=$JAVA_HOME/bin:$PATH
+  - java -version
+  - javac -version
+  - mvn -version
+  
+  script:
+    - cd Backend/tutorials-springboot_unit3_1_onetoone_mysql/springboot_example
+    - sudo mv target/onetoone-1.0.0.jar /target/web-demo.jar
+    - sudo systemctl stop system-web-demo
+    - sudo systemctl start system-web-demo
+  only:
+    refs:
+      - main
+    changes:
+      - Backend/**/*
+
+android-build:
+  image: afirefly/android-ci:java17
+  stage: androidbuild
+  tags:
+    - android_tag
+  before_script:
+    - export GRADLE_USER_HOME=`pwd`/.gradle
+  script:
+    - cd Frontend/AndroidExample
+    - chmod +x gradlew
+    - ./gradlew build
+  only:
+    refs:
+      - main
+    changes:
+      - Frontend/**/*
+
+android-test:
+  image: afirefly/android-ci:java17
+  stage: androidtest
+  tags:
+    - android_tag
+  before_script:
+    - export GRADLE_USER_HOME=`pwd`/.gradle
+  script:
+    - cd Frontend/AndroidExample
+    - chmod +x gradlew
+    - ./gradlew test
+  only:
+    refs:
+      - main
+    changes:
+      - Frontend/**/*

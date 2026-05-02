@@ -1,18 +1,20 @@
 package onetoone.Users;
+
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
+import java.util.ArrayList;
+import onetoone.Groups.GroupMembership;
+import onetoone.Groups.GroupMembershipRepository;
+import onetoone.Groups.Group;
+import onetoone.Groups.GroupRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-//import io.swagger.v3.oas.annotations.Operation;
-//import io.swagger.v3.oas.annotations.responses.ApiResponse;
-//import io.swagger.v3.oas.annotations.responses.ApiResponses;
 //import org.springframework.web.bind.annotation.PostMapping;
 //import org.springframework.web.bind.annotation.PutMapping;
 
@@ -23,7 +25,7 @@ import org.springframework.web.bind.annotation.*;
  * 
  * @author Chris Lopez
  * 
- */ 
+ */
 
 @RestController
 @RequestMapping("/api/v1/users")
@@ -31,6 +33,30 @@ public class UserController {
 
     @Autowired
     UserRepository userRepository;
+
+    @Autowired
+    GroupMembershipRepository membershipRepo;
+
+    @Autowired
+    GroupRepository groupRepository;
+
+    // 17. GET /users/{trainerId}/assignable-groups
+    @GetMapping("/{trainerId}/assignable-groups")
+    public ResponseEntity<List<Map<String, Object>>> getAssignableGroups(@PathVariable int trainerId) {
+        List<Map<String, Object>> res = new ArrayList<>();
+        for (GroupMembership gm : membershipRepo.findAll()) {
+            if (gm.getUserId() == trainerId && gm.isWorkoutEnabled()) {
+                Map<String, Object> map = new HashMap<>();
+                map.put("groupId", gm.getGroupId());
+                Group g = groupRepository.findById(gm.getGroupId()).orElse(null);
+                if (g != null) {
+                    map.put("groupTitle", g.getGroupTitle());
+                }
+                res.add(map);
+            }
+        }
+        return ResponseEntity.ok(res);
+    }
 
     /**
      * Deletes a user by username and date of birth
@@ -52,8 +78,7 @@ public class UserController {
 
             User accountToDelete = userRepository.findByAccountNameAndBirthDate(
                     requestData.getUsername(),
-            parsedBirthDate
-            ).orElse(null);
+                    parsedBirthDate);
 
             if (accountToDelete != null) {
                 userRepository.delete(accountToDelete);
@@ -70,21 +95,17 @@ public class UserController {
         }
     }
 
-
-
-
     /**
      * DELETE by ID
      *
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Map<String, String>> deleteUserByID(@PathVariable int id){
+    public ResponseEntity<Map<String, String>> deleteUserByID(@PathVariable int id) {
         Map<String, String> responseMap = new HashMap<>();
 
         User foundAccount = userRepository.findById(id).orElse(null);
 
-
-        if (foundAccount != null){
+        if (foundAccount != null) {
             userRepository.delete(foundAccount);
             responseMap.put("message", "User deleted sucessfully");
 
@@ -158,7 +179,6 @@ public class UserController {
         return ResponseEntity.ok(responseData);
     }
 
-
     /**
      * Get
      * Endpoint to get user by id
@@ -182,9 +202,66 @@ public class UserController {
      * Use for testing
      */
 
+    @PutMapping("/{userId}/profile")
+    public ResponseEntity<Map<String, Object>> updateUserProfile(@PathVariable int userId, @RequestBody ProfileUpdateRequest request) {
+        Map<String, Object> result = new HashMap<>();
+        User foundUser = userRepository.findById(userId).orElse(null);
+        if (foundUser == null) {
+            result.put("message", "User not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
+        }
+
+        if (request.getAccountName() != null && !request.getAccountName().trim().isEmpty()) {
+            foundUser.setAccountName(request.getAccountName());
+        }
+        if (request.getUserPassword() != null && !request.getUserPassword().trim().isEmpty()) {
+            foundUser.setUserPassword(request.getUserPassword());
+        }
+        if (request.getBirthDate() != null && !request.getBirthDate().trim().isEmpty()) {
+            try {
+                DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
+                LocalDate parsedDate = LocalDate.parse(request.getBirthDate(), dateTimeFormatter);
+                foundUser.setBirthDate(parsedDate);
+            } catch (Exception e) {
+                result.put("message", "Invalid date format. Please use MM/dd/yyyy");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
+            }
+        }
+
+        userRepository.save(foundUser);
+        result.put("message", "Profile updated successfully");
+        result.put("user", foundUser);
+        return ResponseEntity.ok(result);
+    }
+
+    /**
+     * Get
+     * Endpoint to list all users
+     * Use for testing
+     */
+
     @GetMapping
     public ResponseEntity<?> getAllUsers() {
         return ResponseEntity.ok(userRepository.findAll());
+    }
+
+    /**
+     * @author Matthew Smith
+     */
+    @PostMapping("/login")
+    public ResponseEntity<?> loginUser(@RequestBody LoginRequest request) {
+
+        User foundUser = userRepository.findByAccountNameAndUserPassword(
+                request.getAccountName(),
+                request.getUserPassword());
+
+        if (foundUser != null && foundUser.isEnabled()) {
+            return ResponseEntity.ok(foundUser);
+        } else {
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Invalid username or password");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+        }
     }
 }
 
@@ -192,7 +269,7 @@ public class UserController {
  * Request body class for delete endpoint
  */
 
-    class DeleteRequest {
+class DeleteRequest {
     private String username;
     private String dateOfBirth;
 
@@ -215,64 +292,90 @@ public class UserController {
 
         this.dateOfBirth = dateOfBirth;
     }
+
 }
 
+class ProfileUpdateRequest {
+    private String accountName;
+    private String userPassword;
+    private String birthDate; // format: MM/dd/yyyy
 
+    public String getAccountName() {
+        return accountName;
+    }
 
+    public void setAccountName(String accountName) {
+        this.accountName = accountName;
+    }
 
+    public String getUserPassword() {
+        return userPassword;
+    }
 
+    public void setUserPassword(String userPassword) {
+        this.userPassword = userPassword;
+    }
 
+    public String getBirthDate() {
+        return birthDate;
+    }
+
+    public void setBirthDate(String birthDate) {
+        this.birthDate = birthDate;
+    }
+}
 
 /*
  * @Autowired
-    LaptopRepository laptopRepository;
-
-    private String success = "{\"message\":\"success\"}";
-    private String failure = "{\"message\":\"failure\"}";
-
-    @GetMapping(path = "/users")
-    List<User> getAllUsers(){
-        return userRepository.findAll();
-    }
-
-    @GetMapping(path = "/users/{id}")
-    User getUserById( @PathVariable int id){
-        return userRepository.findById(id);
-    }
-
-    @PostMapping(path = "/users")
-    String createUser(@RequestBody User user){
-        if (user == null)
-            return failure;
-        userRepository.save(user);
-        return success;
-    }
-
-    @PutMapping("/users/{id}")
-    User updateUser(@PathVariable int id, @RequestBody User request){
-        User user = userRepository.findById(id);
-        if(user == null)
-            return null;
-        userRepository.save(request);
-        return userRepository.findById(id);
-    }   
-    
-    @PutMapping("/users/{userId}/laptops/{laptopId}")
-    String assignLaptopToUser(@PathVariable int userId,@PathVariable int laptopId){
-        User user = userRepository.findById(userId);
-        Laptop laptop = laptopRepository.findById(laptopId);
-        if(user == null || laptop == null)
-            return failure;
-        laptop.setUser(user);
-        user.setLaptop(laptop);
-        userRepository.save(user);
-        return success;
-    }
-
-    @DeleteMapping(path = "/users/{id}")
-    String deleteUser(@PathVariable int id){
-        userRepository.deleteById(id);
-        return success;
-    }
-}
+ * LaptopRepository laptopRepository;
+ * 
+ * private String success = "{\"message\":\"success\"}";
+ * private String failure = "{\"message\":\"failure\"}";
+ * 
+ * @GetMapping(path = "/users")
+ * List<User> getAllUsers(){
+ * return userRepository.findAll();
+ * }
+ * 
+ * @GetMapping(path = "/users/{id}")
+ * User getUserById( @PathVariable int id){
+ * return userRepository.findById(id);
+ * }
+ * 
+ * @PostMapping(path = "/users")
+ * String createUser(@RequestBody User user){
+ * if (user == null)
+ * return failure;
+ * userRepository.save(user);
+ * return success;
+ * }
+ * 
+ * @PutMapping("/users/{id}")
+ * User updateUser(@PathVariable int id, @RequestBody User request){
+ * User user = userRepository.findById(id);
+ * if(user == null)
+ * return null;
+ * userRepository.save(request);
+ * return userRepository.findById(id);
+ * }
+ * 
+ * @PutMapping("/users/{userId}/laptops/{laptopId}")
+ * String assignLaptopToUser(@PathVariable int userId,@PathVariable int
+ * laptopId){
+ * User user = userRepository.findById(userId);
+ * Laptop laptop = laptopRepository.findById(laptopId);
+ * if(user == null || laptop == null)
+ * return failure;
+ * laptop.setUser(user);
+ * user.setLaptop(laptop);
+ * userRepository.save(user);
+ * return success;
+ * }
+ * 
+ * @DeleteMapping(path = "/users/{id}")
+ * String deleteUser(@PathVariable int id){
+ * userRepository.deleteById(id);
+ * return success;
+ * }
+ * }
  **/

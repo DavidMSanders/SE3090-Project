@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="4dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#02A90A"
+        android:backgroundTint="#6E95EF"
+        android:padding="12dp">
+
+    <!--workout label section-->
+        <TextView
+            android:id="@+id/labelName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Workout Name:"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+
+        <EditText
+            android:id="@+id/itemWorkoutName"
+            android:layout_width="169dp"
+            android:layout_height="42dp"
+            android:layout_marginStart="8dp"
+            android:inputType="text"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/labelName"
+            app:layout_constraintTop_toTopOf="@id/labelName" />
+
+        <!-- end of workout label section-->
+
+        <!--workout labelDate section-->
+        <TextView
+            android:id="@+id/labelDate"
+            android:layout_width="63dp"
+            android:layout_height="42dp"
+            android:layout_marginStart="4dp"
+            android:layout_marginTop="8dp"
+            android:text="Date:"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/itemWorkoutName" />
+
+
+        <EditText
+            android:id="@+id/itemWorkoutDate"
+            android:layout_width="139dp"
+            android:layout_height="44dp"
+            android:layout_marginStart="8dp"
+            android:inputType="text"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.038"
+            app:layout_constraintStart_toEndOf="@id/labelDate"
+            app:layout_constraintTop_toTopOf="@id/labelDate" />
+
+        <!--end of workout labelDate section-->
+
+        <!-- workout duration section-->
+
+        <TextView
+            android:id="@+id/labelDuration"
+            android:layout_width="90dp"
+            android:layout_height="32dp"
+            android:layout_marginTop="20dp"
+            android:text="Duration:"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/itemWorkoutDate" />
+
+
+        <Button
+            android:id="@+id/btnDurationMinus"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:layout_marginStart="12dp"
+            android:backgroundTint="#945959"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:padding="0dp"
+            android:text="-"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            app:cornerRadius="3dp"
+            app:layout_constraintStart_toEndOf="@id/labelDuration"
+            app:layout_constraintTop_toTopOf="@id/labelDuration">
+
+        </Button>
+
+        <TextView
+            android:id="@+id/itemWorkoutDuration"
+            android:layout_width="48dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="52dp"
+            android:layout_marginTop="4dp"
+            android:fontFamily="sans-serif-black"
+            android:gravity="center"
+
+            android:textColor="#000000"
+
+            android:textSize="24sp"
+            android:textStyle="bold"
+            app:layout_constraintStart_toEndOf="@id/labelDuration"
+            app:layout_constraintTop_toTopOf="@id/labelDuration" />
+
+        <Button
+            android:id="@+id/btnDurationPlus"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:layout_marginStart="108dp"
+
+            android:backgroundTint="#379902"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:padding="0dp"
+            android:text="+"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            app:cornerRadius="3dp"
+            app:layout_constraintStart_toEndOf="@id/labelDuration"
+            app:layout_constraintTop_toTopOf="@id/labelDuration">
+
+        </Button>
+
+        <!-- end of workout duration section-->
+
+
+        <!-- Workout description section-->
+        <TextView
+            android:id="@+id/labelDescription"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:layout_marginTop="20dp"
+            android:text="Description:"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/itemWorkoutDuration" />
+
+        <EditText
+            android:id="@+id/itemWorkoutDescription"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:gravity="top|start"
+            android:inputType="textMultiLine"
+            android:minLines="2"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/labelDescription"
+            app:layout_constraintTop_toTopOf="@id/labelDescription" />
+
+        <!-- End of Workout description section-->
+
+        <TextView
+            android:id="@+id/itemWorkoutSourceType"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Created by you"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/itemWorkoutDescription"
+            android:layout_marginTop="10dp" />
+
+        <TextView
+            android:id="@+id/itemWorkoutStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Status: planned"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/itemWorkoutSourceType"
+            android:layout_marginTop="6dp" />
+
+        <!-- Save Button -->
+        <Button
+            android:id="@+id/btnItemSave"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:layout_marginEnd="6dp"
+            android:text="SAVE"
+            app:layout_constraintEnd_toStartOf="@id/btnItemDelete"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/itemWorkoutStatus" />
+
+        <!-- Delete Button -->
+        <Button
+            android:id="@+id/btnItemDelete"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:text="DELETE"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/btnItemSave"
+            app:layout_constraintTop_toTopOf="@id/btnItemSave" />
+
+        <TextView
+            android:id="@+id/durationUnits"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="52dp"
+            android:text="(minutes)"
+            android:textSize="20sp"
+            app:layout_constraintBottom_toBottomOf="@id/itemWorkoutDuration"
+            app:layout_constraintStart_toEndOf="@id/itemWorkoutDuration"
+            app:layout_constraintTop_toTopOf="@id/itemWorkoutDuration"
+            app:layout_constraintVertical_bias="0.0" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.cardview.widget.CardView>

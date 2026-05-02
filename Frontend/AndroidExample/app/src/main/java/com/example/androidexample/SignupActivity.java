@@ -11,36 +11,38 @@ import android.widget.Toast;
 
 import android.widget.ImageView;
 
-import android.content.Intent;
-import android.os.Bundle;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.Toast;
-
-import androidx.appcompat.app.AppCompatActivity;
-
 import com.android.volley.Request;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+//GAVIN THIS IS IMPORTANT its used for persistence across pages
 
+/**
+ * Activity for user signup.
+ */
 public class SignupActivity extends AppCompatActivity {
 
     private EditText usernameEditText;  // define username edittext variable
     private EditText passwordEditText;  // define password edittext variable
     private EditText confirmEditText;   // define confirm edittext variable
+
+    private EditText dobEditText;       // define dob edittext variable
     private Button loginButton;         // define login button variable
     private Button signupButton;        // define signup button variable
 
     //toDO mach port/path to backend
+//https://18366156-06c4-4fa7-b2cb-53279f7fd5ad.mock.pstmn.io
+    //private static final String SIGNUP_URL = "http://coms-3090-035.class.las.iastate.edu:8080/api/v1/auth/signup";
+    //https://18366156-06c4-4fa7-b2cb-53279f7fd5ad.mock.pstmn.io/api/v1/auth/signup
+    private static final String SIGNUP_URL = "http://coms-3090-035.class.las.iastate.edu:8080/api/v1/auth/signup";
 
-    private static final String SIGNUP_URL = "https://18366156-06c4-4fa7-b2cb-53279f7fd5ad.mock.pstmn.io/api/v1/auth/signup";
 
-
-
-
+    /**
+     * Initializes signup activity. Sets up UI elements and click listeners.
+     * @param savedInstanceState
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -52,22 +54,33 @@ public class SignupActivity extends AppCompatActivity {
         usernameEditText = findViewById(R.id.signup_username_edt);  // link to username edtext in the Signup activity XML
         passwordEditText = findViewById(R.id.signup_password_edt);  // link to password edtext in the Signup activity XML
         confirmEditText = findViewById(R.id.signup_confirm_edt);    // link to confirm edtext in the Signup activity XML
+
+        dobEditText = findViewById(R.id.signup_dob_edt);
+
         loginButton = findViewById(R.id.signup_login_btn);    // link to login button in the Signup activity XML
         signupButton = findViewById(R.id.signup_signup_btn);  // link to signup button in the Signup activity XML
 
         /* click listener on login button pressed -- UNEDITED CURRENTLY JUST TAKES BACK TO MAIN*/
         loginButton.setOnClickListener(new View.OnClickListener() {
+            /**
+             * Called swap button for login/signup
+             * @param v
+             */
             @Override
             public void onClick(View v) {
 
                 /* when login button is pressed, use intent to switch to Login Activity */
-                Intent intent = new Intent(SignupActivity.this, MainActivity.class);
+                Intent intent = new Intent(SignupActivity.this, LoginActivity.class);
                 startActivity(intent);  // go to LoginActivity
             }
         });
 
         /* click listener on signup button pressed */
         signupButton.setOnClickListener(new View.OnClickListener() {
+            /**
+             * validates user input and attempts the signup
+             * @param v
+             */
             @Override
             public void onClick(View v) {
 
@@ -76,6 +89,7 @@ public class SignupActivity extends AppCompatActivity {
                 String password = passwordEditText.getText().toString();
                 String confirm = confirmEditText.getText().toString();
 
+                String dob = dobEditText.getText().toString().trim();
 
                 ImageView confetti = findViewById(R.id.Confetti);
 
@@ -108,6 +122,20 @@ public class SignupActivity extends AppCompatActivity {
                     return;
                 }
                 //confirm validation
+
+                //DOB VALIDATION
+                if (dob.isEmpty()) {
+                    Toast.makeText(getApplicationContext(), "Please enter your date of birth", Toast.LENGTH_LONG).show();
+                    return;
+                }
+
+                if (!dob.matches("\\d{2}/\\d{2}/\\d{4}")) {
+                    Toast.makeText(getApplicationContext(), "DOB must be MM/DD/YYYY", Toast.LENGTH_LONG).show();
+                    return;
+                }
+
+
+
                 if (password.equals(confirm)){
                     Toast.makeText(getApplicationContext(), "Signing up", Toast.LENGTH_LONG).show();
                     confetti.setVisibility(View.VISIBLE);
@@ -116,7 +144,7 @@ public class SignupActivity extends AppCompatActivity {
                     }, 3000);
 
                     //Post request (signup)
-                    sendSignupRequest(username, password);
+                    sendSignupRequest(username, password, dob);
 
                 }
                 else {
@@ -127,11 +155,18 @@ public class SignupActivity extends AppCompatActivity {
         });
     }
 
-    private void sendSignupRequest(String username, String password) {
+    /**
+     * Sends signup request to backend and saves user session info
+     * @param username
+     * @param password
+     * @param dob
+     */
+    private void sendSignupRequest(String username, String password, String dob) {
         JSONObject body = new JSONObject();
         try{
             body.put("username", username);
             body.put("password", password);
+            body.put("dateOfBirth", dob);
         } catch (JSONException e){
             Toast.makeText(getApplicationContext(), "JSON error: " + e.getMessage(), Toast.LENGTH_LONG).show();
             return;
@@ -139,6 +174,19 @@ public class SignupActivity extends AppCompatActivity {
 
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, SIGNUP_URL, body, response -> {
             //success
+
+            int userId = response.optInt("userId", -1);
+            String savedUsername = response.optString("username", username);
+            String role = response.optString("role", "normal");
+
+            // save current user session for persistence
+            SessionManager.saveLoggedInUser(this, savedUsername, userId < 0 ? "" : String.valueOf(userId));
+            AppNotificationManager.addNotification(this, "Welcome! Your account was created.");
+            KeepUser keepUser = new KeepUser(SignupActivity.this);
+
+            keepUser.saveUser(userId, savedUsername, role);
+
+
             Toast.makeText(getApplicationContext(), "Signup successful", Toast.LENGTH_LONG).show();
             Intent intent = new Intent(SignupActivity.this, MainActivity.class);
             startActivity(intent);
@@ -147,6 +195,10 @@ public class SignupActivity extends AppCompatActivity {
             Toast.makeText(getApplicationContext(), "Signup failed: " + error.getMessage(), Toast.LENGTH_LONG).show();
         }
         ){
+            /**
+             * Sets content type to JSON
+             * @return
+             */
             @Override
             public String getBodyContentType() {
                 return "application/json; charset=utf-8";
@@ -157,6 +209,11 @@ public class SignupActivity extends AppCompatActivity {
 
     }
 
+    /**
+     * Converts Volley error to readable string
+     * @param error
+     * @return
+     */
     private String readableVolleyError(VolleyError error) {
         if (error == null) return "Unknown error";
         if(error.networkResponse != null) {

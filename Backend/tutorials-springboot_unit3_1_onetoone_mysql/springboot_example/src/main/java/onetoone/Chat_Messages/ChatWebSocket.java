@@ -1,6 +1,5 @@
 package onetoone.Chat_Messages;
 
-
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -28,14 +27,12 @@ import java.util.*;
  * @author Chris Lopez
  * Endpoint: ws://server:8080/chat/{userId}
  */
-
 @Component
 @ServerEndpoint(value = "/chat/{userId}")
 public class ChatWebSocket {
 
     private static final Logger log =
             LoggerFactory.getLogger(ChatWebSocket.class);
-
 
     private static final ObjectMapper payloadParser = new ObjectMapper()
             .registerModule(new JavaTimeModule())
@@ -77,10 +74,8 @@ public class ChatWebSocket {
     }
 
     /**
-     * Handles new WebSocket connections
-     *
+     * Handles new WebSocket connections.
      */
-
     @OnOpen
     public void handleOpen(Session clientSession, @PathParam("userId") Integer userId) throws IOException {
         log.info("Connection attempt from userId: {}", userId);
@@ -89,7 +84,7 @@ public class ChatWebSocket {
         if (userLookup.isEmpty()) {
             log.warn("User not found: {}", userId);
             clientSession.close(new CloseReason(
-                    CloseReason.CloseCodes.CANNOT_ACCEPT,  "User not found"));
+                    CloseReason.CloseCodes.CANNOT_ACCEPT, "User not found"));
             return;
         }
 
@@ -97,6 +92,7 @@ public class ChatWebSocket {
         liveConnections.put(userId, clientSession);
         sessionToUserId.put(clientSession, userId);
         sessionToUsername.put(clientSession, account.getAccountName());
+
         log.info("User connected: {} (ID: {}, Role: {})",
                 account.getAccountName(), account.getUserId(),
                 account.getRole());
@@ -110,9 +106,8 @@ public class ChatWebSocket {
     }
 
     /**
-     * Handles incoming WebSocket messages
+     * Handles incoming WebSocket messages.
      */
-
     @OnMessage
     public void handleMessage(Session clientSession, String incomingText) throws IOException {
         Integer authorId = sessionToUserId.get(clientSession);
@@ -131,32 +126,25 @@ public class ChatWebSocket {
 
             switch (eventType) {
                 case "SEND":
-                    processChatMessage(clientSession, authorId,
-                            authorName, msgPayload);
+                    processChatMessage(clientSession, authorId, authorName, msgPayload);
                     break;
                 case "EDIT":
-                    processMessageEdit(clientSession, authorId,
-                            authorName, msgPayload);
+                    processMessageEdit(clientSession, authorId, authorName, msgPayload);
                     break;
                 case "DELETE":
-                    processMessageRemoval(clientSession, authorId,
-                            msgPayload);
+                    processMessageRemoval(clientSession, authorId, msgPayload);
                     break;
                 case "UPDATE_PERMISSIONS":
-                    processAccessChange(clientSession, authorId,
-                            authorName, msgPayload);
+                    processAccessChange(clientSession, authorId, authorName, msgPayload);
                     break;
                 case "REMOVE_MEMBER":
-                    processGroupKick(clientSession, authorId,
-                            authorName, msgPayload);
+                    processGroupKick(clientSession, authorId, authorName, msgPayload);
                     break;
                 case "LEAVE":
-                    processGroupExit(clientSession, authorId,
-                            authorName, msgPayload);
+                    processGroupExit(clientSession, authorId, authorName, msgPayload);
                     break;
                 case "JOIN":
-                    processGroupEntry(clientSession, authorId,
-                            authorName, msgPayload);
+                    processGroupEntry(clientSession, authorId, authorName, msgPayload);
                     break;
 
                 case "SEND_IMAGE":
@@ -164,20 +152,17 @@ public class ChatWebSocket {
                             authorName, msgPayload);
                     break;
                 default:
-                    sendError(clientSession,
-                            "Unsupported eventType: " + eventType);
+                    sendError(clientSession, "Unsupported eventType: " + eventType);
             }
         } catch (Exception e) {
-            log.error("WebSocket message processing error: {}",
-                    e.getMessage());
+            log.error("WebSocket message processing error: {}", e.getMessage(), e);
             sendError(clientSession, "Invalid message payload");
         }
     }
 
     /**
-     * Handles WebSocket disconnections
+     * Handles WebSocket disconnections.
      */
-
     @OnClose
     public void handleClose(Session clientSession) {
         Integer userId = sessionToUserId.remove(clientSession);
@@ -190,18 +175,16 @@ public class ChatWebSocket {
     }
 
     /**
-     * Handles WebSocket errors
+     * Handles WebSocket errors.
      */
-
     @OnError
     public void handleError(Session clientSession, Throwable error) {
         log.error("WebSocket error", error);
     }
 
     /**
-     * Handles sending a message to a group
+     * Handles sending a message to a group.
      */
-
     private void processChatMessage(Session originatorSession, Integer originatorId, String originatorName, JsonNode msgPayload) {
         try {
             int groupRef = requiredInt(msgPayload, "groupId");
@@ -217,8 +200,7 @@ public class ChatWebSocket {
 
             Optional<GroupMembership> memberLookup = groupAccessRepo.findByGroupIdAndUserId(groupRef, originatorId);
             if (memberLookup.isEmpty()) {
-                sendError(originatorSession,
-                        "You are not a member of this group");
+                sendError(originatorSession, "You are not a member of this group");
                 return;
             }
 
@@ -234,9 +216,11 @@ public class ChatWebSocket {
                 return;
             }
 
-            if ("TRAINER".equals(msgType) && !(foundMembership.isWorkoutEnabled() || GroupMembership.ROLE_TRAINER.equals(
-                    foundMembership.getAccessLevel())
-                    || foundMembership.isLeaderLike())) {
+            // CHANGED:
+            // Trainer chat messages should only be allowed for TRAINER members
+            // who also have canSendMessages/chatEnabled.
+            if ("TRAINER".equals(msgType)
+                    && !GroupMembership.ROLE_TRAINER.equals(foundMembership.getAccessLevel())) {
                 sendError(originatorSession, "You do not have permission to send trainer messages");
                 return;
             }
@@ -248,7 +232,7 @@ public class ChatWebSocket {
             distributeToGroup(groupRef, outgoingEvent, null);
 
         } catch (Exception error) {
-            log.error("Error in processChatMessage: {}", error.getMessage());
+            log.error("Error in processChatMessage: {}", error.getMessage(), error);
             sendError(originatorSession, "Error sending message: " + error.getMessage());
         }
     }
@@ -310,7 +294,6 @@ public class ChatWebSocket {
     /**
      * Handles editing an existing message
      */
-
     private void processMessageEdit(Session originatorSession, Integer originatorId, String originatorName, JsonNode msgPayload) {
         try {
             Long msgId = (long) requiredInt(msgPayload, "messageId");
@@ -342,15 +325,14 @@ public class ChatWebSocket {
             distributeToGroup(locatedMsg.getGroupId(), outgoingEvent, null);
 
         } catch (Exception error) {
-            log.error("Error in processMessageEdit: {}", error.getMessage());
+            log.error("Error in processMessageEdit: {}", error.getMessage(), error);
             sendError(originatorSession, "Error editing message: " + error.getMessage());
         }
     }
 
     /**
-     * Handles deleting a message
+     * Handles deleting a message.
      */
-
     private void processMessageRemoval(Session originatorSession, Integer originatorId, JsonNode msgPayload) {
         try {
             Long msgId = (long) requiredInt(msgPayload, "messageId");
@@ -362,7 +344,21 @@ public class ChatWebSocket {
                 return;
             }
 
-            if (!Objects.equals(locatedMsg.getOriginatorId(), originatorId)) {
+            Optional<GroupMembership> actorLookup =
+                    groupAccessRepo.findByGroupIdAndUserId(locatedMsg.getGroupId(), originatorId);
+
+            if (actorLookup.isEmpty()) {
+                sendError(originatorSession, "You are not a member of this group");
+                return;
+            }
+
+            GroupMembership actorMembership = actorLookup.get();
+            boolean isOwner = Objects.equals(locatedMsg.getOriginatorId(), originatorId);
+            boolean canManageOthers = actorMembership.isManageEnabled();
+
+            // CHANGED:
+            // Managers/admin-type users can delete others' messages.
+            if (!isOwner && !canManageOthers) {
                 sendError(originatorSession, "You can only delete your own messages");
                 return;
             }
@@ -377,15 +373,14 @@ public class ChatWebSocket {
             distributeToGroup(locatedMsg.getGroupId(), outgoingEvent, null);
 
         } catch (Exception error) {
-            log.error("Error in processMessageRemoval: {}", error.getMessage());
+            log.error("Error in processMessageRemoval: {}", error.getMessage(), error);
             sendError(originatorSession, "Error deleting message: " + error.getMessage());
         }
     }
 
     /**
-     * Handles updating member permissions
+     * Handles updating member permissions.
      */
-
     private void processAccessChange(Session originatorSession, Integer originatorId, String originatorName, JsonNode msgPayload) {
         try {
             int groupRef = requiredInt(msgPayload, "groupId");
@@ -404,13 +399,9 @@ public class ChatWebSocket {
             }
 
             GroupMembership targetMembership = targetLookup.get();
-            if (targetMembership.isLeaderLike()) {
-                sendError(originatorSession, "Cannot change GROUP_LEADER or ADMIN permissions");
-                return;
-            }
 
-            targetMembership.setAccessLevel(GroupMembership.normalizeRole(
-                    text(msgPayload, "membershipRole", targetMembership.getAccessLevel())));
+            targetMembership.setAccessLevel(
+                    text(msgPayload, "membershipRole", targetMembership.getAccessLevel()));
             targetMembership.setChatEnabled(bool(msgPayload, "canSendMessages", targetMembership.isChatEnabled()));
             targetMembership.setManageEnabled(bool(msgPayload, "canManageMembers", targetMembership.isManageEnabled()));
             targetMembership.setAnnounceEnabled(bool(msgPayload, "canPostAnnouncements",
@@ -437,15 +428,14 @@ public class ChatWebSocket {
             distributeToGroup(groupRef, outgoingEvent, null);
 
         } catch (Exception error) {
-            log.error("Error in processAccessChange: {}", error.getMessage());
+            log.error("Error in processAccessChange: {}", error.getMessage(), error);
             sendError(originatorSession, "Error updating permissions: " + error.getMessage());
         }
     }
 
     /**
-     * Handles removing a member from a group
+     * Handles removing a member from a group.
      */
-
     private void processGroupKick(Session originatorSession, Integer originatorId, String originatorName, JsonNode msgPayload) {
         try {
             int groupRef = requiredInt(msgPayload, "groupId");
@@ -463,11 +453,6 @@ public class ChatWebSocket {
                 return;
             }
 
-            if (kickedMemberLookup.get().isLeaderLike()) {
-                sendError(originatorSession, "Cannot remove GROUP_LEADER or ADMIN");
-                return;
-            }
-
             groupAccessRepo.delete(kickedMemberLookup.get());
             Optional<User> kickedAccount = accountStore.findById(kickedUserId);
 
@@ -482,15 +467,14 @@ public class ChatWebSocket {
             distributeToGroup(groupRef, outgoingEvent, null);
 
         } catch (Exception error) {
-            log.error("Error in processGroupKick: {}", error.getMessage());
+            log.error("Error in processGroupKick: {}", error.getMessage(), error);
             sendError(originatorSession, "Error removing member: " + error.getMessage());
         }
     }
 
     /**
-     * Handles a user leaving a group
+     * Handles a user leaving a group.
      */
-
     private void processGroupExit(Session originatorSession, Integer originatorId, String originatorName, JsonNode msgPayload) {
         try {
             int groupRef = requiredInt(msgPayload, "groupId");
@@ -512,21 +496,20 @@ public class ChatWebSocket {
             distributeToGroup(groupRef, outgoingEvent, null);
 
         } catch (Exception error) {
-            log.error("Error in processGroupExit: {}", error.getMessage());
+            log.error("Error in processGroupExit: {}", error.getMessage(), error);
             sendError(originatorSession, "Error leaving group: " + error.getMessage());
         }
     }
 
     /**
-     * Handles a user joining a group
+     * Handles a user joining a group.
      */
-
     private void processGroupEntry(Session originatorSession, Integer originatorId, String originatorName, JsonNode msgPayload) {
         try {
             int groupRef = requiredInt(msgPayload, "groupId");
 
-            if (groupAccessRepo.existsByGroupIdAndUserId(
-                    groupRef, originatorId)) {
+            if (groupAccessRepo.findByGroupIdAndUserId(
+                    groupRef, originatorId).isPresent()) {
                 sendError(originatorSession, "You are already a member of this group");
                 return;
             }
@@ -534,10 +517,15 @@ public class ChatWebSocket {
             Optional<User> joinerLookup = accountStore.findById(originatorId);
             String joinerRole = joinerLookup.map(User::getRole).orElse("Client");
 
-            String entryLevel = "Trainer".equalsIgnoreCase(joinerRole) ? GroupMembership.ROLE_TRAINER : GroupMembership.ROLE_MEMBER;
+            String entryLevel = "Trainer".equalsIgnoreCase(joinerRole)
+                    ? GroupMembership.ROLE_TRAINER
+                    : GroupMembership.ROLE_MEMBER;
 
-            GroupMembership newMembership = groupAccessRepo.save(
-                    new GroupMembership(groupRef, originatorId, entryLevel));
+            GroupMembership newMembership = new GroupMembership();
+            newMembership.setGroupId(groupRef);
+            newMembership.setUserId(originatorId);
+            newMembership.setAccessLevel(entryLevel);
+            newMembership = groupAccessRepo.save(newMembership);
 
             Map<String, Object> outgoingEvent = new LinkedHashMap<>();
             outgoingEvent.put("eventType", "GROUP_MEMBER_JOINED");
@@ -550,15 +538,14 @@ public class ChatWebSocket {
             distributeToGroup(groupRef, outgoingEvent, null);
 
         } catch (Exception error) {
-            log.error("Error in processGroupEntry: {}", error.getMessage());
+            log.error("Error in processGroupEntry: {}", error.getMessage(), error);
             sendError(originatorSession, "Error joining group: " + error.getMessage());
         }
     }
 
     /**
-     * Broadcasts to all active members of a group
+     * Broadcasts to all active members of a group.
      */
-
     private void distributeToGroup(int groupRef,
                                    Map<String, Object> outgoingEvent, Session excludedSession) {
         List<GroupMembership> groupMemberList = groupAccessRepo.findByGroupId(groupRef);
@@ -573,9 +560,8 @@ public class ChatWebSocket {
     }
 
     /**
-     * Builds a JSON message event map from a Message object
+     * Builds a JSON message event map from a Message object.
      */
-
     private Map<String, Object> formatMessageEvent(String eventType,
                                                    Message msg, String authorName) {
         Map<String, Object> msgData = new LinkedHashMap<>();
@@ -599,7 +585,6 @@ public class ChatWebSocket {
         return outgoingEvent;
     }
 
-
     private void sendEvent(Session destination,
                            Map<String, Object> outgoingEvent) {
         if (destination == null || !destination.isOpen()) return;
@@ -611,10 +596,8 @@ public class ChatWebSocket {
     }
 
     private void sendError(Session session, String errorMsg) {
-        sendEvent(session, Map.of("eventType", "ERROR", "message", errorMsg
-        ));
+        sendEvent(session, Map.of("eventType", "ERROR", "message", errorMsg));
     }
-
 
     private int requiredInt(JsonNode node, String fieldName) {
         if (!node.has(fieldName) || node.get(fieldName).isNull()) {
@@ -624,24 +607,22 @@ public class ChatWebSocket {
     }
 
     private Integer nullableInt(JsonNode node, String fieldName) {
-        if (!node.has(fieldName))
-         return null;
+        if (!node.has(fieldName)) return null;
         JsonNode field = node.get(fieldName);
-        if (field == null || field.isNull())
-         return null;
+        if (field == null || field.isNull()) return null;
         return field.asInt();
     }
 
     private String text(JsonNode node, String fieldName,
                         String defaultValue) {
-        return node.has(fieldName) && !node.get(fieldName).isNull() ? node.get(fieldName).asText() : defaultValue;
+        return node.has(fieldName) && !node.get(fieldName).isNull()
+                ? node.get(fieldName).asText()
+                : defaultValue;
     }
 
-    /**
-     * Gets a boolean from JSON payload with default value
-     */
-
     private boolean bool(JsonNode node, String fieldName, boolean defaultValue) {
-        return node.has(fieldName) && !node.get(fieldName).isNull() ? node.get(fieldName).asBoolean() : defaultValue;
+        return node.has(fieldName) && !node.get(fieldName).isNull()
+                ? node.get(fieldName).asBoolean()
+                : defaultValue;
     }
 }
