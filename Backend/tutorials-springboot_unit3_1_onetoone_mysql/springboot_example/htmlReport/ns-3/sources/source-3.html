@@ -1,0 +1,184 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > EventParticipant</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">onetoone.Calendar</a>
+</div>
+
+<h1>Coverage Summary for Class: EventParticipant (onetoone.Calendar)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">EventParticipant</td>
+<td class="coverageStat">
+  <span class="percent">
+    9.1%
+  </span>
+  <span class="absValue">
+    (1/11)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    14.3%
+  </span>
+  <span class="absValue">
+    (2/14)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">EventParticipant$HibernateInstantiator$0KZWrqI1</td>
+  </tr>
+  <tr>
+    <td class="name">EventParticipant$HibernateProxy$mjm2hzHA</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    9.1%
+  </span>
+  <span class="absValue">
+    (1/11)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    14.3%
+  </span>
+  <span class="absValue">
+    (2/14)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package onetoone.Calendar;
+&nbsp;import jakarta.persistence.*;
+&nbsp;
+&nbsp;@Entity
+&nbsp;@Table(name = &quot;event_participants&quot;)
+&nbsp;public class EventParticipant {
+&nbsp;
+&nbsp;    @Id
+&nbsp;    @GeneratedValue(strategy = GenerationType.IDENTITY)
+&nbsp;    private Long participantKey;
+&nbsp;
+&nbsp;    @Column(name = &quot;event_ref&quot;, nullable = false)
+&nbsp;    private Long eventRef;
+&nbsp;
+&nbsp;    @Column(name = &quot;attendee_id&quot;, nullable = false)
+&nbsp;    private Long attendeeId;
+&nbsp;
+<b class="fc">&nbsp;    @Column(name = &quot;invite_status&quot;)</b>
+&nbsp;    private String inviteStatus = &quot;INVITED&quot;;
+&nbsp;
+<b class="fc">&nbsp;    public EventParticipant(){</b>
+&nbsp;
+&nbsp;    }
+&nbsp;
+<b class="nc">&nbsp;    public EventParticipant(Long eventRef, Long attendeeId){</b>
+<b class="nc">&nbsp;        this.eventRef = eventRef;</b>
+<b class="nc">&nbsp;        this.attendeeId = attendeeId;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public Long getParticipantKey() {
+<b class="nc">&nbsp;        return participantKey;</b>
+&nbsp;    }
+&nbsp;    public void setParticipantKey(Long participantKey) {
+<b class="nc">&nbsp;        this.participantKey = participantKey;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public Long getEventRef() {
+<b class="nc">&nbsp;        return eventRef;</b>
+&nbsp;    }
+&nbsp;    public void setEventRef(Long eventRef) {
+<b class="nc">&nbsp;        this.eventRef = eventRef;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public Long getAttendeeId() {
+<b class="nc">&nbsp;        return attendeeId;</b>
+&nbsp;    }
+&nbsp;    public void setAttendeeId(Long attendeeId) {
+<b class="nc">&nbsp;        this.attendeeId = attendeeId;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public String getInviteStatus() {
+<b class="nc">&nbsp;        return inviteStatus;</b>
+&nbsp;    }
+&nbsp;    public void setInviteStatus(String inviteStatus) {
+<b class="nc">&nbsp;        this.inviteStatus = inviteStatus;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public String toString() {
+<b class="nc">&nbsp;        return &quot;EventParticipant{&quot; +</b>
+&nbsp;                &quot;participantKey=&quot; + participantKey +
+&nbsp;                &quot;, eventRef=&quot; + eventRef +
+&nbsp;                &quot;, attendeeId=&quot; + attendeeId +
+&nbsp;                &quot;, inviteStatus=&#39;&quot; + inviteStatus + &#39;\&#39;&#39; +
+&nbsp;                &#39;}&#39;;
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-05-03 10:21</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,310 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > PersonalBestController</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">onetoone.PersonalBest</a>
+</div>
+
+<h1>Coverage Summary for Class: PersonalBestController (onetoone.PersonalBest)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">PersonalBestController</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/7)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/28)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/98)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package onetoone.PersonalBest;
+&nbsp;
+&nbsp;import onetoone.Users.UserRepository;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.http.HttpStatus;
+&nbsp;import org.springframework.http.ResponseEntity;
+&nbsp;import org.springframework.web.bind.annotation.*;
+&nbsp;
+&nbsp;import java.time.LocalDate;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.HashMap;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;
+&nbsp;/**
+&nbsp; * Handles all personal best tracking endpoints
+&nbsp; * Each personal best is private and specific to each user
+&nbsp; */
+<b class="nc">&nbsp;public class PersonalBestController {</b>
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private PersonalBestRepository pbRepo;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private UserRepository userRepo;
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Add new personal best entry
+&nbsp;     */
+&nbsp;
+&nbsp;    @PostMapping(&quot;/personalbests&quot;)
+&nbsp;    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; createBest(@RequestBody Map&lt;String, Object&gt; body) {
+<b class="nc">&nbsp;        Map&lt;String, Object&gt; result = new HashMap&lt;&gt;();</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            Long ownerId = Long.valueOf(</b>
+<b class="nc">&nbsp;                    body.get(&quot;userId&quot;).toString());</b>
+<b class="nc">&nbsp;            if (!userRepo.existsById(ownerId.intValue())) {</b>
+<b class="nc">&nbsp;                result.put(&quot;message&quot;, &quot;User not found&quot;);</b>
+<b class="nc">&nbsp;                return ResponseEntity.status(</b>
+<b class="nc">&nbsp;                        HttpStatus.NOT_FOUND).body(result);</b>
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            String activityLabel = body.get(</b>
+<b class="nc">&nbsp;                    &quot;exerciseName&quot;).toString();</b>
+<b class="nc">&nbsp;            Double peakScore = Double.valueOf(</b>
+<b class="nc">&nbsp;                    body.get(&quot;bestValue&quot;).toString());</b>
+<b class="nc">&nbsp;            String measureUnit = body.containsKey(&quot;unit&quot;) ?</b>
+<b class="nc">&nbsp;                    body.get(&quot;unit&quot;).toString() : null;</b>
+<b class="nc">&nbsp;            LocalDate achievedDate = body.containsKey(&quot;recordDate&quot;)</b>
+<b class="nc">&nbsp;                    &amp;&amp; body.get(&quot;recordDate&quot;) != null ?</b>
+<b class="nc">&nbsp;                    LocalDate.parse(</b>
+<b class="nc">&nbsp;                            body.get(&quot;recordDate&quot;).toString()) :</b>
+<b class="nc">&nbsp;                    LocalDate.now();</b>
+&nbsp;
+<b class="nc">&nbsp;            PersonalBest freshEntry = new PersonalBest(</b>
+&nbsp;                    ownerId, activityLabel, peakScore,
+&nbsp;                    measureUnit, achievedDate);
+<b class="nc">&nbsp;            freshEntry = pbRepo.save(freshEntry);</b>
+&nbsp;
+<b class="nc">&nbsp;            result.put(&quot;message&quot;,</b>
+&nbsp;                    &quot;Personal best recorded successfully&quot;);
+<b class="nc">&nbsp;            result.put(&quot;id&quot;, freshEntry.getEntryId());</b>
+<b class="nc">&nbsp;            result.put(&quot;userId&quot;, freshEntry.getOwnerId());</b>
+<b class="nc">&nbsp;            result.put(&quot;exerciseName&quot;,</b>
+<b class="nc">&nbsp;                    freshEntry.getActivityLabel());</b>
+<b class="nc">&nbsp;            result.put(&quot;bestValue&quot;, freshEntry.getPeakScore());</b>
+<b class="nc">&nbsp;            result.put(&quot;unit&quot;, freshEntry.getMeasureUnit());</b>
+<b class="nc">&nbsp;            result.put(&quot;recordDate&quot;,</b>
+<b class="nc">&nbsp;                    freshEntry.getAchievedDate().toString());</b>
+<b class="nc">&nbsp;            return ResponseEntity.ok(result);</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            result.put(&quot;message&quot;,</b>
+&nbsp;                    &quot;Error recording personal best: &quot;
+<b class="nc">&nbsp;                            + e.getMessage());</b>
+<b class="nc">&nbsp;            return ResponseEntity.status(</b>
+<b class="nc">&nbsp;                    HttpStatus.BAD_REQUEST).body(result);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;    /**
+&nbsp;     * Get all personal bests for a user
+&nbsp;    */
+&nbsp;
+&nbsp;    @GetMapping(&quot;/users/{userId}/personalbests&quot;)
+&nbsp;    public ResponseEntity&lt;List&lt;Map&lt;String, Object&gt;&gt;&gt; getAllBests(
+&nbsp;        @PathVariable Long userId) {
+<b class="nc">&nbsp;    List&lt;PersonalBest&gt; entryList =</b>
+<b class="nc">&nbsp;            pbRepo.findByOwnerId(userId);</b>
+<b class="nc">&nbsp;    List&lt;Map&lt;String, Object&gt;&gt; result = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;    for (PersonalBest entry : entryList) {</b>
+<b class="nc">&nbsp;        result.add(buildEntryMap(entry));</b>
+&nbsp;    }
+<b class="nc">&nbsp;    return ResponseEntity.ok(result);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;    * Get personal bests with optional filter by exercise name
+&nbsp;    * exerciseName is optional - filters resylts if provided
+&nbsp;    */
+&nbsp;
+&nbsp;    @GetMapping(&quot;/users/{userId}/personalbests/{exerciseName}&quot;)
+&nbsp;    public ResponseEntity&lt;List&lt;Map&lt;String, Object&gt;&gt;&gt; getBestByExercise(
+&nbsp;        @PathVariable Long userId,
+&nbsp;        @PathVariable String exerciseName) {
+<b class="nc">&nbsp;    List&lt;PersonalBest&gt; entryList = pbRepo</b>
+<b class="nc">&nbsp;            .findByOwnerIdAndActivityLabelContainingIgnoreCase(</b>
+&nbsp;                    userId, exerciseName);
+<b class="nc">&nbsp;    List&lt;Map&lt;String, Object&gt;&gt; result = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;    for (PersonalBest entry : entryList) {</b>
+<b class="nc">&nbsp;        result.add(buildEntryMap(entry));</b>
+&nbsp;    }
+<b class="nc">&nbsp;    return ResponseEntity.ok(result);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;    * Update an existing personal best
+&nbsp;    */
+&nbsp;    @PutMapping(&quot;/personalbests/{id}&quot;)
+&nbsp;    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; updateBest(
+&nbsp;        @PathVariable Long id,
+&nbsp;        @RequestBody Map&lt;String, Object&gt; body) {
+<b class="nc">&nbsp;    Map&lt;String, Object&gt; result = new HashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;    PersonalBest targetEntry =</b>
+<b class="nc">&nbsp;            pbRepo.findById(id).orElse(null);</b>
+<b class="nc">&nbsp;    if (targetEntry == null) {</b>
+<b class="nc">&nbsp;        result.put(&quot;message&quot;, &quot;Personal best not found&quot;);</b>
+<b class="nc">&nbsp;        return ResponseEntity.status(</b>
+<b class="nc">&nbsp;                HttpStatus.NOT_FOUND).body(result);</b>
+&nbsp;    }
+&nbsp;
+<b class="nc">&nbsp;    if (body.containsKey(&quot;exerciseName&quot;)) {</b>
+<b class="nc">&nbsp;        targetEntry.setActivityLabel(</b>
+<b class="nc">&nbsp;                body.get(&quot;exerciseName&quot;).toString());</b>
+&nbsp;    }
+<b class="nc">&nbsp;    if (body.containsKey(&quot;bestValue&quot;)) {</b>
+<b class="nc">&nbsp;        targetEntry.setPeakScore(Double.valueOf(</b>
+<b class="nc">&nbsp;                body.get(&quot;bestValue&quot;).toString()));</b>
+&nbsp;    }
+<b class="nc">&nbsp;    if (body.containsKey(&quot;unit&quot;)) {</b>
+<b class="nc">&nbsp;        targetEntry.setMeasureUnit(</b>
+<b class="nc">&nbsp;                body.get(&quot;unit&quot;).toString());</b>
+&nbsp;    }
+<b class="nc">&nbsp;    if (body.containsKey(&quot;recordDate&quot;) &amp;&amp;</b>
+<b class="nc">&nbsp;            body.get(&quot;recordDate&quot;) != null) {</b>
+<b class="nc">&nbsp;        targetEntry.setAchievedDate(LocalDate.parse(</b>
+<b class="nc">&nbsp;                body.get(&quot;recordDate&quot;).toString()));</b>
+&nbsp;    }
+&nbsp;
+<b class="nc">&nbsp;    targetEntry = pbRepo.save(targetEntry);</b>
+<b class="nc">&nbsp;    result.put(&quot;message&quot;,</b>
+&nbsp;            &quot;Personal best updated successfully&quot;);
+<b class="nc">&nbsp;    result.put(&quot;id&quot;, targetEntry.getEntryId());</b>
+<b class="nc">&nbsp;    result.put(&quot;userId&quot;, targetEntry.getOwnerId());</b>
+<b class="nc">&nbsp;    result.put(&quot;exerciseName&quot;,</b>
+<b class="nc">&nbsp;            targetEntry.getActivityLabel());</b>
+<b class="nc">&nbsp;    result.put(&quot;bestValue&quot;, targetEntry.getPeakScore());</b>
+<b class="nc">&nbsp;    result.put(&quot;unit&quot;, targetEntry.getMeasureUnit());</b>
+<b class="nc">&nbsp;    result.put(&quot;recordDate&quot;,</b>
+<b class="nc">&nbsp;            targetEntry.getAchievedDate().toString());</b>
+<b class="nc">&nbsp;    return ResponseEntity.ok(result);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Delete a personal best entry
+&nbsp;     */
+&nbsp;    @DeleteMapping(&quot;/personalbests/{id}&quot;)
+&nbsp;    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; deleteBest(
+&nbsp;        @PathVariable Long id) {
+<b class="nc">&nbsp;    Map&lt;String, Object&gt; result = new HashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;    PersonalBest targetEntry =</b>
+<b class="nc">&nbsp;            pbRepo.findById(id).orElse(null);</b>
+<b class="nc">&nbsp;    if (targetEntry == null) {</b>
+<b class="nc">&nbsp;        result.put(&quot;message&quot;, &quot;Personal best not found&quot;);</b>
+<b class="nc">&nbsp;        return ResponseEntity.status(</b>
+<b class="nc">&nbsp;                HttpStatus.NOT_FOUND).body(result);</b>
+&nbsp;    }
+<b class="nc">&nbsp;    pbRepo.delete(targetEntry);</b>
+<b class="nc">&nbsp;    result.put(&quot;message&quot;,</b>
+&nbsp;            &quot;Personal best deleted successfully&quot;);
+<b class="nc">&nbsp;    result.put(&quot;id&quot;, id);</b>
+<b class="nc">&nbsp;    return ResponseEntity.ok(result);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Map&lt;String, Object&gt; buildEntryMap(PersonalBest entry) {
+<b class="nc">&nbsp;        Map&lt;String, Object&gt; map = new HashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;        map.put(&quot;id&quot;, entry.getEntryId());</b>
+<b class="nc">&nbsp;        map.put(&quot;userId&quot;, entry.getOwnerId());</b>
+<b class="nc">&nbsp;        map.put(&quot;exerciseName&quot;, entry.getActivityLabel());</b>
+<b class="nc">&nbsp;        map.put(&quot;bestValue&quot;, entry.getPeakScore());</b>
+<b class="nc">&nbsp;        map.put(&quot;unit&quot;, entry.getMeasureUnit());</b>
+<b class="nc">&nbsp;        map.put(&quot;recordDate&quot;, entry.getAchievedDate() != null ?</b>
+<b class="nc">&nbsp;                entry.getAchievedDate().toString() : null);</b>
+<b class="nc">&nbsp;        return map;</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-05-03 10:21</div>
+</div>
+</body>
+</html>

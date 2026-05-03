@@ -1,0 +1,764 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > ChatWebSocket</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">onetoone.Chat_Messages</a>
+</div>
+
+<h1>Coverage Summary for Class: ChatWebSocket (onetoone.Chat_Messages)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">ChatWebSocket</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    23.1%
+  </span>
+  <span class="absValue">
+    (6/26)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/112)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    4.9%
+  </span>
+  <span class="absValue">
+    (13/265)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package onetoone.Chat_Messages;
+&nbsp;
+&nbsp;
+&nbsp;import com.fasterxml.jackson.databind.SerializationFeature;
+&nbsp;import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+&nbsp;import com.fasterxml.jackson.databind.ObjectMapper;
+&nbsp;import com.fasterxml.jackson.databind.JsonNode;
+&nbsp;import onetoone.Users.UserRepository;
+&nbsp;import onetoone.Users.User;
+&nbsp;import onetoone.Groups.GroupMembership;
+&nbsp;import onetoone.Groups.GroupMembershipRepository;
+&nbsp;import onetoone.ImageHandler.ImageMessage;
+&nbsp;import onetoone.ImageHandler.ImageMessageRepository;
+&nbsp;import org.slf4j.LoggerFactory;
+&nbsp;import org.slf4j.Logger;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.stereotype.Component;
+&nbsp;import jakarta.websocket.*;
+&nbsp;import jakarta.websocket.server.ServerEndpoint;
+&nbsp;import jakarta.websocket.server.PathParam;
+&nbsp;
+&nbsp;import java.io.IOException;
+&nbsp;import java.time.LocalDateTime;
+&nbsp;import java.util.concurrent.ConcurrentHashMap;
+&nbsp;import java.util.*;
+&nbsp;
+&nbsp;/**
+&nbsp; * @author Chris Lopez
+&nbsp; *
+&nbsp; * Endpoint: ws://server:8080/chat/{userId}
+&nbsp; */
+&nbsp;
+&nbsp;@Component
+&nbsp;@ServerEndpoint(value = &quot;/chat/{userId}&quot;)
+<b class="fc">&nbsp;public class ChatWebSocket {</b>
+&nbsp;
+<b class="fc">&nbsp;    private static final Logger log =</b>
+<b class="fc">&nbsp;            LoggerFactory.getLogger(ChatWebSocket.class);</b>
+&nbsp;
+&nbsp;
+<b class="fc">&nbsp;    private static final ObjectMapper payloadParser = new ObjectMapper()</b>
+<b class="fc">&nbsp;            .registerModule(new JavaTimeModule())</b>
+<b class="fc">&nbsp;            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);</b>
+&nbsp;
+&nbsp;    private static MessageRepository messageStore;
+&nbsp;    private static UserRepository accountStore;
+&nbsp;    private static GroupMembershipRepository groupAccessRepo;
+&nbsp;
+&nbsp;    private static ImageMessageRepository imageStore;
+&nbsp;
+<b class="fc">&nbsp;    private static final Map&lt;Integer, Session&gt; liveConnections =</b>
+&nbsp;            new ConcurrentHashMap&lt;&gt;();
+<b class="fc">&nbsp;    private static final Map&lt;Session, Integer&gt; sessionToUserId =</b>
+&nbsp;            new ConcurrentHashMap&lt;&gt;();
+<b class="fc">&nbsp;    private static final Map&lt;Session, String&gt; sessionToUsername =</b>
+&nbsp;            new ConcurrentHashMap&lt;&gt;();
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    public void setMessageRepository(MessageRepository repository) {
+<b class="fc">&nbsp;        ChatWebSocket.messageStore = repository;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    public void setUserRepository(UserRepository repository) {
+<b class="fc">&nbsp;        ChatWebSocket.accountStore = repository;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    public void setGroupMembershipRepository(
+&nbsp;            GroupMembershipRepository repository) {
+<b class="fc">&nbsp;        ChatWebSocket.groupAccessRepo = repository;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    public void setImageMessageRepository(ImageMessageRepository repository) {
+&nbsp;
+<b class="fc">&nbsp;        ChatWebSocket.imageStore = repository;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Handles new WebSocket connections
+&nbsp;     *
+&nbsp;     */
+&nbsp;
+&nbsp;    @OnOpen
+&nbsp;    public void handleOpen(Session clientSession, @PathParam(&quot;userId&quot;) Integer userId) throws IOException {
+<b class="nc">&nbsp;        log.info(&quot;Connection attempt from userId: {}&quot;, userId);</b>
+&nbsp;
+<b class="nc">&nbsp;        Optional&lt;User&gt; userLookup = accountStore.findById(userId);</b>
+<b class="nc">&nbsp;        if (userLookup.isEmpty()) {</b>
+<b class="nc">&nbsp;            log.warn(&quot;User not found: {}&quot;, userId);</b>
+<b class="nc">&nbsp;            clientSession.close(new CloseReason(</b>
+&nbsp;                    CloseReason.CloseCodes.CANNOT_ACCEPT,  &quot;User not found&quot;));
+&nbsp;            return;
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        User account = userLookup.get();</b>
+<b class="nc">&nbsp;        liveConnections.put(userId, clientSession);</b>
+<b class="nc">&nbsp;        sessionToUserId.put(clientSession, userId);</b>
+<b class="nc">&nbsp;        sessionToUsername.put(clientSession, account.getAccountName());</b>
+<b class="nc">&nbsp;        log.info(&quot;User connected: {} (ID: {}, Role: {})&quot;,</b>
+<b class="nc">&nbsp;                account.getAccountName(), account.getUserId(),</b>
+<b class="nc">&nbsp;                account.getRole());</b>
+&nbsp;
+<b class="nc">&nbsp;        sendEvent(clientSession, Map.of(</b>
+&nbsp;                &quot;eventType&quot;, &quot;CONNECTED&quot;,
+<b class="nc">&nbsp;                &quot;userId&quot;, account.getUserId(),</b>
+<b class="nc">&nbsp;                &quot;username&quot;, account.getAccountName(),</b>
+<b class="nc">&nbsp;                &quot;role&quot;, account.getRole()</b>
+&nbsp;        ));
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Handles incoming WebSocket messages
+&nbsp;     */
+&nbsp;
+&nbsp;    @OnMessage
+&nbsp;    public void handleMessage(Session clientSession, String incomingText) throws IOException {
+<b class="nc">&nbsp;        Integer authorId = sessionToUserId.get(clientSession);</b>
+<b class="nc">&nbsp;        String authorName = sessionToUsername.get(clientSession);</b>
+&nbsp;
+<b class="nc">&nbsp;        if (authorId == null || authorName == null) {</b>
+<b class="nc">&nbsp;            sendError(clientSession, &quot;Unknown session&quot;);</b>
+&nbsp;            return;
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        log.info(&quot;Message from {}: {}&quot;, authorName, incomingText);</b>
+&nbsp;
+&nbsp;        try {
+<b class="nc">&nbsp;            JsonNode msgPayload = payloadParser.readTree(incomingText);</b>
+<b class="nc">&nbsp;            String eventType = text(msgPayload, &quot;eventType&quot;, &quot;SEND&quot;);</b>
+&nbsp;
+<b class="nc">&nbsp;            switch (eventType) {</b>
+&nbsp;                case &quot;SEND&quot;:
+<b class="nc">&nbsp;                    processChatMessage(clientSession, authorId,</b>
+&nbsp;                            authorName, msgPayload);
+&nbsp;                    break;
+&nbsp;                case &quot;EDIT&quot;:
+<b class="nc">&nbsp;                    processMessageEdit(clientSession, authorId,</b>
+&nbsp;                            authorName, msgPayload);
+&nbsp;                    break;
+&nbsp;                case &quot;DELETE&quot;:
+<b class="nc">&nbsp;                    processMessageRemoval(clientSession, authorId,</b>
+&nbsp;                            msgPayload);
+&nbsp;                    break;
+&nbsp;                case &quot;UPDATE_PERMISSIONS&quot;:
+<b class="nc">&nbsp;                    processAccessChange(clientSession, authorId,</b>
+&nbsp;                            authorName, msgPayload);
+&nbsp;                    break;
+&nbsp;                case &quot;REMOVE_MEMBER&quot;:
+<b class="nc">&nbsp;                    processGroupKick(clientSession, authorId,</b>
+&nbsp;                            authorName, msgPayload);
+&nbsp;                    break;
+&nbsp;                case &quot;LEAVE&quot;:
+<b class="nc">&nbsp;                    processGroupExit(clientSession, authorId,</b>
+&nbsp;                            authorName, msgPayload);
+&nbsp;                    break;
+&nbsp;                case &quot;JOIN&quot;:
+<b class="nc">&nbsp;                    processGroupEntry(clientSession, authorId,</b>
+&nbsp;                            authorName, msgPayload);
+&nbsp;                    break;
+&nbsp;
+&nbsp;                case &quot;SEND_IMAGE&quot;:
+<b class="nc">&nbsp;                    processImageMessage(clientSession, authorId,</b>
+&nbsp;                            authorName, msgPayload);
+&nbsp;                    break;
+&nbsp;                default:
+<b class="nc">&nbsp;                    sendError(clientSession,</b>
+&nbsp;                            &quot;Unsupported eventType: &quot; + eventType);
+&nbsp;            }
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            log.error(&quot;WebSocket message processing error: {}&quot;,</b>
+<b class="nc">&nbsp;                    e.getMessage());</b>
+<b class="nc">&nbsp;            sendError(clientSession, &quot;Invalid message payload&quot;);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Handles WebSocket disconnections
+&nbsp;     */
+&nbsp;
+&nbsp;    @OnClose
+&nbsp;    public void handleClose(Session clientSession) {
+<b class="nc">&nbsp;        Integer userId = sessionToUserId.remove(clientSession);</b>
+<b class="nc">&nbsp;        sessionToUsername.remove(clientSession);</b>
+&nbsp;
+<b class="nc">&nbsp;        if (userId != null) {</b>
+<b class="nc">&nbsp;            liveConnections.remove(userId);</b>
+<b class="nc">&nbsp;            log.info(&quot;User disconnected: {}&quot;, userId);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Handles WebSocket errors
+&nbsp;     */
+&nbsp;
+&nbsp;    @OnError
+&nbsp;    public void handleError(Session clientSession, Throwable error) {
+<b class="nc">&nbsp;        log.error(&quot;WebSocket error&quot;, error);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Handles sending a message to a group
+&nbsp;     */
+&nbsp;
+&nbsp;    private void processChatMessage(Session originatorSession, Integer originatorId, String originatorName, JsonNode msgPayload) {
+&nbsp;        try {
+<b class="nc">&nbsp;            int groupRef = requiredInt(msgPayload, &quot;groupId&quot;);</b>
+<b class="nc">&nbsp;            String msgBody = text(msgPayload, &quot;textBody&quot;, &quot;&quot;).trim();</b>
+<b class="nc">&nbsp;            String msgType = Message.normalizeMessageType(</b>
+<b class="nc">&nbsp;                    text(msgPayload, &quot;messageType&quot;, &quot;NORMAL&quot;));</b>
+<b class="nc">&nbsp;            Integer recipientId = nullableInt(msgPayload, &quot;targetUserId&quot;);</b>
+&nbsp;
+<b class="nc">&nbsp;            if (msgBody.isEmpty()) {</b>
+<b class="nc">&nbsp;                sendError(originatorSession, &quot;textBody is required&quot;);</b>
+&nbsp;                return;
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            Optional&lt;GroupMembership&gt; memberLookup = groupAccessRepo.findByGroupIdAndUserId(groupRef, originatorId);</b>
+<b class="nc">&nbsp;            if (memberLookup.isEmpty()) {</b>
+<b class="nc">&nbsp;                sendError(originatorSession,</b>
+&nbsp;                        &quot;You are not a member of this group&quot;);
+&nbsp;                return;
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            GroupMembership foundMembership = memberLookup.get();</b>
+&nbsp;
+<b class="nc">&nbsp;            if (!foundMembership.isChatEnabled()) {</b>
+<b class="nc">&nbsp;                sendError(originatorSession, &quot;You do not have permission to send messages&quot;);</b>
+&nbsp;                return;
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            if (&quot;ANNOUNCEMENT&quot;.equals(msgType) &amp;&amp; !foundMembership.isAnnounceEnabled()) {</b>
+<b class="nc">&nbsp;                sendError(originatorSession, &quot;You do not have permission to post announcements&quot;);</b>
+&nbsp;                return;
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            if (&quot;TRAINER&quot;.equals(msgType) &amp;&amp; !(foundMembership.isWorkoutEnabled() || GroupMembership.ROLE_TRAINER.equals(</b>
+<b class="nc">&nbsp;                    foundMembership.getAccessLevel())</b>
+<b class="nc">&nbsp;                    || foundMembership.isLeaderLike())) {</b>
+<b class="nc">&nbsp;                sendError(originatorSession, &quot;You do not have permission to send trainer messages&quot;);</b>
+&nbsp;                return;
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            Message storedMsg = messageStore.save(</b>
+<b class="nc">&nbsp;                    new Message(originatorId, groupRef, recipientId, msgBody, msgType));</b>
+&nbsp;
+<b class="nc">&nbsp;            Map&lt;String, Object&gt; outgoingEvent = formatMessageEvent(&quot;MESSAGE_CREATED&quot;, storedMsg, originatorName);</b>
+<b class="nc">&nbsp;            distributeToGroup(groupRef, outgoingEvent, null);</b>
+&nbsp;
+&nbsp;        } catch (Exception error) {
+<b class="nc">&nbsp;            log.error(&quot;Error in processChatMessage: {}&quot;, error.getMessage());</b>
+<b class="nc">&nbsp;            sendError(originatorSession, &quot;Error sending message: &quot; + error.getMessage());</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Handles sending an image message to a group via WebSocket
+&nbsp;     */
+&nbsp;    private void processImageMessage(Session originatorSession, Integer originatorId, String originatorName, JsonNode msgPayload) {
+&nbsp;        try {
+<b class="nc">&nbsp;            int groupRef = requiredInt(msgPayload, &quot;groupId&quot;);</b>
+<b class="nc">&nbsp;            String imageUrl = text(msgPayload, &quot;imageUrl&quot;, &quot;&quot;).trim();</b>
+<b class="nc">&nbsp;            String caption = text(msgPayload, &quot;caption&quot;, null);</b>
+&nbsp;
+<b class="nc">&nbsp;            if (imageUrl.isEmpty()) {</b>
+<b class="nc">&nbsp;                sendError(originatorSession, &quot;imageUrl is required&quot;);</b>
+&nbsp;                return;
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            Optional&lt;GroupMembership&gt; memberLookup = groupAccessRepo.findByGroupIdAndUserId(groupRef, originatorId);</b>
+<b class="nc">&nbsp;            if (memberLookup.isEmpty()) {</b>
+<b class="nc">&nbsp;                sendError(originatorSession, &quot;You are not a member of this group&quot;);</b>
+&nbsp;                return;
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            if (!memberLookup.get().isChatEnabled()) {</b>
+<b class="nc">&nbsp;                sendError(originatorSession, &quot;You do not have permission to send messages&quot;);</b>
+&nbsp;                return;
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            ImageMessage savedImage = imageStore.save(</b>
+&nbsp;                    new ImageMessage(
+<b class="nc">&nbsp;                            originatorId.longValue(),</b>
+<b class="nc">&nbsp;                            (long) groupRef,</b>
+&nbsp;                            imageUrl,
+&nbsp;                            caption
+&nbsp;                    )
+&nbsp;            );
+&nbsp;
+<b class="nc">&nbsp;            Map&lt;String, Object&gt; outgoingEvent = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;            outgoingEvent.put(&quot;eventType&quot;, &quot;IMAGE_CREATED&quot;);</b>
+<b class="nc">&nbsp;            outgoingEvent.put(&quot;id&quot;, savedImage.getMsgKey());</b>
+<b class="nc">&nbsp;            outgoingEvent.put(&quot;senderId&quot;, savedImage.getAuthorId());</b>
+<b class="nc">&nbsp;            outgoingEvent.put(&quot;username&quot;, originatorName);</b>
+<b class="nc">&nbsp;            outgoingEvent.put(&quot;groupId&quot;, savedImage.getChannelId());</b>
+<b class="nc">&nbsp;            outgoingEvent.put(&quot;imageUrl&quot;, savedImage.getMediaPath());</b>
+<b class="nc">&nbsp;            outgoingEvent.put(&quot;caption&quot;, savedImage.getMsgCaption());</b>
+<b class="nc">&nbsp;            outgoingEvent.put(&quot;sentAt&quot;, savedImage.getDispatchTime() != null</b>
+<b class="nc">&nbsp;                    ? savedImage.getDispatchTime().toString() : null);</b>
+&nbsp;
+<b class="nc">&nbsp;            distributeToGroup(groupRef, outgoingEvent, null);</b>
+&nbsp;
+&nbsp;        } catch (Exception error) {
+<b class="nc">&nbsp;            log.error(&quot;Error in processImageMessage: {}&quot;, error.getMessage());</b>
+<b class="nc">&nbsp;            sendError(originatorSession, &quot;Error sending image: &quot; + error.getMessage());</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Handles editing an existing message
+&nbsp;     */
+&nbsp;
+&nbsp;    private void processMessageEdit(Session originatorSession, Integer originatorId, String originatorName, JsonNode msgPayload) {
+&nbsp;        try {
+<b class="nc">&nbsp;            Long msgId = (long) requiredInt(msgPayload, &quot;messageId&quot;);</b>
+<b class="nc">&nbsp;            String revisedBody = text(msgPayload, &quot;textBody&quot;, &quot;&quot;).trim();</b>
+&nbsp;
+<b class="nc">&nbsp;            Message locatedMsg = messageStore.findById(msgId).orElse(null);</b>
+<b class="nc">&nbsp;            if (locatedMsg == null ||</b>
+<b class="nc">&nbsp;                    !Boolean.TRUE.equals(locatedMsg.getActiveFlag())) {</b>
+<b class="nc">&nbsp;                sendError(originatorSession, &quot;Message not found&quot;);</b>
+&nbsp;                return;
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            if (!Objects.equals(locatedMsg.getOriginatorId(), originatorId)) {</b>
+<b class="nc">&nbsp;                sendError(originatorSession, &quot;You can only edit your own messages&quot;);</b>
+&nbsp;                return;
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            if (revisedBody.isEmpty()) {</b>
+<b class="nc">&nbsp;                sendError(originatorSession, &quot;textBody is required&quot;);</b>
+&nbsp;                return;
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            locatedMsg.setTextBody(revisedBody);</b>
+<b class="nc">&nbsp;            locatedMsg.setEditTimestamp(LocalDateTime.now());</b>
+<b class="nc">&nbsp;            locatedMsg = messageStore.save(locatedMsg);</b>
+&nbsp;
+<b class="nc">&nbsp;            Map&lt;String, Object&gt; outgoingEvent = formatMessageEvent(</b>
+&nbsp;                    &quot;MESSAGE_UPDATED&quot;, locatedMsg, originatorName);
+<b class="nc">&nbsp;            distributeToGroup(locatedMsg.getGroupId(), outgoingEvent, null);</b>
+&nbsp;
+&nbsp;        } catch (Exception error) {
+<b class="nc">&nbsp;            log.error(&quot;Error in processMessageEdit: {}&quot;, error.getMessage());</b>
+<b class="nc">&nbsp;            sendError(originatorSession, &quot;Error editing message: &quot; + error.getMessage());</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Handles deleting a message
+&nbsp;     */
+&nbsp;
+&nbsp;    private void processMessageRemoval(Session originatorSession, Integer originatorId, JsonNode msgPayload) {
+&nbsp;        try {
+<b class="nc">&nbsp;            Long msgId = (long) requiredInt(msgPayload, &quot;messageId&quot;);</b>
+&nbsp;
+<b class="nc">&nbsp;            Message locatedMsg = messageStore.findById(msgId).orElse(null);</b>
+<b class="nc">&nbsp;            if (locatedMsg == null ||</b>
+<b class="nc">&nbsp;                    !Boolean.TRUE.equals(locatedMsg.getActiveFlag())) {</b>
+<b class="nc">&nbsp;                sendError(originatorSession, &quot;Message not found&quot;);</b>
+&nbsp;                return;
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            if (!Objects.equals(locatedMsg.getOriginatorId(), originatorId)) {</b>
+<b class="nc">&nbsp;                sendError(originatorSession, &quot;You can only delete your own messages&quot;);</b>
+&nbsp;                return;
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            locatedMsg.setActiveFlag(false);</b>
+<b class="nc">&nbsp;            messageStore.save(locatedMsg);</b>
+&nbsp;
+<b class="nc">&nbsp;            Map&lt;String, Object&gt; outgoingEvent = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;            outgoingEvent.put(&quot;eventType&quot;, &quot;MESSAGE_DELETED&quot;);</b>
+<b class="nc">&nbsp;            outgoingEvent.put(&quot;messageId&quot;, locatedMsg.getId());</b>
+<b class="nc">&nbsp;            outgoingEvent.put(&quot;groupId&quot;, locatedMsg.getGroupId());</b>
+<b class="nc">&nbsp;            distributeToGroup(locatedMsg.getGroupId(), outgoingEvent, null);</b>
+&nbsp;
+&nbsp;        } catch (Exception error) {
+<b class="nc">&nbsp;            log.error(&quot;Error in processMessageRemoval: {}&quot;, error.getMessage());</b>
+<b class="nc">&nbsp;            sendError(originatorSession, &quot;Error deleting message: &quot; + error.getMessage());</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Handles updating member permissions
+&nbsp;     */
+&nbsp;
+&nbsp;    private void processAccessChange(Session originatorSession, Integer originatorId, String originatorName, JsonNode msgPayload) {
+&nbsp;        try {
+<b class="nc">&nbsp;            int groupRef = requiredInt(msgPayload, &quot;groupId&quot;);</b>
+<b class="nc">&nbsp;            int targetUserId = requiredInt(msgPayload, &quot;targetUserId&quot;);</b>
+&nbsp;
+<b class="nc">&nbsp;            Optional&lt;GroupMembership&gt; supervisorLookup = groupAccessRepo.findByGroupIdAndUserId(groupRef, originatorId);</b>
+<b class="nc">&nbsp;            if (supervisorLookup.isEmpty() || !supervisorLookup.get().isManageEnabled()) {</b>
+<b class="nc">&nbsp;                sendError(originatorSession, &quot;You do not have permission to update permissions&quot;);</b>
+&nbsp;                return;
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            Optional&lt;GroupMembership&gt; targetLookup = groupAccessRepo.findByGroupIdAndUserId(groupRef, targetUserId);</b>
+<b class="nc">&nbsp;            if (targetLookup.isEmpty()) {</b>
+<b class="nc">&nbsp;                sendError(originatorSession, &quot;Target user is not a member of this group&quot;);</b>
+&nbsp;                return;
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            GroupMembership targetMembership = targetLookup.get();</b>
+<b class="nc">&nbsp;            if (targetMembership.isLeaderLike()) {</b>
+<b class="nc">&nbsp;                sendError(originatorSession, &quot;Cannot change GROUP_LEADER or ADMIN permissions&quot;);</b>
+&nbsp;                return;
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            targetMembership.setAccessLevel(GroupMembership.normalizeRole(</b>
+<b class="nc">&nbsp;                    text(msgPayload, &quot;membershipRole&quot;, targetMembership.getAccessLevel())));</b>
+<b class="nc">&nbsp;            targetMembership.setChatEnabled(bool(msgPayload, &quot;canSendMessages&quot;, targetMembership.isChatEnabled()));</b>
+<b class="nc">&nbsp;            targetMembership.setManageEnabled(bool(msgPayload, &quot;canManageMembers&quot;, targetMembership.isManageEnabled()));</b>
+<b class="nc">&nbsp;            targetMembership.setAnnounceEnabled(bool(msgPayload, &quot;canPostAnnouncements&quot;,</b>
+<b class="nc">&nbsp;                    targetMembership.isAnnounceEnabled()));</b>
+<b class="nc">&nbsp;            targetMembership.setWorkoutEnabled(bool(msgPayload, &quot;canAssignWorkouts&quot;, targetMembership.isWorkoutEnabled()));</b>
+<b class="nc">&nbsp;            groupAccessRepo.save(targetMembership);</b>
+&nbsp;
+<b class="nc">&nbsp;            Optional&lt;User&gt; targetAccount =</b>
+<b class="nc">&nbsp;                    accountStore.findById(targetUserId);</b>
+&nbsp;
+<b class="nc">&nbsp;            Map&lt;String, Object&gt; outgoingEvent = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;            outgoingEvent.put(&quot;eventType&quot;, &quot;GROUP_PERMISSION_UPDATED&quot;);</b>
+<b class="nc">&nbsp;            outgoingEvent.put(&quot;groupId&quot;, groupRef);</b>
+<b class="nc">&nbsp;            outgoingEvent.put(&quot;targetUserId&quot;, targetUserId);</b>
+<b class="nc">&nbsp;            outgoingEvent.put(&quot;username&quot;, targetAccount.map(User::getAccountName).orElse(&quot;Unknown&quot;));</b>
+<b class="nc">&nbsp;            outgoingEvent.put(&quot;membershipRole&quot;, targetMembership.getAccessLevel());</b>
+<b class="nc">&nbsp;            outgoingEvent.put(&quot;canSendMessages&quot;, targetMembership.isChatEnabled());</b>
+<b class="nc">&nbsp;            outgoingEvent.put(&quot;canManageMembers&quot;, targetMembership.isManageEnabled());</b>
+<b class="nc">&nbsp;            outgoingEvent.put(&quot;canPostAnnouncements&quot;, targetMembership.isAnnounceEnabled());</b>
+<b class="nc">&nbsp;            outgoingEvent.put(&quot;canAssignWorkouts&quot;, targetMembership.isWorkoutEnabled());</b>
+<b class="nc">&nbsp;            outgoingEvent.put(&quot;changedByUserId&quot;, originatorId);</b>
+<b class="nc">&nbsp;            outgoingEvent.put(&quot;changedByUsername&quot;, originatorName);</b>
+&nbsp;
+<b class="nc">&nbsp;            distributeToGroup(groupRef, outgoingEvent, null);</b>
+&nbsp;
+&nbsp;        } catch (Exception error) {
+<b class="nc">&nbsp;            log.error(&quot;Error in processAccessChange: {}&quot;, error.getMessage());</b>
+<b class="nc">&nbsp;            sendError(originatorSession, &quot;Error updating permissions: &quot; + error.getMessage());</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Handles removing a member from a group
+&nbsp;     */
+&nbsp;
+&nbsp;    private void processGroupKick(Session originatorSession, Integer originatorId, String originatorName, JsonNode msgPayload) {
+&nbsp;        try {
+<b class="nc">&nbsp;            int groupRef = requiredInt(msgPayload, &quot;groupId&quot;);</b>
+<b class="nc">&nbsp;            int kickedUserId = requiredInt(msgPayload, &quot;targetUserId&quot;);</b>
+&nbsp;
+<b class="nc">&nbsp;            Optional&lt;GroupMembership&gt; supervisorLookup = groupAccessRepo.findByGroupIdAndUserId(groupRef, originatorId);</b>
+<b class="nc">&nbsp;            if (supervisorLookup.isEmpty() || !supervisorLookup.get().isManageEnabled()) {</b>
+<b class="nc">&nbsp;                sendError(originatorSession, &quot;You do not have permission to remove members&quot;);</b>
+&nbsp;                return;
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            Optional&lt;GroupMembership&gt; kickedMemberLookup = groupAccessRepo.findByGroupIdAndUserId(groupRef, kickedUserId);</b>
+<b class="nc">&nbsp;            if (kickedMemberLookup.isEmpty()) {</b>
+<b class="nc">&nbsp;                sendError(originatorSession, &quot;Target user is not a member of this group&quot;);</b>
+&nbsp;                return;
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            if (kickedMemberLookup.get().isLeaderLike()) {</b>
+<b class="nc">&nbsp;                sendError(originatorSession, &quot;Cannot remove GROUP_LEADER or ADMIN&quot;);</b>
+&nbsp;                return;
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            groupAccessRepo.delete(kickedMemberLookup.get());</b>
+<b class="nc">&nbsp;            Optional&lt;User&gt; kickedAccount = accountStore.findById(kickedUserId);</b>
+&nbsp;
+<b class="nc">&nbsp;            Map&lt;String, Object&gt; outgoingEvent = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;            outgoingEvent.put(&quot;eventType&quot;, &quot;GROUP_MEMBER_REMOVED&quot;);</b>
+<b class="nc">&nbsp;            outgoingEvent.put(&quot;groupId&quot;, groupRef);</b>
+<b class="nc">&nbsp;            outgoingEvent.put(&quot;targetUserId&quot;, kickedUserId);</b>
+<b class="nc">&nbsp;            outgoingEvent.put(&quot;username&quot;, kickedAccount.map(User::getAccountName).orElse(&quot;Unknown&quot;));</b>
+<b class="nc">&nbsp;            outgoingEvent.put(&quot;removedByUserId&quot;, originatorId);</b>
+<b class="nc">&nbsp;            outgoingEvent.put(&quot;removedByUsername&quot;, originatorName);</b>
+&nbsp;
+<b class="nc">&nbsp;            distributeToGroup(groupRef, outgoingEvent, null);</b>
+&nbsp;
+&nbsp;        } catch (Exception error) {
+<b class="nc">&nbsp;            log.error(&quot;Error in processGroupKick: {}&quot;, error.getMessage());</b>
+<b class="nc">&nbsp;            sendError(originatorSession, &quot;Error removing member: &quot; + error.getMessage());</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Handles a user leaving a group
+&nbsp;     */
+&nbsp;
+&nbsp;    private void processGroupExit(Session originatorSession, Integer originatorId, String originatorName, JsonNode msgPayload) {
+&nbsp;        try {
+<b class="nc">&nbsp;            int groupRef = requiredInt(msgPayload, &quot;groupId&quot;);</b>
+&nbsp;
+<b class="nc">&nbsp;            Optional&lt;GroupMembership&gt; exitMemberLookup = groupAccessRepo.findByGroupIdAndUserId(groupRef, originatorId);</b>
+<b class="nc">&nbsp;            if (exitMemberLookup.isEmpty()) {</b>
+<b class="nc">&nbsp;                sendError(originatorSession, &quot;You are not a member of this group&quot;);</b>
+&nbsp;                return;
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            groupAccessRepo.delete(exitMemberLookup.get());</b>
+&nbsp;
+<b class="nc">&nbsp;            Map&lt;String, Object&gt; outgoingEvent = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;            outgoingEvent.put(&quot;eventType&quot;, &quot;GROUP_MEMBER_LEFT&quot;);</b>
+<b class="nc">&nbsp;            outgoingEvent.put(&quot;groupId&quot;, groupRef);</b>
+<b class="nc">&nbsp;            outgoingEvent.put(&quot;userId&quot;, originatorId);</b>
+<b class="nc">&nbsp;            outgoingEvent.put(&quot;username&quot;, originatorName);</b>
+&nbsp;
+<b class="nc">&nbsp;            distributeToGroup(groupRef, outgoingEvent, null);</b>
+&nbsp;
+&nbsp;        } catch (Exception error) {
+<b class="nc">&nbsp;            log.error(&quot;Error in processGroupExit: {}&quot;, error.getMessage());</b>
+<b class="nc">&nbsp;            sendError(originatorSession, &quot;Error leaving group: &quot; + error.getMessage());</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Handles a user joining a group
+&nbsp;     */
+&nbsp;
+&nbsp;    private void processGroupEntry(Session originatorSession, Integer originatorId, String originatorName, JsonNode msgPayload) {
+&nbsp;        try {
+<b class="nc">&nbsp;            int groupRef = requiredInt(msgPayload, &quot;groupId&quot;);</b>
+&nbsp;
+<b class="nc">&nbsp;            if (groupAccessRepo.existsByGroupIdAndUserId(</b>
+<b class="nc">&nbsp;                    groupRef, originatorId)) {</b>
+<b class="nc">&nbsp;                sendError(originatorSession, &quot;You are already a member of this group&quot;);</b>
+&nbsp;                return;
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            Optional&lt;User&gt; joinerLookup = accountStore.findById(originatorId);</b>
+<b class="nc">&nbsp;            String joinerRole = joinerLookup.map(User::getRole).orElse(&quot;Client&quot;);</b>
+&nbsp;
+<b class="nc">&nbsp;            String entryLevel = &quot;Trainer&quot;.equalsIgnoreCase(joinerRole) ? GroupMembership.ROLE_TRAINER : GroupMembership.ROLE_MEMBER;</b>
+&nbsp;
+<b class="nc">&nbsp;            GroupMembership newMembership = groupAccessRepo.save(</b>
+<b class="nc">&nbsp;                    new GroupMembership(groupRef, originatorId, entryLevel));</b>
+&nbsp;
+<b class="nc">&nbsp;            Map&lt;String, Object&gt; outgoingEvent = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;            outgoingEvent.put(&quot;eventType&quot;, &quot;GROUP_MEMBER_JOINED&quot;);</b>
+<b class="nc">&nbsp;            outgoingEvent.put(&quot;groupId&quot;, groupRef);</b>
+<b class="nc">&nbsp;            outgoingEvent.put(&quot;membershipId&quot;, newMembership.getMembershipId());</b>
+<b class="nc">&nbsp;            outgoingEvent.put(&quot;userId&quot;, originatorId);</b>
+<b class="nc">&nbsp;            outgoingEvent.put(&quot;username&quot;, originatorName);</b>
+<b class="nc">&nbsp;            outgoingEvent.put(&quot;membershipRole&quot;, newMembership.getAccessLevel());</b>
+&nbsp;
+<b class="nc">&nbsp;            distributeToGroup(groupRef, outgoingEvent, null);</b>
+&nbsp;
+&nbsp;        } catch (Exception error) {
+<b class="nc">&nbsp;            log.error(&quot;Error in processGroupEntry: {}&quot;, error.getMessage());</b>
+<b class="nc">&nbsp;            sendError(originatorSession, &quot;Error joining group: &quot; + error.getMessage());</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Broadcasts to all active members of a group
+&nbsp;     */
+&nbsp;
+&nbsp;    private void distributeToGroup(int groupRef,
+&nbsp;                                   Map&lt;String, Object&gt; outgoingEvent, Session excludedSession) {
+<b class="nc">&nbsp;        List&lt;GroupMembership&gt; groupMemberList = groupAccessRepo.findByGroupId(groupRef);</b>
+&nbsp;
+<b class="nc">&nbsp;        for (GroupMembership membership : groupMemberList) {</b>
+<b class="nc">&nbsp;            Session memberSession = liveConnections.get(membership.getUserId());</b>
+&nbsp;
+<b class="nc">&nbsp;            if (memberSession != null &amp;&amp; memberSession.isOpen() &amp;&amp; !memberSession.equals(excludedSession)) {</b>
+<b class="nc">&nbsp;                sendEvent(memberSession, outgoingEvent);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Builds a JSON message event map from a Message object
+&nbsp;     */
+&nbsp;
+&nbsp;    private Map&lt;String, Object&gt; formatMessageEvent(String eventType,
+&nbsp;                                                   Message msg, String authorName) {
+<b class="nc">&nbsp;        Map&lt;String, Object&gt; msgData = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;        msgData.put(&quot;id&quot;, msg.getId());</b>
+<b class="nc">&nbsp;        msgData.put(&quot;originatorId&quot;, msg.getOriginatorId());</b>
+<b class="nc">&nbsp;        msgData.put(&quot;username&quot;, authorName);</b>
+<b class="nc">&nbsp;        msgData.put(&quot;groupId&quot;, msg.getGroupId());</b>
+<b class="nc">&nbsp;        msgData.put(&quot;targetUserId&quot;, msg.getTargetUserId());</b>
+<b class="nc">&nbsp;        msgData.put(&quot;messageType&quot;, msg.getMessageType());</b>
+<b class="nc">&nbsp;        msgData.put(&quot;textBody&quot;, msg.getTextBody());</b>
+&nbsp;
+<b class="nc">&nbsp;        msgData.put(&quot;createdTimestamp&quot;,</b>
+<b class="nc">&nbsp;                msg.getCreatedTimestamp() != null ? msg.getCreatedTimestamp().toString() : null);</b>
+&nbsp;
+<b class="nc">&nbsp;        msgData.put(&quot;editTimestamp&quot;,</b>
+<b class="nc">&nbsp;                msg.getEditTimestamp() != null ? msg.getEditTimestamp().toString() : null);</b>
+&nbsp;
+<b class="nc">&nbsp;        Map&lt;String, Object&gt; outgoingEvent = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;        outgoingEvent.put(&quot;eventType&quot;, eventType);</b>
+<b class="nc">&nbsp;        outgoingEvent.put(&quot;message&quot;, msgData);</b>
+<b class="nc">&nbsp;        return outgoingEvent;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;
+&nbsp;    private void sendEvent(Session destination,
+&nbsp;                           Map&lt;String, Object&gt; outgoingEvent) {
+<b class="nc">&nbsp;        if (destination == null || !destination.isOpen()) return;</b>
+&nbsp;        try {
+<b class="nc">&nbsp;            destination.getBasicRemote().sendText(payloadParser.writeValueAsString(outgoingEvent));</b>
+&nbsp;        } catch (IOException e) {
+<b class="nc">&nbsp;            log.error(&quot;Error sending WebSocket event&quot;, e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void sendError(Session session, String errorMsg) {
+<b class="nc">&nbsp;        sendEvent(session, Map.of(&quot;eventType&quot;, &quot;ERROR&quot;, &quot;message&quot;, errorMsg</b>
+&nbsp;        ));
+&nbsp;    }
+&nbsp;
+&nbsp;
+&nbsp;    private int requiredInt(JsonNode node, String fieldName) {
+<b class="nc">&nbsp;        if (!node.has(fieldName) || node.get(fieldName).isNull()) {</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(fieldName + &quot; is required&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return node.get(fieldName).asInt();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Integer nullableInt(JsonNode node, String fieldName) {
+<b class="nc">&nbsp;        if (!node.has(fieldName))</b>
+<b class="nc">&nbsp;         return null;</b>
+<b class="nc">&nbsp;        JsonNode field = node.get(fieldName);</b>
+<b class="nc">&nbsp;        if (field == null || field.isNull())</b>
+<b class="nc">&nbsp;         return null;</b>
+<b class="nc">&nbsp;        return field.asInt();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private String text(JsonNode node, String fieldName,
+&nbsp;                        String defaultValue) {
+<b class="nc">&nbsp;        return node.has(fieldName) &amp;&amp; !node.get(fieldName).isNull() ? node.get(fieldName).asText() : defaultValue;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Gets a boolean from JSON payload with default value
+&nbsp;     */
+&nbsp;
+&nbsp;    private boolean bool(JsonNode node, String fieldName, boolean defaultValue) {
+<b class="nc">&nbsp;        return node.has(fieldName) &amp;&amp; !node.get(fieldName).isNull() ? node.get(fieldName).asBoolean() : defaultValue;</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-05-03 10:21</div>
+</div>
+</body>
+</html>

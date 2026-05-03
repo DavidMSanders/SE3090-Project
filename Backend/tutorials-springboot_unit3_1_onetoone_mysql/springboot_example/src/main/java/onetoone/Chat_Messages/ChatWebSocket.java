@@ -25,6 +25,7 @@ import java.util.*;
 
 /**
  * @author Chris Lopez
+ *
  * Endpoint: ws://server:8080/chat/{userId}
  */
 @Component

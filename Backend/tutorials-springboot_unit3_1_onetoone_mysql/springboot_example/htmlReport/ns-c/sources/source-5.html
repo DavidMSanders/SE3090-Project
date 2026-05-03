@@ -1,0 +1,255 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > Workout</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">onetoone.Workout</a>
+</div>
+
+<h1>Coverage Summary for Class: Workout (onetoone.Workout)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">Workout</td>
+<td class="coverageStat">
+  <span class="percent">
+    36%
+  </span>
+  <span class="absValue">
+    (9/25)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    38.5%
+  </span>
+  <span class="absValue">
+    (10/26)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">Workout$HibernateInstantiator$L66isrs1</td>
+  </tr>
+  <tr>
+    <td class="name">Workout$HibernateProxy$MH1xMc0W</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    36%
+  </span>
+  <span class="absValue">
+    (9/25)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    38.5%
+  </span>
+  <span class="absValue">
+    (10/26)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package onetoone.Workout;
+&nbsp;
+&nbsp;import jakarta.persistence.*;
+&nbsp;import java.time.LocalDate;
+&nbsp;
+&nbsp;/**
+&nbsp; * Workout entity
+&nbsp; */
+&nbsp;@Entity
+&nbsp;@Table(name = &quot;workouts&quot;)
+&nbsp;public class Workout {
+&nbsp;
+&nbsp;    @Id
+&nbsp;    @GeneratedValue(strategy = GenerationType.IDENTITY)
+&nbsp;    private Long workoutId;
+&nbsp;
+&nbsp;    private Long userId;
+&nbsp;
+&nbsp;    private Long groupId;
+&nbsp;
+&nbsp;    private Long workoutPlanId;
+&nbsp;
+&nbsp;    private Long createdByUserId;
+&nbsp;
+&nbsp;    private String workoutName;
+&nbsp;
+&nbsp;    @Column(columnDefinition = &quot;TEXT&quot;)
+&nbsp;    private String workoutDescription;
+&nbsp;
+&nbsp;    private Integer durationMinutes;
+&nbsp;
+&nbsp;    private LocalDate scheduledDate;
+&nbsp;
+&nbsp;    private String status;
+&nbsp;
+&nbsp;    private String sourceType;
+&nbsp;
+<b class="fc">&nbsp;    private java.time.LocalDateTime createdAt = java.time.LocalDateTime.now();</b>
+&nbsp;
+<b class="fc">&nbsp;    public Workout() {</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public Long getWorkoutId() {
+<b class="fc">&nbsp;        return workoutId;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setWorkoutId(Long workoutId) {
+<b class="nc">&nbsp;        this.workoutId = workoutId;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public Long getUserId() {
+<b class="nc">&nbsp;        return userId;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setUserId(Long userId) {
+<b class="fc">&nbsp;        this.userId = userId;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public Long getGroupId() {
+<b class="nc">&nbsp;        return groupId;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setGroupId(Long groupId) {
+<b class="nc">&nbsp;        this.groupId = groupId;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public Long getWorkoutPlanId() {
+<b class="nc">&nbsp;        return workoutPlanId;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setWorkoutPlanId(Long workoutPlanId) {
+<b class="nc">&nbsp;        this.workoutPlanId = workoutPlanId;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public Long getCreatedByUserId() {
+<b class="nc">&nbsp;        return createdByUserId;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setCreatedByUserId(Long createdByUserId) {
+<b class="fc">&nbsp;        this.createdByUserId = createdByUserId;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public String getWorkoutName() {
+<b class="nc">&nbsp;        return workoutName;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setWorkoutName(String workoutName) {
+<b class="fc">&nbsp;        this.workoutName = workoutName;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public String getWorkoutDescription() {
+<b class="nc">&nbsp;        return workoutDescription;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setWorkoutDescription(String workoutDescription) {
+<b class="fc">&nbsp;        this.workoutDescription = workoutDescription;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public Integer getDurationMinutes() {
+<b class="nc">&nbsp;        return durationMinutes;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setDurationMinutes(Integer durationMinutes) {
+<b class="fc">&nbsp;        this.durationMinutes = durationMinutes;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public LocalDate getScheduledDate() {
+<b class="nc">&nbsp;        return scheduledDate;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setScheduledDate(LocalDate scheduledDate) {
+<b class="nc">&nbsp;        this.scheduledDate = scheduledDate;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public String getStatus() {
+<b class="nc">&nbsp;        return status;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setStatus(String status) {
+<b class="fc">&nbsp;        this.status = status;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public String getSourceType() {
+<b class="nc">&nbsp;        return sourceType;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setSourceType(String sourceType) {
+<b class="fc">&nbsp;        this.sourceType = sourceType;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public java.time.LocalDateTime getCreatedAt() {
+<b class="nc">&nbsp;        return createdAt;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setCreatedAt(java.time.LocalDateTime createdAt) {
+<b class="nc">&nbsp;        this.createdAt = createdAt;</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-05-03 10:21</div>
+</div>
+</body>
+</html>
