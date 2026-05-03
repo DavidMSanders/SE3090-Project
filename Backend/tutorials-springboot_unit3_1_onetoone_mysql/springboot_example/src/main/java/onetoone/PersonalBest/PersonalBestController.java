@@ -16,6 +16,8 @@ import java.util.Map;
  * Handles all personal best tracking endpoints
  * Each personal best is private and specific to each user
  */
+@RestController
+@RequestMapping("/api/v1")
 public class PersonalBestController {
 
     @Autowired
