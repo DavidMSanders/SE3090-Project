@@ -76,15 +76,14 @@
       <version>2.5.0</version>
     </dependency>
     -->
-
+    <!-- Spring Boot Test -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-test</artifactId>
       <scope>test</scope>
     </dependency>
 
-    <!-- FIX: REST-assured for Given/When/Then HTTP testing
-         Version required - NOT managed by Spring Boot parent -->
+    <!-- REST-assured -->
     <dependency>
       <groupId>io.rest-assured</groupId>
       <artifactId>rest-assured</artifactId>
@@ -93,7 +92,12 @@
     </dependency>
 
 
-
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.13.2</version>
+      <scope>test</scope>
+    </dependency>
 
 
 

@@ -4,8 +4,7 @@ import jakarta.persistence.*;
 import java.time.LocalDate;
 
 /**
- *Workout Entity
- *@author Chris Lopez
+ * Workout entity
  */
 @Entity
 @Table(name = "workouts")
@@ -13,84 +12,127 @@ public class Workout {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int workoutId;
+    private Long workoutId;
 
-    @Column(name = "name")
+    private Long userId;
+
+    private Long groupId;
+
+    private Long workoutPlanId;
+
+    private Long createdByUserId;
+
     private String workoutName;
 
-    @Column(name = "date")
-    private LocalDate sessionDate;
+    @Column(columnDefinition = "TEXT")
+    private String workoutDescription;
 
-    @Column( name = "duration_minutes")
-    private int minutes;
+    private Integer durationMinutes;
 
-    @Column(name = "description")
-    private String details;
+    private LocalDate scheduledDate;
 
-    public Workout(){
+    private String status;
+
+    private String sourceType;
+
+    private java.time.LocalDateTime createdAt = java.time.LocalDateTime.now();
+
+    public Workout() {
     }
 
-    public Workout(String workoutName, LocalDate sessionDate, int minutes, String details){
-        this.workoutName = workoutName;
-        this.sessionDate = sessionDate;
-        this.minutes = minutes;
-        this.details = details;
-    }
-
-
-    public int getWorkoutId(){
+    public Long getWorkoutId() {
         return workoutId;
     }
 
-    public void setWorkoutId(int workoutId){
+    public void setWorkoutId(Long workoutId) {
         this.workoutId = workoutId;
     }
 
-
-    public void setWorkoutName(String workoutName){
-        this.workoutName = workoutName;
+    public Long getUserId() {
+        return userId;
     }
 
-    public String getWorkoutName(){
+    public void setUserId(Long userId) {
+        this.userId = userId;
+    }
+
+    public Long getGroupId() {
+        return groupId;
+    }
+
+    public void setGroupId(Long groupId) {
+        this.groupId = groupId;
+    }
+
+    public Long getWorkoutPlanId() {
+        return workoutPlanId;
+    }
+
+    public void setWorkoutPlanId(Long workoutPlanId) {
+        this.workoutPlanId = workoutPlanId;
+    }
+
+    public Long getCreatedByUserId() {
+        return createdByUserId;
+    }
+
+    public void setCreatedByUserId(Long createdByUserId) {
+        this.createdByUserId = createdByUserId;
+    }
+
+    public String getWorkoutName() {
         return workoutName;
     }
 
-    public void setSessionDate(LocalDate sessionDate){
-        this.sessionDate = sessionDate;
+    public void setWorkoutName(String workoutName) {
+        this.workoutName = workoutName;
     }
 
-    public LocalDate getSessionDate(){
-        return sessionDate;
+    public String getWorkoutDescription() {
+        return workoutDescription;
     }
 
-
-    public String getDetails(){
-        return details;
+    public void setWorkoutDescription(String workoutDescription) {
+        this.workoutDescription = workoutDescription;
     }
 
-    public int getMinutes(){
-        return minutes;
+    public Integer getDurationMinutes() {
+        return durationMinutes;
     }
 
-
-
-    public void setDetails(String details){
-        this.details = details;
+    public void setDurationMinutes(Integer durationMinutes) {
+        this.durationMinutes = durationMinutes;
     }
 
-    public void setMinutes(int minutes){
-        this.minutes = minutes;
+    public LocalDate getScheduledDate() {
+        return scheduledDate;
     }
 
-    @Override
-    public String toString(){
-        return "Workout{" +
-                "workoutId=" + workoutId +
-                ", workoutName=" + workoutName + '\'' +
-                ", sessionDate=" + sessionDate +
-                ", minutes=" + minutes +
-                ", details=" + details + '\'' +
-                '}';
+    public void setScheduledDate(LocalDate scheduledDate) {
+        this.scheduledDate = scheduledDate;
     }
 
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getSourceType() {
+        return sourceType;
+    }
+
+    public void setSourceType(String sourceType) {
+        this.sourceType = sourceType;
+    }
+
+    public java.time.LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(java.time.LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
 }

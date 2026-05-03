@@ -1,0 +1,233 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > CalendarEvent</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">onetoone.Calendar</a>
+</div>
+
+<h1>Coverage Summary for Class: CalendarEvent (onetoone.Calendar)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">CalendarEvent</td>
+<td class="coverageStat">
+  <span class="percent">
+    5.3%
+  </span>
+  <span class="absValue">
+    (1/19)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    4.3%
+  </span>
+  <span class="absValue">
+    (1/23)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">CalendarEvent$HibernateInstantiator$9wMqy8Ne</td>
+  </tr>
+  <tr>
+    <td class="name">CalendarEvent$HibernateProxy$CchYT22O</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    5.3%
+  </span>
+  <span class="absValue">
+    (1/19)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    4.3%
+  </span>
+  <span class="absValue">
+    (1/23)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package onetoone.Calendar;
+&nbsp;
+&nbsp;import jakarta.persistence.*;
+&nbsp;import java.time.LocalDate;
+&nbsp;import java.time.LocalTime;
+&nbsp;
+&nbsp;@Entity
+&nbsp;@Table(name = &quot;cal_events&quot;)
+&nbsp;public class CalendarEvent {
+&nbsp;
+&nbsp;    @Id
+&nbsp;    @GeneratedValue(strategy = GenerationType.IDENTITY)
+&nbsp;    private Long eventKey;
+&nbsp;
+&nbsp;    @Column(name = &quot;creator_id&quot;, nullable = false)
+&nbsp;    private Long creatorId;
+&nbsp;
+&nbsp;    @Column(name = &quot;event_label&quot;, nullable = false)
+&nbsp;    private String eventLabel;
+&nbsp;
+&nbsp;    @Column(name = &quot;scheduled_date&quot;, nullable = false)
+&nbsp;    private LocalDate scheduledDate;
+&nbsp;
+&nbsp;    @Column(name = &quot;open_time&quot;)
+&nbsp;    private LocalTime openTime;
+&nbsp;
+&nbsp;    @Column(name = &quot;close_time&quot;)
+&nbsp;    private LocalTime closeTime;
+&nbsp;
+&nbsp;    @Column(name = &quot;event_notes&quot;)
+&nbsp;    private String eventNotes;
+&nbsp;
+&nbsp;    @Column(name = &quot;rule_ref&quot;)
+&nbsp;    private Long ruleRef;
+&nbsp;
+<b class="fc">&nbsp;    public CalendarEvent(){</b>
+&nbsp;
+&nbsp;    }
+&nbsp;
+<b class="nc">&nbsp;    public CalendarEvent(Long creatorId, String eventLabel, LocalDate scheduledDate, String eventNotes){</b>
+<b class="nc">&nbsp;        this.creatorId = creatorId;</b>
+<b class="nc">&nbsp;        this.eventLabel = eventLabel;</b>
+<b class="nc">&nbsp;        this.scheduledDate = scheduledDate;</b>
+<b class="nc">&nbsp;        this.eventNotes = eventNotes;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public Long getEventKey(){
+<b class="nc">&nbsp;        return eventKey;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setEventKey(Long eventKey){
+<b class="nc">&nbsp;        this.eventKey = eventKey;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public Long getCreatorId(){
+<b class="nc">&nbsp;        return creatorId;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setCreatorId(Long creatorId){
+<b class="nc">&nbsp;        this.creatorId = creatorId;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public String getEventLabel() {
+<b class="nc">&nbsp;        return eventLabel;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setEventLabel(String eventLabel){
+<b class="nc">&nbsp;        this.eventLabel = eventLabel;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public LocalDate getScheduledDate(){
+<b class="nc">&nbsp;        return scheduledDate;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setScheduledDate(LocalDate scheduledDate){
+<b class="nc">&nbsp;        this.scheduledDate = scheduledDate;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public LocalTime getOpenTime() {
+<b class="nc">&nbsp;        return openTime;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setOpenTime(LocalTime openTime){
+<b class="nc">&nbsp;        this.openTime = openTime;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public LocalTime getCloseTime(){
+<b class="nc">&nbsp;        return closeTime;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setCloseTime(LocalTime closeTime){
+<b class="nc">&nbsp;        this.closeTime = closeTime;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public String getEventNotes(){
+<b class="nc">&nbsp;        return eventNotes;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setEventNotes(String eventNotes){
+<b class="nc">&nbsp;        this.eventNotes = eventNotes;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public Long getRuleRef(){
+<b class="nc">&nbsp;        return ruleRef;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setRuleRef(Long ruleRef){
+<b class="nc">&nbsp;        this.ruleRef = ruleRef;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public String toString(){
+<b class="nc">&nbsp;        return &quot;CalendarEvent{&quot; + &quot;eventKey=&quot; + eventKey + &quot;, creatorId=&quot; + creatorId + &quot;, eventLabel&quot; + eventLabel + &#39;\&#39;&#39; +</b>
+&nbsp;                &quot;, scheduledDate=&quot; + scheduledDate + &#39;}&#39;;
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-05-03 10:21</div>
+</div>
+</body>
+</html>

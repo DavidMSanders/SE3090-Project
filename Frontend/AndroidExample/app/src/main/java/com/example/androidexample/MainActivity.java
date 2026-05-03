@@ -2,63 +2,130 @@ package com.example.androidexample;
 
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.EditText;
-import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import android.content.Intent;
-
-import com.android.volley.AuthFailureError;
-import com.android.volley.Request;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
     // Default API URL for demonstration
-    private String url = "https://jsonplaceholder.typicode.com/users";
-    private Spinner spMethod;
-    private EditText etUrl, etRequest;
-    private TextView tvResponse;
-    private Button btnSend;
+    //private String url = "https://jsonplaceholder.typicode.com/users";
+    //private Spinner spMethod;
+    //private EditText etUrl, etRequest;
+    //private TextView tvResponse;
+    //private Button btnSend;
     private String method;
 
-    private Button btnGoToSignup;
+    private Button btnGoToDelete;
+
+    private Button btnGoToWorkout;
+
+    private Button btnGoToWorkoutList;
+
+    private TextView tvCurrentUser;
+    private Button btnLogout;
+
+    private Button btnGroupList;
+
+    private Button btnWorkoutPlans;
+
+    private Button btnGoToCalendar;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        AppTopBarController.setup(this);
 
         // Initialize UI components
-        etUrl = findViewById(R.id.etUrl);
-        etRequest = findViewById(R.id.etRequest);
-        tvResponse = findViewById(R.id.tvResponse);
-        btnSend = findViewById(R.id.sendBtn);
-        spMethod = findViewById(R.id.spMethod);
+        //etUrl = findViewById(R.id.etUrl);
+        //etRequest = findViewById(R.id.etRequest);
+        //tvResponse = findViewById(R.id.tvResponse);
+        //btnSend = findViewById(R.id.sendBtn);
+        //spMethod = findViewById(R.id.spMethod);
 
-        btnGoToSignup = findViewById(R.id.btnGoToSignup);
+        //pers. user logic
+        tvCurrentUser = findViewById(R.id.tvCurrentUser);
+        btnLogout = findViewById(R.id.btnLogout);
+        KeepUser keepUser = new KeepUser(this);
 
-        btnGoToSignup.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, SignupActivity.class);
+        if (keepUser.isLoggedIn()) {
+            String username = keepUser.getUsername();
+            tvCurrentUser.setText("Logged in as: " + username);
+        } else {
+            tvCurrentUser.setText("Not logged in");
+        }
+
+        btnLogout.setOnClickListener(v -> {
+            NotificationSyncManager.getInstance(this).stop();
+            keepUser.clearUser();
+            SessionManager.clearSession(this);
+
+            Intent intent = new Intent(MainActivity.this, LandingActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
+            finish();
+        });
+
+        btnGoToDelete = findViewById(R.id.btnGoToDelete);
+        btnGoToWorkout = findViewById(R.id.btnGoToWorkout);
+
+        btnGoToWorkoutList = findViewById(R.id.WorkoutList);
+        btnGoToCalendar = findViewById(R.id.btnGoToCalendar);
+
+        btnGroupList = findViewById(R.id.btnGroupList);
+
+        Button btnTestingPage = findViewById(R.id.btnTestingPage);
+
+        btnWorkoutPlans = findViewById(R.id.btnWorkoutPlans);
+
+        String role = keepUser.getRoleOrDefault();
+        if(role.equalsIgnoreCase("trainer") || role.equalsIgnoreCase("admin"))
+            btnWorkoutPlans.setVisibility(View.VISIBLE);
+        else
+            btnWorkoutPlans.setVisibility(View.GONE);
+
+
+        btnWorkoutPlans.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, WorkoutPlanListActivity.class);
             startActivity(intent);
         });
 
+        btnTestingPage.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, TestingActivity.class);
+            startActivity(intent);
+        });
+
+        btnGroupList.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, GroupListActivity.class);
+            startActivity(intent);
+        });
+
+        btnGoToDelete.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, DeleteUserActivity.class);
+            startActivity(intent);
+        });
+
+        btnGoToWorkout.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, CreateWorkoutActivity.class);
+            startActivity(intent);
+        });
+
+        btnGoToWorkoutList.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, WorkoutListActivity.class);
+            startActivity(intent);
+        });
+
+        if (btnGoToCalendar != null) {
+            btnGoToCalendar.setOnClickListener(v -> {
+                Intent intent = new Intent(MainActivity.this, CalendarActivity.class);
+                startActivity(intent);
+            });
+        }
+/*
         etUrl.setText(url); // Set default URL in the input field
 
         // Initialize Spinner for selecting request method
@@ -137,7 +204,7 @@ public class MainActivity extends AppCompatActivity {
         Log.d("PostRequest", "Sending request...");
         Volley.newRequestQueue(this).add(request); // Add request to queue
     }
+*/
 
-
-
+    }
 }

@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="4dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="385dp"
+        android:layout_height="match_parent"
+        android:background="#13B3AB"
+        android:padding="12dp">
+
+    <!-- workout label section -->
+        <TextView
+            android:id="@+id/CreatelabelName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Workout Name:"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+
+        <EditText
+            android:id="@+id/CreateitemWorkoutName"
+            android:layout_width="178dp"
+            android:layout_height="36dp"
+            android:layout_marginStart="8dp"
+            android:inputType="text"
+            android:maxLines="1"
+            android:paddingTop="6dp"
+            android:paddingBottom="6dp"
+            android:textSize="18sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.294"
+            app:layout_constraintStart_toEndOf="@id/CreatelabelName"
+            app:layout_constraintTop_toTopOf="@id/CreatelabelName" />
+
+        <TextView
+            android:id="@+id/CreatelabelDate"
+            android:layout_width="63dp"
+            android:layout_height="42dp"
+            android:layout_marginStart="4dp"
+            android:layout_marginTop="8dp"
+            android:text="Date:"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/CreateitemWorkoutName" />
+
+        <!-- end of workout label section -->
+
+        <!-- workout Date section -->
+
+        <EditText
+            android:id="@+id/CreateitemWorkoutDate"
+            android:layout_width="141dp"
+            android:layout_height="44dp"
+            android:layout_marginStart="8dp"
+            android:hint="MM/dd/yyyy"
+            android:inputType="text"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.038"
+            app:layout_constraintStart_toEndOf="@id/CreatelabelDate"
+            app:layout_constraintTop_toTopOf="@id/CreatelabelDate" />
+
+        <Button
+            android:id="@+id/btnSetToday"
+            android:layout_width="87dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="28dp"
+            android:layout_marginTop="4dp"
+            android:text="Today"
+            android:textSize="12sp"
+            app:layout_constraintStart_toEndOf="@id/CreateitemWorkoutDate"
+            app:layout_constraintTop_toTopOf="@id/CreateitemWorkoutDate" />
+
+        <!-- end of workout Date section -->
+
+
+        <!--  workout duration section -->
+
+        <TextView
+            android:id="@+id/CreatelabelDuration"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="Duration:"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/CreateitemWorkoutDate" />
+
+
+        <Button
+            android:id="@+id/CreatebtnDurationMinus"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:layout_marginStart="12dp"
+            android:backgroundTint="#945959"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:padding="0dp"
+            android:text="-"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            app:cornerRadius ="3dp"
+            app:layout_constraintStart_toEndOf="@id/CreatelabelDuration"
+            app:layout_constraintTop_toTopOf="@id/CreatelabelDuration">
+
+        </Button>
+
+        <TextView
+            android:id="@+id/CreateitemWorkoutDuration"
+            android:layout_width="48dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="64dp"
+            android:layout_marginTop="4dp"
+            android:fontFamily="sans-serif-black"
+            android:gravity="center"
+            android:text="30"
+            android:textColor="#000000"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            app:layout_constraintStart_toEndOf="@id/CreatelabelDuration"
+            app:layout_constraintTop_toTopOf="@id/CreatelabelDuration" />
+
+        <Button
+            android:id="@+id/CreatebtnDurationPlus"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:layout_marginStart="124dp"
+
+            android:backgroundTint="#379902"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:padding="0dp"
+            android:text="+"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            app:cornerRadius="3dp"
+            app:layout_constraintStart_toEndOf="@id/CreatelabelDuration"
+            app:layout_constraintTop_toTopOf="@id/CreatelabelDuration">
+
+        </Button>
+
+        <!-- end of workout duration section -->
+
+
+
+        <!-- workout description section -->
+
+        <TextView
+            android:id="@+id/CreatelabelDescription"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:layout_marginTop="20dp"
+            android:text="Description:"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/CreateitemWorkoutDuration" />
+
+        <EditText
+            android:id="@+id/CreateitemWorkoutDescription"
+            android:layout_width="269dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:gravity="top|start"
+            android:inputType="textMultiLine"
+            android:minLines="2"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/CreatelabelDescription"
+            app:layout_constraintTop_toTopOf="@id/CreatelabelDescription" />
+
+        <!-- end of workout description section -->
+
+        <!-- Create Button -->
+
+
+
+        <Button
+            android:id="@+id/btnCreateWorkout"
+            android:layout_width="169dp"
+            android:layout_height="37dp"
+            android:layout_marginTop="4dp"
+            android:layout_marginEnd="24dp"
+            android:text="Create Workout"
+            android:textSize="12sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/CreateitemWorkoutDescription" />
+
+        <TextView
+            android:id="@+id/CreatedurationUnits"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="56dp"
+            android:text="(minutes)"
+            android:textSize="20sp"
+            app:layout_constraintBottom_toBottomOf="@id/CreateitemWorkoutDuration"
+            app:layout_constraintStart_toEndOf="@id/CreateitemWorkoutDuration"
+            app:layout_constraintTop_toTopOf="@id/CreateitemWorkoutDuration"
+            app:layout_constraintVertical_bias="0.0" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.cardview.widget.CardView>
