@@ -1,0 +1,327 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > User</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">onetoone.Users</a>
+</div>
+
+<h1>Coverage Summary for Class: User (onetoone.Users)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">User</td>
+<td class="coverageStat">
+  <span class="percent">
+    73.3%
+  </span>
+  <span class="absValue">
+    (11/15)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    81%
+  </span>
+  <span class="absValue">
+    (17/21)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">User$HibernateInstantiator$QQeB5hLU</td>
+  </tr>
+  <tr>
+    <td class="name">User$HibernateProxy$dl3nOSDA</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    73.3%
+  </span>
+  <span class="absValue">
+    (11/15)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    81%
+  </span>
+  <span class="absValue">
+    (17/21)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package onetoone.Users;
+&nbsp;
+&nbsp;import jakarta.persistence.*;
+&nbsp;
+&nbsp;//import onetoone.Laptops.Laptop;
+&nbsp;
+&nbsp;import java.time.LocalDate;
+&nbsp;
+&nbsp;/**
+&nbsp; * 
+&nbsp; * @author Chris Lopez
+&nbsp; * 
+&nbsp; */
+&nbsp;
+&nbsp;@Entity
+&nbsp;@Table(name = &quot;users&quot;)
+&nbsp;public class User {
+&nbsp;    /*
+&nbsp;     * The annotation @ID marks the field below as the primary key for the table
+&nbsp;     * created by springboot
+&nbsp;     * The @GeneratedValue generates a value if not already present, The strategy in
+&nbsp;     * this case is to start from 1 and increment for each table
+&nbsp;     */
+&nbsp;    @Id
+&nbsp;    @GeneratedValue(strategy = GenerationType.IDENTITY)
+&nbsp;    private int id;
+&nbsp;
+&nbsp;    private String accountName;
+&nbsp;    private String userPassword;
+&nbsp;    private LocalDate birthDate;
+&nbsp;    private String role;
+&nbsp;    private boolean isEnabled;
+&nbsp;
+<b class="fc">&nbsp;    public User() {</b>
+<b class="fc">&nbsp;        this.isEnabled = true;</b>
+&nbsp;    }
+&nbsp;
+<b class="fc">&nbsp;    public User(String accountName, String userPassword, LocalDate birthDate) {</b>
+&nbsp;
+<b class="fc">&nbsp;        this.accountName = accountName;</b>
+<b class="fc">&nbsp;        this.userPassword = userPassword;</b>
+<b class="fc">&nbsp;        this.birthDate = birthDate;</b>
+<b class="fc">&nbsp;        this.isEnabled = true;</b>
+&nbsp;        //add default client - CHECK FOR ISSUES
+<b class="fc">&nbsp;        this.role = &quot;Client&quot;;</b>
+&nbsp;
+&nbsp;    }
+&nbsp;
+&nbsp;    public int getUserId() {
+<b class="fc">&nbsp;        return id;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setUserId(int userId) {
+&nbsp;
+<b class="nc">&nbsp;        this.id = userId;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public String getAccountName() {
+<b class="fc">&nbsp;        return accountName;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setAccountName(String accountName) {
+<b class="fc">&nbsp;        this.accountName = accountName;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public String getUserPassword() {
+<b class="fc">&nbsp;        return userPassword;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setUserPassword(String userPassword) {
+<b class="nc">&nbsp;        this.userPassword = userPassword;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public LocalDate getBirthDate() {
+<b class="fc">&nbsp;        return birthDate;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setBirthDate(LocalDate birthDate) {
+&nbsp;
+<b class="nc">&nbsp;        this.birthDate = birthDate;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public String getRole() {
+<b class="fc">&nbsp;        return role;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setRole(String role) {
+<b class="fc">&nbsp;        this.role = role;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public boolean isEnabled() {
+&nbsp;
+<b class="fc">&nbsp;        return isEnabled;</b>
+&nbsp;
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setEnabled(boolean enabled) {
+&nbsp;
+<b class="fc">&nbsp;        isEnabled = enabled;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public String toString() {
+<b class="nc">&nbsp;        return &quot;User {&quot; +</b>
+&nbsp;                &quot;UserId =&quot; + id + &quot;, accountName=&#39;&quot; + accountName + &#39;\&#39;&#39; + &quot;, birthDate=&quot; + birthDate + &quot; isEnabled=&quot; +
+&nbsp;                isEnabled + &quot;, role=&#39;&quot; + role + &#39;\&#39;&#39; + &#39;}&#39;;
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * @author Matthew Smith
+&nbsp;     */
+&nbsp;
+&nbsp;    /*
+&nbsp;     * /*
+&nbsp;     * 
+&nbsp;     * @OneToOne creates a relation between the current entity/table(Laptop) with
+&nbsp;     * the entity/table defined below it(User)
+&nbsp;     * cascade is responsible propagating all changes, even to children of the class
+&nbsp;     * Eg: changes made to laptop within a user object will be reflected
+&nbsp;     * in the database (more info : https://www.baeldung.com/jpa-cascade-types)
+&nbsp;     * 
+&nbsp;     * @JoinColumn defines the ownership of the foreign key i.e. the user table will
+&nbsp;     * have a field called laptop_id
+&nbsp;     * 
+&nbsp;     * @OneToOne(cascade = CascadeType.ALL)
+&nbsp;     * 
+&nbsp;     * @JoinColumn(name = &quot;laptop_id&quot;)
+&nbsp;     * private Laptop laptop;
+&nbsp;     * 
+&nbsp;     * public User(String name, String emailId) {
+&nbsp;     * this.name = name;
+&nbsp;     * this.emailId = emailId;
+&nbsp;     * this.ifActive = true;
+&nbsp;     * }
+&nbsp;     * 
+&nbsp;     * public User() {
+&nbsp;     * }
+&nbsp;     * 
+&nbsp;     * // =============================== Getters and Setters for each field
+&nbsp;     * ================================== //
+&nbsp;     * 
+&nbsp;     * public int getId(){
+&nbsp;     * return id;
+&nbsp;     * }
+&nbsp;     * 
+&nbsp;     * public void setId(int id){
+&nbsp;     * this.id = id;
+&nbsp;     * }
+&nbsp;     * 
+&nbsp;     * public String getName(){
+&nbsp;     * return name;
+&nbsp;     * }
+&nbsp;     * 
+&nbsp;     * public void setName(String name){
+&nbsp;     * this.name = name;
+&nbsp;     * }
+&nbsp;     * 
+&nbsp;     * public String getEmailId(){
+&nbsp;     * return emailId;
+&nbsp;     * }
+&nbsp;     * 
+&nbsp;     * public void setEmailId(String emailId){
+&nbsp;     * this.emailId = emailId;
+&nbsp;     * }
+&nbsp;     * 
+&nbsp;     * public boolean getIsActive(){
+&nbsp;     * return ifActive;
+&nbsp;     * }
+&nbsp;     * 
+&nbsp;     * public void setIfActive(boolean ifActive){
+&nbsp;     * this.ifActive = ifActive;
+&nbsp;     * }
+&nbsp;     * 
+&nbsp;     * public Laptop getLaptop(){
+&nbsp;     * return laptop;
+&nbsp;     * }
+&nbsp;     * 
+&nbsp;     * public void setLaptop(Laptop laptop){
+&nbsp;     * this.laptop = laptop;
+&nbsp;     * }
+&nbsp;     * 
+&nbsp;     */
+&nbsp;
+&nbsp;}
+&nbsp;
+&nbsp;/**
+&nbsp; * @author Matthew Smith
+&nbsp; */
+&nbsp;
+&nbsp;class LoginRequest {
+&nbsp;
+&nbsp;    private String accountName;
+&nbsp;    private String userPassword;
+&nbsp;
+&nbsp;    public String getAccountName() {
+&nbsp;        return accountName;
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setAccountName(String accountName) {
+&nbsp;        this.accountName = accountName;
+&nbsp;    }
+&nbsp;
+&nbsp;    public String getUserPassword() {
+&nbsp;        return userPassword;
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setUserPassword(String userPassword) {
+&nbsp;        this.userPassword = userPassword;
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-05-04 17:14</div>
+</div>
+</body>
+</html>
