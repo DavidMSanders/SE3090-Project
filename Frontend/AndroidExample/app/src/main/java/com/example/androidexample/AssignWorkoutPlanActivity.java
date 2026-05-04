@@ -49,6 +49,7 @@ public class AssignWorkoutPlanActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_assign_workout_plan);
+        AppTopBarController.setup(this);
 
         spinnerGroups = findViewById(R.id.spinnerGroups);
         spinnerClients = findViewById(R.id.spinnerClients);

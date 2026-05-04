@@ -4,14 +4,14 @@
     android:id="@+id/topBarContainer"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="#0E3A53"
+    android:background="@color/top_bar_background"
     android:gravity="center_vertical"
     android:minHeight="64dp"
     android:orientation="vertical"
-    android:paddingTop="0dp"
-    android:paddingBottom="6dp"
     android:paddingStart="10dp"
-    android:paddingEnd="10dp">
+    android:paddingTop="0dp"
+    android:paddingEnd="10dp"
+    android:paddingBottom="6dp">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -20,19 +20,20 @@
         android:orientation="horizontal">
 
         <Button
-            android:id="@+id/btnTopNotification"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:id="@+id/btnTopBack"
+            android:layout_width="40dp"
+            android:layout_height="30dp"
             android:layout_marginEnd="8dp"
             android:background="@drawable/top_bar_button_blocky"
             android:backgroundTint="#1565C0"
-            android:minHeight="34dp"
-            android:paddingTop="2dp"
-            android:paddingBottom="2dp"
-            app:backgroundTint="#1565C0"
+            android:minHeight="30dp"
+            android:minWidth="40dp"
+            android:padding="0dp"
+            android:text="&lt;"
+            android:textAllCaps="false"
+            android:textSize="16sp"
             android:textColor="#FFFFFFFF"
-            android:text="Notifications"
-            android:textAllCaps="false" />
+            app:backgroundTint="#1565C0" />
 
         <Button
             android:id="@+id/btnTopHome"
@@ -44,29 +45,55 @@
             android:minHeight="34dp"
             android:paddingTop="2dp"
             android:paddingBottom="2dp"
-            app:backgroundTint="#1565C0"
-            android:textColor="#FFFFFFFF"
             android:text="Home"
-            android:textAllCaps="false" />
+            android:textAllCaps="false"
+            android:textColor="#FFFFFFFF"
+            app:backgroundTint="#1565C0" />
 
         <View
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_weight="1" />
 
-        <Button
+        <FrameLayout
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_marginEnd="8dp">
+
+            <ImageButton
+                android:id="@+id/btnTopNotification"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/top_bar_button_blocky"
+                android:backgroundTint="#1565C0"
+                android:contentDescription="Notifications"
+                android:padding="6dp"
+                app:backgroundTint="#1565C0"
+                app:srcCompat="@drawable/ic_notification_bell"
+                app:tint="#FFFFFFFF" />
+
+            <View
+                android:id="@+id/viewTopNotificationDot"
+                android:layout_width="10dp"
+                android:layout_height="10dp"
+                android:layout_gravity="top|end"
+                android:layout_marginTop="2dp"
+                android:layout_marginEnd="2dp"
+                android:background="@drawable/bg_notification_unread_dot"
+                android:visibility="gone" />
+        </FrameLayout>
+
+        <ImageButton
             android:id="@+id/btnTopUserMenu"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
             android:background="@drawable/top_bar_button_blocky"
             android:backgroundTint="#1565C0"
-            android:minHeight="34dp"
-            android:paddingTop="2dp"
-            android:paddingBottom="2dp"
-            app:backgroundTint="#1565C0"
-            android:textColor="#FFFFFFFF"
-            android:text="Guest v"
-            android:textAllCaps="false" />
+            android:contentDescription="Profile menu"
+            android:padding="6dp"
+            app:srcCompat="@drawable/ic_profile_universal"
+            app:tint="#FFFFFFFF"
+            app:backgroundTint="#1565C0" />
     </LinearLayout>
 
 </LinearLayout>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="app_bg">#0F1720</color>
+    <color name="app_surface">#17212B</color>
+    <color name="app_surface_alt">#1D2A36</color>
+    <color name="app_text_primary">#E6EEF5</color>
+    <color name="app_text_secondary">#A8B9C8</color>
+    <color name="app_text_body">#C3D1DD</color>
+    <color name="app_divider">#2D3B47</color>
+    <color name="calendar_current_day">#64B5F6</color>
+    <color name="calendar_selected_day">#1E88E5</color>
+    <color name="calendar_multi_event">#90CAF9</color>
+    <color name="button_primary">#2D8CFF</color>
+    <color name="button_on_primary">#04101C</color>
+    <color name="top_bar_background">#0F2B3C</color>
+</resources>

@@ -468,6 +468,9 @@ public class DavidtrivialTest {
 
                     @Override
                     public void onDeleteMessage(Message message) {}
+
+                    @Override
+                    public void onEditCaption(Message message) {}
                 }
         );
 
@@ -499,6 +502,9 @@ public class DavidtrivialTest {
 
                     @Override
                     public void onDeleteMessage(Message message) {}
+
+                    @Override
+                    public void onEditCaption(Message message) {}
                 }
         );
 

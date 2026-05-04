@@ -136,7 +136,7 @@ public final class NotificationSyncManager {
         JsonArrayRequest request = new JsonArrayRequest(Request.Method.GET, url, null,
                 response -> {
                     List<String> formatted = formatHistory(response);
-                    AppNotificationManager.replaceNotifications(appContext, formatted);
+                    AppNotificationManager.replaceNotifications(appContext, formatted, containsUnread(response));
                     if (callback != null) {
                         callback.onSuccess(formatted);
                     }
@@ -422,6 +422,25 @@ public final class NotificationSyncManager {
         }
 
         return formatted;
+    }
+
+    private boolean containsUnread(JSONArray response) {
+        if (response == null) {
+            return false;
+        }
+
+        for (int i = 0; i < response.length(); i++) {
+            JSONObject item = response.optJSONObject(i);
+            if (item == null) {
+                continue;
+            }
+
+            if (item.has("isRead") && !item.optBoolean("isRead", true)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private String coreNotificationText(JSONObject item) {

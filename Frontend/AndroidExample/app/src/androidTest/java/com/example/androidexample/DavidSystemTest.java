@@ -208,7 +208,7 @@ public class DavidSystemTest {
     public void mainActivityShowsImportantButtons() {
         openMainActivityDirectly();
 
-        onView(withId(R.id.tvCurrentUser))
+                onView(withId(R.id.textView))
                 .check(matches(isDisplayed()));
 
         onView(withId(R.id.btnGroupList))
@@ -227,7 +227,7 @@ public class DavidSystemTest {
                 .perform(scrollTo())
                 .check(matches(isDisplayed()));
 
-        onView(withId(R.id.btnGoToDelete))
+        onView(withId(R.id.btnGoToCalendar))
                 .perform(scrollTo())
                 .check(matches(isDisplayed()));
     }
@@ -515,7 +515,7 @@ public class DavidSystemTest {
         onView(withId(R.id.delete_userid_btn))
                 .check(matches(isDisplayed()));
 
-        onView(withId(R.id.delete_back_btn))
+        onView(withId(R.id.btnTopBack))
                 .check(matches(isDisplayed()));
     }
 
@@ -587,10 +587,10 @@ public class DavidSystemTest {
     public void deleteUserBackButtonClosesPage() {
         openDeleteUserActivityDirectly();
 
-        onView(withId(R.id.delete_back_btn))
+        onView(withId(R.id.btnTopBack))
                 .check(matches(isDisplayed()));
 
-        onView(withId(R.id.delete_back_btn))
+        onView(withId(R.id.btnTopBack))
                 .perform(click());
 
         pause(500);
@@ -1298,7 +1298,7 @@ public class DavidSystemTest {
         onView(withId(R.id.delete_userid_btn))
                 .check(matches(isDisplayed()));
 
-        onView(withId(R.id.delete_back_btn))
+        onView(withId(R.id.btnTopBack))
                 .check(matches(isDisplayed()));
     }
 
@@ -1355,7 +1355,7 @@ public class DavidSystemTest {
     public void deleteUserActivityBackButtonCanBeClicked() {
         openDeleteUserActivityDirectly();
 
-        onView(withId(R.id.delete_back_btn))
+        onView(withId(R.id.btnTopBack))
                 .perform(click());
 
         pause(500);

@@ -5,7 +5,6 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.annotation.SuppressLint;
-import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.MotionEvent;
@@ -40,8 +39,6 @@ public class WorkoutListActivity extends AppCompatActivity {
     private WorkoutAdapter adapter;
     private List<Workout> workoutList;
 
-    private Button btnGoToMain1;
-
     private EditText createWorkoutName, createWorkoutDate, createWorkoutDescription;
     private Button btnCreateWorkout;
 
@@ -68,13 +65,6 @@ public class WorkoutListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.workout_list);
         AppTopBarController.setup(this);
-        //list dashboard
-        btnGoToMain1 = findViewById(R.id.btnGoToMain1);
-        btnGoToMain1.setOnClickListener(v -> {
-            Intent intent = new Intent(WorkoutListActivity.this, MainActivity.class);
-            startActivity(intent);
-        });
-
 
         checkHideCreate = findViewById(R.id.checkHideCreate);
         createWorkoutBox = findViewById(R.id.create_workout_box);

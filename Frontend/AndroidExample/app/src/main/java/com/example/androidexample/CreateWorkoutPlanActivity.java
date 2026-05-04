@@ -27,6 +27,7 @@ public class CreateWorkoutPlanActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_workout_plan);
+        AppTopBarController.setup(this);
 
         etWorkoutPlanName = findViewById(R.id.etWorkoutPlanName);
         etWorkoutPlanDescription = findViewById(R.id.etWorkoutPlanDescription);
