@@ -35,6 +35,8 @@ public class PersonalBestActivity extends AppCompatActivity {
     private KeepUser keepUser;
     private int userId;
 
+    private Button btnBackPersonalBests;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -49,6 +51,9 @@ public class PersonalBestActivity extends AppCompatActivity {
         etDate = findViewById(R.id.etDate);
         btnAdd = findViewById(R.id.btnAdd);
         rvPersonalBests = findViewById(R.id.rvPersonalBests);
+
+         btnBackPersonalBests = findViewById(R.id.btnBackPersonalBests);
+        btnBackPersonalBests.setOnClickListener(v -> finish());
 
         personalBestList = new ArrayList<>();
 

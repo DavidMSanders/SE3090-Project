@@ -42,6 +42,7 @@
         <activity android:name=".CreateWorkoutPlanActivity" />
         <activity android:name=".AssignWorkoutPlanActivity" />
         <activity android:name=".PersonalBestActivity" />
+        <activity android:name=".WorkoutPlanSummaryActivity" />
 
 
 

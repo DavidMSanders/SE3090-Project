@@ -20,13 +20,23 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
 
+        <Button
+            android:id="@+id/btnBackAssignWorkoutPlan"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Back"
+            app:layout_constraintTop_toBottomOf="@id/tvTitle"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="12dp" />
+
         <!-- GROUP -->
         <TextView
             android:id="@+id/tvGroupLabel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Choose Group"
-            app:layout_constraintTop_toBottomOf="@id/tvTitle"
+            app:layout_constraintTop_toBottomOf="@id/btnBackAssignWorkoutPlan"
             app:layout_constraintStart_toStartOf="parent"
             android:layout_marginTop="16dp"/>
 

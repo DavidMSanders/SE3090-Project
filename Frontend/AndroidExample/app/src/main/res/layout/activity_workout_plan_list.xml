@@ -4,6 +4,12 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="12dp">
+    <Button
+        android:id="@+id/btnBackWorkoutPlanList"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Back"
+        android:layout_marginBottom="8dp" />
 
     <Button
         android:id="@+id/btnCreateWorkoutPlan"
@@ -11,11 +17,19 @@
         android:layout_height="wrap_content"
         android:text="Create Workout Plan" />
 
+
     <Button
         android:id="@+id/btnOpenAssignWorkoutPage"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Assign Workout Plan"
+        android:layout_marginBottom="8dp" />
+
+    <Button
+        android:id="@+id/btnOpenWorkoutPlanSummaryPage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Workout Plan Summary"
         android:layout_marginBottom="8dp" />
 
     <androidx.recyclerview.widget.RecyclerView
