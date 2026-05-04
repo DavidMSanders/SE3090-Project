@@ -1,0 +1,344 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>WorkoutListActivity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample</a> &gt; <span class="el_source">WorkoutListActivity.java</span></div><h1>WorkoutListActivity.java</h1><pre class="source lang-java linenums">package com.example.androidexample;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import android.annotation.SuppressLint;
+import android.content.Intent;
+import android.os.Bundle;
+import android.os.Handler;
+import android.view.MotionEvent;
+import android.view.View;
+import android.widget.CheckBox;
+import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import com.android.volley.Request;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.JsonObjectRequest;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+
+import android.widget.Button;
+
+<span class="fc" id="L34">public class WorkoutListActivity extends AppCompatActivity {</span>
+    //http://coms-3090-035.class.las.iastate.edu:8080
+    private static final String BASE_URL = &quot;http://coms-3090-035.class.las.iastate.edu:8080&quot;;
+    private static final String WORKOUTS_URL = BASE_URL + &quot;/api/v1/workouts&quot;;
+
+    private RecyclerView WorkoutRecycler;
+    private WorkoutAdapter adapter;
+    private List&lt;Workout&gt; workoutList;
+
+    private Button btnGoToMain1;
+
+    private EditText createWorkoutName, createWorkoutDate, createWorkoutDescription;
+    private Button btnCreateWorkout;
+
+    private CheckBox checkHideCreate;
+    private View createWorkoutBox;
+
+    private Button CreatebtnDurationMinus, CreatebtnDurationPlus;
+    private TextView txtDurationValue;
+<span class="fc" id="L53">    private int durationValue = 30;</span>
+
+<span class="fc" id="L55">    private Handler durationHandler = new Handler();</span>
+<span class="fc" id="L56">    private boolean isPlusHeld = false;</span>
+<span class="fc" id="L57">    private boolean isMinusHeld = false;</span>
+
+    private Button btnSetToday;
+
+
+
+    @SuppressLint(&quot;ClickableViewAccessibility&quot;)
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+
+
+<span class="fc" id="L68">        super.onCreate(savedInstanceState);</span>
+<span class="fc" id="L69">        setContentView(R.layout.workout_list);</span>
+<span class="fc" id="L70">        AppTopBarController.setup(this);</span>
+        //list dashboard
+<span class="fc" id="L72">        btnGoToMain1 = findViewById(R.id.btnGoToMain1);</span>
+<span class="fc" id="L73">        btnGoToMain1.setOnClickListener(v -&gt; {</span>
+<span class="nc" id="L74">            Intent intent = new Intent(WorkoutListActivity.this, MainActivity.class);</span>
+<span class="nc" id="L75">            startActivity(intent);</span>
+<span class="nc" id="L76">        });</span>
+
+
+<span class="fc" id="L79">        checkHideCreate = findViewById(R.id.checkHideCreate);</span>
+<span class="fc" id="L80">        createWorkoutBox = findViewById(R.id.create_workout_box);</span>
+
+<span class="fc" id="L82">        checkHideCreate.setOnCheckedChangeListener((buttonView, isChecked) -&gt; {</span>
+<span class="fc bfc" id="L83" title="All 2 branches covered.">            if (isChecked) {</span>
+<span class="fc" id="L84">                createWorkoutBox.setVisibility(View.GONE);</span>
+            } else {
+<span class="fc" id="L86">                createWorkoutBox.setVisibility(View.VISIBLE);</span>
+            }
+<span class="fc" id="L88">        });</span>
+
+<span class="fc" id="L90">        CreatebtnDurationMinus = findViewById(R.id.CreatebtnDurationMinus);</span>
+<span class="fc" id="L91">        CreatebtnDurationPlus = findViewById(R.id.CreatebtnDurationPlus);</span>
+
+
+<span class="fc" id="L94">        txtDurationValue = findViewById(R.id.CreateitemWorkoutDuration);</span>
+
+<span class="fc" id="L96">        btnSetToday = findViewById(R.id.btnSetToday);</span>
+
+<span class="fc" id="L98">        btnSetToday.setOnClickListener(v -&gt; {</span>
+                    // Get the current date
+<span class="nc" id="L100">                    SimpleDateFormat sdf = new SimpleDateFormat(&quot;MM-dd-yyyy&quot;, Locale.getDefault());</span>
+<span class="nc" id="L101">                    String today =  sdf.format(new Date());</span>
+<span class="nc" id="L102">                    createWorkoutDate.setText(today);</span>
+<span class="nc" id="L103">                });</span>
+
+
+
+        //single increase no hold
+<span class="fc" id="L108">        CreatebtnDurationPlus.setOnClickListener(v -&gt; {</span>
+<span class="pc bpc" id="L109" title="1 of 2 branches missed.">                    if (durationValue &lt; 300) {</span>
+<span class="fc" id="L110">                        durationValue++;</span>
+<span class="fc" id="L111">                        txtDurationValue.setText(String.valueOf(durationValue));</span>
+                    }
+<span class="fc" id="L113">        });</span>
+
+<span class="fc" id="L115">        CreatebtnDurationPlus.setOnTouchListener(new View.OnTouchListener() {</span>
+            public boolean onTouch(View v, MotionEvent event) {
+<span class="fc bfc" id="L117" title="All 2 branches covered.">                if (event.getAction() == MotionEvent.ACTION_DOWN) {</span>
+<span class="fc" id="L118">                    isPlusHeld = true;</span>
+<span class="fc" id="L119">                    durationHandler.postDelayed(plusRunnable, 1000); // hold delay</span>
+<span class="fc" id="L120">                    return true;</span>
+<span class="pc bpc" id="L121" title="1 of 2 branches missed.">                } else if (event.getAction() == MotionEvent.ACTION_UP ||</span>
+<span class="nc bnc" id="L122" title="All 2 branches missed.">                        event.getAction() == MotionEvent.ACTION_CANCEL) {</span>
+<span class="fc" id="L123">                    isPlusHeld = false;</span>
+<span class="fc" id="L124">                    durationHandler.removeCallbacks(plusRunnable);</span>
+<span class="fc" id="L125">                    v.performClick(); //accessibility click (was warning)</span>
+<span class="fc" id="L126">                    return true;</span>
+                }
+<span class="nc" id="L128">                return false;</span>
+            }
+        });
+
+
+
+
+<span class="fc" id="L135">        CreatebtnDurationMinus.setOnClickListener(v -&gt; {</span>
+<span class="pc bpc" id="L136" title="1 of 2 branches missed.">            if (durationValue &gt; 0) {</span>
+<span class="fc" id="L137">                durationValue--;</span>
+<span class="fc" id="L138">                txtDurationValue.setText(String.valueOf(durationValue));</span>
+            }
+<span class="fc" id="L140">        });</span>
+
+<span class="fc" id="L142">        CreatebtnDurationMinus.setOnTouchListener(new View.OnTouchListener() {</span>
+            public boolean onTouch(View v, MotionEvent event) {
+<span class="fc bfc" id="L144" title="All 2 branches covered.">                if (event.getAction() == MotionEvent.ACTION_DOWN) {</span>
+<span class="fc" id="L145">                    isMinusHeld = true;</span>
+<span class="fc" id="L146">                    durationHandler.postDelayed(minusRunnable, 1000); // hold delay</span>
+<span class="fc" id="L147">                    return true;</span>
+<span class="pc bpc" id="L148" title="1 of 2 branches missed.">                } else if (event.getAction() == MotionEvent.ACTION_UP ||</span>
+<span class="nc bnc" id="L149" title="All 2 branches missed.">                        event.getAction() == MotionEvent.ACTION_CANCEL) {</span>
+<span class="fc" id="L150">                    isMinusHeld = false;</span>
+<span class="fc" id="L151">                    durationHandler.removeCallbacks(minusRunnable);</span>
+<span class="fc" id="L152">                    v.performClick(); //accessibility click (was warning)</span>
+<span class="fc" id="L153">                    return true;</span>
+                }
+<span class="nc" id="L155">                return false;</span>
+            }
+        });
+
+
+
+
+<span class="fc" id="L162">        createWorkoutName = findViewById(R.id.CreateitemWorkoutName);</span>
+<span class="fc" id="L163">        createWorkoutDate = findViewById(R.id.CreateitemWorkoutDate);</span>
+
+<span class="fc" id="L165">        createWorkoutDescription = findViewById(R.id.CreateitemWorkoutDescription);</span>
+
+<span class="fc" id="L167">        btnCreateWorkout = findViewById(R.id.btnCreateWorkout);</span>
+<span class="fc" id="L168">        btnCreateWorkout.setOnClickListener(v -&gt; {</span>
+<span class="fc" id="L169">            createWorkout();</span>
+<span class="fc" id="L170">        });</span>
+
+
+<span class="fc" id="L173">        WorkoutRecycler = findViewById(R.id.recyclerWorkouts);</span>
+<span class="fc" id="L174">        WorkoutRecycler.setLayoutManager(new LinearLayoutManager(this));</span>
+<span class="fc" id="L175">        WorkoutRecycler.setHasFixedSize(true);</span>
+
+<span class="fc" id="L177">        workoutList = new ArrayList&lt;&gt;();</span>
+
+<span class="fc" id="L179">        adapter = new WorkoutAdapter(this, workoutList);</span>
+<span class="fc" id="L180">        WorkoutRecycler.setAdapter(adapter);</span>
+
+<span class="fc" id="L182">        loadAllWorkouts();</span>
+<span class="fc" id="L183">    }</span>
+
+
+    private void loadAllWorkouts() {
+<span class="fc" id="L187">        KeepUser keepUser = new KeepUser(this);</span>
+<span class="fc" id="L188">        int userId = keepUser.getUserId();</span>
+
+<span class="fc" id="L190">        String url = WORKOUTS_URL + &quot;/user/&quot; + userId;</span>
+
+
+<span class="fc" id="L193">        JsonArrayRequest request = new JsonArrayRequest(</span>
+                Request.Method.GET,
+                url,
+                null,
+                response -&gt; {
+<span class="fc" id="L198">                    workoutList.clear();</span>
+<span class="fc bfc" id="L199" title="All 2 branches covered.">                    for (int i = 0; i &lt; response.length(); i++) {</span>
+                        try {
+<span class="fc" id="L201">                            JSONObject workoutJson = response.getJSONObject(i);</span>
+
+
+<span class="fc" id="L204">                            Workout workout = Workout.fromJson(workoutJson);</span>
+<span class="fc" id="L205">                            workoutList.add(workout);</span>
+
+<span class="nc" id="L207">                        } catch (JSONException e) {</span>
+<span class="nc" id="L208">                            Toast.makeText(this, &quot;JSON error: &quot; + e.getMessage(), Toast.LENGTH_LONG).show();</span>
+<span class="fc" id="L209">                        }</span>
+                    }
+<span class="fc" id="L211">                    adapter.notifyDataSetChanged();</span>
+<span class="fc" id="L212">                },</span>
+                error -&gt; {
+<span class="nc" id="L214">                    Toast.makeText(this, &quot;Error: &quot; + error.getMessage(), Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L215">                }</span>
+        );
+<span class="fc" id="L217">        VolleySingleton.getInstance(this).addToRequestQueue(request);</span>
+<span class="fc" id="L218">    } //end of Load all workouts</span>
+
+    private void createWorkout() {
+<span class="fc" id="L221">        String name = createWorkoutName.getText().toString().trim();</span>
+<span class="fc" id="L222">        String date = createWorkoutDate.getText().toString().trim();</span>
+        //String durationStr = createWorkoutDuration.getText().toString().trim();
+<span class="fc" id="L224">        String desc = createWorkoutDescription.getText().toString().trim();</span>
+
+<span class="pc bpc" id="L226" title="1 of 6 branches missed.">        if (name.isEmpty() || date.isEmpty() || desc.isEmpty()) {</span>
+<span class="fc" id="L227">            Toast.makeText(this, &quot;Please fill out all fields&quot;, Toast.LENGTH_LONG).show();</span>
+<span class="fc" id="L228">            return;</span>
+        }
+
+<span class="fc" id="L231">        KeepUser keepUser = new KeepUser(this);</span>
+<span class="fc" id="L232">        int userId = keepUser.getUserId();</span>
+
+<span class="fc" id="L234">        int duration = durationValue;</span>
+        /*
+        try {
+            duration = Integer.parseInt(durationStr);
+        }
+        catch (NumberFormatException e) {
+            Toast.makeText(this, &quot;Duration must be a number&quot;, Toast.LENGTH_LONG).show();
+            return;
+        }
+        */
+
+<span class="fc" id="L245">        JSONObject body = new JSONObject();</span>
+        try {
+<span class="fc" id="L247">            body.put(&quot;userId&quot;, userId);</span>
+<span class="fc" id="L248">            body.put(&quot;workoutName&quot;, name);</span>
+<span class="fc" id="L249">            body.put(&quot;workoutDescription&quot;, desc);</span>
+<span class="fc" id="L250">            body.put(&quot;durationMinutes&quot;, duration);</span>
+<span class="fc" id="L251">            body.put(&quot;scheduledDate&quot;, date);</span>
+
+
+
+<span class="nc" id="L255">        } catch (JSONException e) {</span>
+<span class="nc" id="L256">            Toast.makeText(this, &quot;JSON error: &quot; + e.getMessage(), Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L257">            return;</span>
+
+<span class="fc" id="L259">        }</span>
+<span class="fc" id="L260">        JsonObjectRequest request = new JsonObjectRequest(</span>
+                Request.Method.POST,
+                WORKOUTS_URL,
+                body,
+                response -&gt; {
+                    try{
+
+<span class="fc" id="L267">                        loadAllWorkouts(); // reload instead</span>
+<span class="fc" id="L268">                        Toast.makeText(this, &quot;Workout created!&quot;, Toast.LENGTH_LONG).show();</span>
+<span class="fc" id="L269">                        WorkoutRecycler.scrollToPosition(0);</span>
+
+<span class="fc" id="L271">                        createWorkoutName.setText(&quot;&quot;);</span>
+<span class="fc" id="L272">                        createWorkoutDate.setText(&quot;&quot;);</span>
+
+                        //createWorkoutDuration.setText(&quot;&quot;);
+
+<span class="fc" id="L276">                        durationValue = 30;</span>
+<span class="fc" id="L277">                        txtDurationValue.setText(String.valueOf(durationValue));</span>
+
+<span class="fc" id="L279">                        createWorkoutDescription.setText(&quot;&quot;);</span>
+
+<span class="fc" id="L281">                        loadAllWorkouts();</span>
+                        //reload workouts from both self and assigned
+<span class="fc" id="L283">                        Toast.makeText(this, &quot;Workout created!&quot;, Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L284">                    } catch (Exception e) {</span>
+<span class="nc" id="L285">                        Toast.makeText(this, &quot;JSON error: &quot; + e.getMessage(), Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L286">                        loadAllWorkouts();</span>
+<span class="fc" id="L287">                    }</span>
+<span class="fc" id="L288">                },</span>
+
+                error -&gt; {
+<span class="nc" id="L291">                    Toast.makeText(this, &quot;Create failed: &quot; + error.getMessage(), Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L292">                }</span>
+<span class="fc" id="L293">        ) {</span>
+            @Override
+            public String getBodyContentType() {
+<span class="fc" id="L296">                return &quot;application/json; charset=utf-8&quot;;</span>
+            }
+        };
+<span class="fc" id="L299">        VolleySingleton.getInstance(this).addToRequestQueue(request);</span>
+
+
+<span class="fc" id="L302">    }</span>
+
+
+    //Hold duration functions
+<span class="fc" id="L306">    private final Runnable plusRunnable = new Runnable() {</span>
+        @Override
+        public void run() {
+<span class="nc bnc" id="L309" title="All 4 branches missed.">            if (isPlusHeld &amp;&amp; durationValue &lt; 300) {</span>
+<span class="nc" id="L310">                durationValue += 5;</span>
+<span class="nc bnc" id="L311" title="All 2 branches missed.">                if(durationValue &gt; 300)</span>
+                {
+<span class="nc" id="L313">                    durationValue = 300;</span>
+                }
+<span class="nc" id="L315">                txtDurationValue.setText(String.valueOf(durationValue));</span>
+<span class="nc" id="L316">                durationHandler.postDelayed(this, 150); // repeat speed</span>
+            }
+<span class="nc" id="L318">        }</span>
+    };
+
+<span class="fc" id="L321">    private final Runnable minusRunnable = new Runnable() {</span>
+        @Override
+        public void run() {
+<span class="nc bnc" id="L324" title="All 4 branches missed.">            if (isMinusHeld &amp;&amp; durationValue &gt; 0) {</span>
+<span class="nc" id="L325">                durationValue -= 5;</span>
+<span class="nc bnc" id="L326" title="All 2 branches missed.">                if(durationValue &lt; 0)</span>
+                {
+<span class="nc" id="L328">                    durationValue = 0;</span>
+                }
+<span class="nc" id="L330">                txtDurationValue.setText(String.valueOf(durationValue));</span>
+<span class="nc" id="L331">                durationHandler.postDelayed(this, 150); // repeat speed</span>
+            }
+<span class="nc" id="L333">        }</span>
+    };
+
+    @Override
+    protected void onDestroy() {
+<span class="fc" id="L338">        super.onDestroy();</span>
+<span class="fc" id="L339">        durationHandler.removeCallbacks(plusRunnable);</span>
+<span class="fc" id="L340">        durationHandler.removeCallbacks(minusRunnable);</span>
+<span class="fc" id="L341">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

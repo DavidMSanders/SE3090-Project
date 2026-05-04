@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GroupAdapter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample</a> &gt; <span class="el_source">GroupAdapter.java</span></div><h1>GroupAdapter.java</h1><pre class="source lang-java linenums">package com.example.androidexample;
+
+import android.content.Context;
+import android.content.Intent;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.android.volley.Request;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.List;
+
+public class GroupAdapter extends RecyclerView.Adapter&lt;GroupAdapter.GroupViewHolder&gt;{
+
+    private final Context context;
+    private final List&lt;Group&gt; groupList;
+
+    private static final String Base_URL =
+            &quot;http://coms-3090-035.class.las.iastate.edu:8080&quot;;
+
+<span class="fc" id="L32">    public GroupAdapter(Context context, List&lt;Group&gt; groupList){</span>
+<span class="fc" id="L33">        this.context = context;</span>
+<span class="fc" id="L34">        this.groupList = groupList;</span>
+
+<span class="fc" id="L36">    }</span>
+
+    @NonNull
+    @Override
+    public GroupViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+<span class="fc" id="L41">        View view = LayoutInflater.from(context).inflate(R.layout.group_box, parent, false);</span>
+<span class="fc" id="L42">        return new GroupViewHolder(view);</span>
+
+    }
+
+    @Override
+    public void onBindViewHolder(@NonNull GroupViewHolder holder, int position) {
+<span class="fc" id="L48">        Group group = groupList.get(position);</span>
+
+<span class="fc" id="L50">        holder.tvGroupName.setText(group.getGroupName());</span>
+<span class="fc" id="L51">        holder.tvGroupType.setText(group.getGroupType());</span>
+<span class="fc" id="L52">        holder.tvGroupDescription.setText(group.getGroupDescription());</span>
+
+<span class="fc" id="L54">        updateButtonState(holder, group);</span>
+
+        //Button enabling/disabling
+
+
+<span class="fc" id="L59">        holder.btnJoinGroup.setOnClickListener(v -&gt; {</span>
+<span class="nc bnc" id="L60" title="All 2 branches missed.">            if (group.isMember()) {</span>
+<span class="nc" id="L61">                return;</span>
+            }
+
+<span class="nc" id="L64">            holder.btnJoinGroup.setEnabled(false);</span>
+<span class="nc" id="L65">            holder.btnJoinGroup.setText(&quot;Joining...&quot;);</span>
+
+<span class="nc" id="L67">            sendJoinGroupRequest(group, holder, position);</span>
+<span class="nc" id="L68">        });</span>
+
+
+<span class="fc" id="L71">        holder.btnGoToChat.setOnClickListener(v -&gt; {</span>
+<span class="nc bnc" id="L72" title="All 2 branches missed.">            if (!group.isMember()) {</span>
+<span class="nc" id="L73">                Toast.makeText(context, &quot;Join the group first&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L74">                return;</span>
+            }
+
+<span class="nc" id="L77">            Intent intent = new Intent(context, GroupChatActivity.class);</span>
+<span class="nc" id="L78">            intent.putExtra(&quot;groupId&quot;, group.getGroupID());</span>
+<span class="nc" id="L79">            intent.putExtra(&quot;groupName&quot;, group.getGroupName());</span>
+
+<span class="nc" id="L81">            intent.putExtra(&quot;groupDescription&quot;, group.getGroupDescription());</span>
+<span class="nc" id="L82">            intent.putExtra(&quot;groupType&quot;, group.getGroupType());</span>
+<span class="nc" id="L83">            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);</span>
+<span class="nc" id="L84">            context.startActivity(intent);</span>
+
+
+
+
+<span class="nc" id="L89">        });</span>
+
+
+
+
+
+<span class="fc" id="L95">    }</span>
+
+
+
+
+    // Send POST /api/v1/groups/{groupID}/join to join a group
+    private void sendJoinGroupRequest(Group group, GroupViewHolder holder, int position){
+<span class="nc" id="L102">        String url = Base_URL + &quot;/api/v1/groups/&quot; + group.getGroupID() + &quot;/join&quot;;</span>
+
+        //get userID from keepUser
+<span class="nc" id="L105">        KeepUser keepUser = new KeepUser(context);</span>
+<span class="nc" id="L106">        int userId = keepUser.getUserId();</span>
+
+        //make json body for req
+<span class="nc" id="L109">        JSONObject body = new JSONObject();</span>
+        try{
+<span class="nc" id="L111">            body.put(&quot;userId&quot;, userId);</span>
+<span class="nc" id="L112">        } catch (JSONException e){</span>
+<span class="nc" id="L113">            Toast.makeText(context, &quot;JSON error: &quot; + e.getMessage(), Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L114">            holder.btnJoinGroup.setEnabled(true);</span>
+<span class="nc" id="L115">            holder.btnJoinGroup.setText(&quot;Join&quot;);</span>
+<span class="nc" id="L116">            return;</span>
+<span class="nc" id="L117">        }</span>
+
+        // If your backend does not require a body, null is fine.
+<span class="nc" id="L120">        JsonObjectRequest request = new JsonObjectRequest(</span>
+                Request.Method.POST,
+                url,
+                body,
+                response -&gt; {
+                    // Try to read membershipId from backend response if present
+<span class="nc" id="L126">                    int membershipId = response.optInt(&quot;membershipId&quot;, -1);</span>
+<span class="nc" id="L127">                    String role = response.optString(&quot;role&quot;, &quot;MEMBER&quot;);</span>
+
+
+<span class="nc bnc" id="L130" title="All 2 branches missed.">                    if (membershipId != -1) {</span>
+<span class="nc" id="L131">                        group.setMembershipID(membershipId);</span>
+<span class="nc" id="L132">                        group.setMembershipRole(role);</span>
+                    } else {
+                        //fallback if mock server/backend doesn't return it yet
+<span class="nc" id="L135">                        group.setMembershipID(1);</span>
+                    }
+
+
+<span class="nc" id="L139">                    notifyItemChanged(position);</span>
+
+<span class="nc" id="L141">                    Toast.makeText(</span>
+                            context,
+<span class="nc" id="L143">                            response.toString(),</span>
+                           // &quot;Joined &quot; + group.getGroupName(),
+                            Toast.LENGTH_LONG
+<span class="nc" id="L146">                    ).show();</span>
+<span class="nc" id="L147">                },</span>
+                error -&gt; {
+                    // restore button if request failed
+<span class="nc" id="L150">                    holder.btnJoinGroup.setEnabled(true);</span>
+<span class="nc" id="L151">                    holder.btnJoinGroup.setText(&quot;Join&quot;);</span>
+
+<span class="nc" id="L153">                    Toast.makeText(</span>
+                            context,
+<span class="nc" id="L155">                            &quot;Join failed: &quot; + readableVolleyError(error),</span>
+                            Toast.LENGTH_LONG
+<span class="nc" id="L157">                    ).show();</span>
+<span class="nc" id="L158">                }</span>
+<span class="nc" id="L159">        ) {</span>
+            @Override
+            public String getBodyContentType() {
+<span class="nc" id="L162">                return &quot;application/json; charset=utf-8&quot;;</span>
+            }
+        };
+
+<span class="nc" id="L166">        VolleySingleton.getInstance(context).addToRequestQueue(request);</span>
+<span class="nc" id="L167">    }</span>
+
+    private String readableVolleyError(VolleyError error) {
+<span class="nc bnc" id="L170" title="All 2 branches missed.">        if(error==null) return &quot;Unknown error&quot;;</span>
+<span class="nc bnc" id="L171" title="All 2 branches missed.">        if(error.networkResponse!=null) {</span>
+<span class="nc" id="L172">            return &quot;HTTP &quot; + error.networkResponse.statusCode;</span>
+        }
+        else {
+<span class="nc" id="L175">            return error.toString();</span>
+        }
+    }
+
+    public static class GroupViewHolder extends RecyclerView.ViewHolder {
+        TextView tvGroupName, tvGroupType, tvGroupDescription;
+        Button btnJoinGroup, btnGoToChat;
+
+        public GroupViewHolder(@NonNull View itemView) {
+<span class="fc" id="L184">            super(itemView);</span>
+
+<span class="fc" id="L186">            tvGroupName = itemView.findViewById(R.id.tvGroupName);</span>
+<span class="fc" id="L187">            tvGroupType = itemView.findViewById(R.id.tvGroupType);</span>
+<span class="fc" id="L188">            tvGroupDescription = itemView.findViewById(R.id.tvGroupDescription);</span>
+
+<span class="fc" id="L190">            btnJoinGroup = itemView.findViewById(R.id.btnJoinGroup);</span>
+<span class="fc" id="L191">            btnGoToChat = itemView.findViewById(R.id.btnGoToChat);</span>
+<span class="fc" id="L192">        }</span>
+    }
+
+    private void updateButtonState(GroupViewHolder holder, Group group){
+<span class="fc bfc" id="L196" title="All 2 branches covered.">        if(group.isMember()){</span>
+<span class="fc" id="L197">            holder.btnJoinGroup.setText(&quot;Joined&quot;);</span>
+<span class="fc" id="L198">            holder.btnJoinGroup.setEnabled(false);</span>
+<span class="fc" id="L199">            holder.btnJoinGroup.setAlpha(0.5f);</span>
+
+<span class="fc" id="L201">            holder.btnGoToChat.setEnabled(true);</span>
+<span class="fc" id="L202">            holder.btnGoToChat.setAlpha(1.0f);</span>
+
+        }
+        else{
+<span class="fc" id="L206">            holder.btnJoinGroup.setText(&quot;Join&quot;);</span>
+<span class="fc" id="L207">            holder.btnJoinGroup.setEnabled(true);</span>
+<span class="fc" id="L208">            holder.btnJoinGroup.setAlpha(1.0f);</span>
+
+<span class="fc" id="L210">            holder.btnGoToChat.setEnabled(false);</span>
+<span class="fc" id="L211">            holder.btnGoToChat.setAlpha(0.5f);</span>
+        }
+<span class="fc" id="L213">    }</span>
+
+    @Override
+    public int getItemCount() {
+<span class="pc bpc" id="L217" title="1 of 2 branches missed.">        return groupList == null ? 0 : groupList.size();</span>
+    }
+
+
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

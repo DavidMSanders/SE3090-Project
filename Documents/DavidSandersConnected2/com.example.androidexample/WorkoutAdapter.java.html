@@ -1,0 +1,343 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>WorkoutAdapter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample</a> &gt; <span class="el_source">WorkoutAdapter.java</span></div><h1>WorkoutAdapter.java</h1><pre class="source lang-java linenums">package com.example.androidexample;
+
+import android.content.Context;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.Toast;
+
+
+import androidx.annotation.NonNull;
+import androidx.cardview.widget.CardView;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.android.volley.Request;
+import com.android.volley.toolbox.JsonObjectRequest;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.List;
+
+public class WorkoutAdapter extends RecyclerView.Adapter&lt;RecyclerView.ViewHolder&gt; {
+
+    // Change this when switching from mock to real backend
+    private static final String BASE_URL = &quot;http://coms-3090-035.class.las.iastate.edu:8080&quot;;
+    private static final String WORKOUTS_URL = BASE_URL + &quot;/api/v1/workouts&quot;;
+    private static final String ASSIGNED_WORKOUTS_URL = BASE_URL + &quot;/api/v1/assigned-workouts&quot;;
+
+    // Two row types
+    private static final int TYPE_SELF = 1;
+    private static final int TYPE_ASSIGNED = 2;
+
+    private final Context context;
+    private final List&lt;Workout&gt; workoutList;
+
+<span class="fc" id="L39">    public WorkoutAdapter(Context context, List&lt;Workout&gt; workoutList) {</span>
+<span class="fc" id="L40">        this.context = context;</span>
+<span class="fc" id="L41">        this.workoutList = workoutList;</span>
+<span class="fc" id="L42">    }</span>
+
+    @Override
+    public int getItemViewType(int position) {
+<span class="fc" id="L46">        Workout workout = workoutList.get(position);</span>
+<span class="pc bpc" id="L47" title="1 of 2 branches missed.">        return workout.isAssignedFromPlan() ? TYPE_ASSIGNED : TYPE_SELF;</span>
+    }
+
+    @NonNull
+    @Override
+    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+<span class="fc" id="L53">        LayoutInflater inflater = LayoutInflater.from(context);</span>
+
+<span class="pc bpc" id="L55" title="1 of 2 branches missed.">        if (viewType == TYPE_ASSIGNED) {</span>
+<span class="nc" id="L56">            View view = inflater.inflate(R.layout.workout_box_assigned, parent, false);</span>
+<span class="nc" id="L57">            return new AssignedWorkoutViewHolder(view);</span>
+        } else {
+<span class="fc" id="L59">            View view = inflater.inflate(R.layout.workout_box, parent, false);</span>
+<span class="fc" id="L60">            return new SelfWorkoutViewHolder(view);</span>
+        }
+    }
+
+    @Override
+    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
+<span class="fc" id="L66">        Workout workout = workoutList.get(position);</span>
+
+<span class="pc bpc" id="L68" title="1 of 2 branches missed.">        if (holder instanceof SelfWorkoutViewHolder) {</span>
+<span class="fc" id="L69">            bindSelfWorkout((SelfWorkoutViewHolder) holder, workout);</span>
+<span class="nc bnc" id="L70" title="All 2 branches missed.">        } else if (holder instanceof AssignedWorkoutViewHolder) {</span>
+<span class="nc" id="L71">            bindAssignedWorkout((AssignedWorkoutViewHolder) holder, workout);</span>
+        }
+<span class="fc" id="L73">    }</span>
+
+    @Override
+    public int getItemCount() {
+<span class="fc" id="L77">        return workoutList.size();</span>
+    }
+
+
+    // SELF-CREATED WORKOUT ROW
+
+    private void bindSelfWorkout(@NonNull SelfWorkoutViewHolder holder, @NonNull Workout workout) {
+<span class="fc" id="L84">        holder.editName.setText(workout.getWorkoutName());</span>
+<span class="fc" id="L85">        holder.editDate.setText(workout.getScheduledDate());</span>
+<span class="fc" id="L86">        holder.editDescription.setText(workout.getDescription());</span>
+
+<span class="fc" id="L88">        Integer duration = workout.getDurationMinutes();</span>
+<span class="pc bpc" id="L89" title="1 of 2 branches missed.">        holder.txtDuration.setText(duration == null ? &quot;0&quot; : String.valueOf(duration));</span>
+
+<span class="fc" id="L91">        holder.txtSourceType.setText(&quot;Created by you&quot;);</span>
+<span class="fc" id="L92">        holder.txtStatus.setText(&quot;Status: &quot; + workout.getStatus());</span>
+
+<span class="fc" id="L94">        holder.btnDurationMinus.setOnClickListener(v -&gt; {</span>
+<span class="nc" id="L95">            Integer current = workout.getDurationMinutes();</span>
+<span class="nc bnc" id="L96" title="All 2 branches missed.">            if (current == null) current = 0;</span>
+
+<span class="nc bnc" id="L98" title="All 2 branches missed.">            if (current &gt; 0) {</span>
+<span class="nc" id="L99">                current--;</span>
+<span class="nc" id="L100">                workout.setDurationMinutes(current);</span>
+<span class="nc" id="L101">                holder.txtDuration.setText(String.valueOf(current));</span>
+            }
+<span class="nc" id="L103">        });</span>
+
+<span class="fc" id="L105">        holder.btnDurationPlus.setOnClickListener(v -&gt; {</span>
+<span class="nc" id="L106">            Integer current = workout.getDurationMinutes();</span>
+<span class="nc bnc" id="L107" title="All 2 branches missed.">            if (current == null) current = 0;</span>
+
+<span class="nc bnc" id="L109" title="All 2 branches missed.">            if (current &lt; 300) {</span>
+<span class="nc" id="L110">                current++;</span>
+<span class="nc" id="L111">                workout.setDurationMinutes(current);</span>
+<span class="nc" id="L112">                holder.txtDuration.setText(String.valueOf(current));</span>
+            }
+<span class="nc" id="L114">        });</span>
+
+<span class="fc" id="L116">        holder.btnSave.setOnClickListener(v -&gt; {</span>
+<span class="nc" id="L117">            String name = holder.editName.getText().toString().trim();</span>
+<span class="nc" id="L118">            String date = holder.editDate.getText().toString().trim();</span>
+<span class="nc" id="L119">            String desc = holder.editDescription.getText().toString().trim();</span>
+
+<span class="nc bnc" id="L121" title="All 6 branches missed.">            if (name.isEmpty() || date.isEmpty() || desc.isEmpty()) {</span>
+<span class="nc" id="L122">                Toast.makeText(context, &quot;Please fill out all fields&quot;, Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L123">                return;</span>
+            }
+
+<span class="nc" id="L126">            workout.setWorkoutName(name);</span>
+<span class="nc" id="L127">            workout.setScheduledDate(date);</span>
+<span class="nc" id="L128">            workout.setDescription(desc);</span>
+
+<span class="nc" id="L130">            updateWorkout(workout);</span>
+<span class="nc" id="L131">        });</span>
+
+<span class="pc" id="L133">        holder.btnDelete.setOnClickListener(v -&gt; deleteWorkout(workout, holder.getAdapterPosition()));</span>
+<span class="fc" id="L134">    }</span>
+
+
+    // ASSIGNED WORKOUT ROW
+
+    private void bindAssignedWorkout(@NonNull AssignedWorkoutViewHolder holder, @NonNull Workout workout) {
+        // Red background for assigned workouts
+/*        holder.cardAssignedWorkout.setCardBackgroundColor(
+                context.getResources().getColor(android.R.color.holo_red_light)
+        );*/
+
+<span class="nc" id="L145">        holder.txtName.setText(workout.getWorkoutName());</span>
+<span class="nc" id="L146">        holder.txtDate.setText(workout.getScheduledDate());</span>
+<span class="nc" id="L147">        holder.txtDescription.setText(workout.getDescription());</span>
+
+<span class="nc" id="L149">        Integer duration = workout.getDurationMinutes();</span>
+        //holder.txtDuration.setText(duration == null ? &quot;-&quot; : String.valueOf(duration));
+
+<span class="nc" id="L152">        holder.txtSourceType.setText(&quot;Assigned by trainer&quot;);</span>
+<span class="nc" id="L153">        holder.txtStatus.setText(&quot;Status: &quot; + workout.getStatus());</span>
+
+<span class="nc bnc" id="L155" title="All 2 branches missed.">        String status = workout.getStatus() == null ? &quot;&quot; : workout.getStatus().toLowerCase();</span>
+
+        // Hide all status buttons first because RecyclerView reuses rows
+<span class="nc" id="L158">        holder.btnAccept.setVisibility(View.GONE);</span>
+<span class="nc" id="L159">        holder.btnReject.setVisibility(View.GONE);</span>
+<span class="nc" id="L160">        holder.btnComplete.setVisibility(View.GONE);</span>
+
+<span class="nc bnc" id="L162" title="All 2 branches missed.">        if (&quot;assigned&quot;.equals(status)) {</span>
+<span class="nc" id="L163">            holder.btnAccept.setVisibility(View.VISIBLE);</span>
+<span class="nc" id="L164">            holder.btnReject.setVisibility(View.VISIBLE);</span>
+<span class="nc bnc" id="L165" title="All 4 branches missed.">        } else if (&quot;accepted&quot;.equals(status) || &quot;in_progress&quot;.equals(status)) {</span>
+<span class="nc" id="L166">            holder.btnComplete.setVisibility(View.VISIBLE);</span>
+        }
+
+<span class="nc" id="L169">        holder.btnAccept.setOnClickListener(v -&gt;</span>
+<span class="nc" id="L170">                updateAssignedWorkoutStatus(workout, &quot;accepted&quot;, holder.getAdapterPosition()));</span>
+
+<span class="nc" id="L172">        holder.btnReject.setOnClickListener(v -&gt;</span>
+<span class="nc" id="L173">                updateAssignedWorkoutStatus(workout, &quot;rejected&quot;, holder.getAdapterPosition()));</span>
+
+<span class="nc" id="L175">        holder.btnComplete.setOnClickListener(v -&gt;</span>
+<span class="nc" id="L176">                updateAssignedWorkoutStatus(workout, &quot;completed&quot;, holder.getAdapterPosition()));</span>
+<span class="nc" id="L177">    }</span>
+
+
+    // UPDATE SELF WORKOUT
+
+    private void updateWorkout(Workout workout) {
+<span class="nc" id="L183">        String url = WORKOUTS_URL + &quot;/&quot; + workout.getWorkoutId();</span>
+
+        JSONObject body;
+        try {
+<span class="nc" id="L187">            body = workout.toUpdateJson();</span>
+<span class="nc" id="L188">        } catch (JSONException e) {</span>
+<span class="nc" id="L189">            Toast.makeText(context, &quot;JSON error: &quot; + e.getMessage(), Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L190">            return;</span>
+<span class="nc" id="L191">        }</span>
+
+<span class="nc" id="L193">        JsonObjectRequest request = new JsonObjectRequest(</span>
+                Request.Method.PUT,
+                url,
+                body,
+<span class="nc" id="L197">                response -&gt; Toast.makeText(context, &quot;Workout updated!&quot;, Toast.LENGTH_LONG).show(),</span>
+<span class="nc" id="L198">                error -&gt; Toast.makeText(context, &quot;Update failed: &quot; + error.getMessage(), Toast.LENGTH_LONG).show()</span>
+<span class="nc" id="L199">        ) {</span>
+            @Override
+            public String getBodyContentType() {
+<span class="nc" id="L202">                return &quot;application/json; charset=utf-8&quot;;</span>
+            }
+        };
+
+<span class="nc" id="L206">        VolleySingleton.getInstance(context).addToRequestQueue(request);</span>
+<span class="nc" id="L207">    }</span>
+
+
+    // DELETE SELF WORKOUT
+
+    private void deleteWorkout(Workout workout, int position) {
+<span class="nc bnc" id="L213" title="All 2 branches missed.">        if (position == RecyclerView.NO_POSITION) return;</span>
+
+<span class="nc" id="L215">        String url = WORKOUTS_URL + &quot;/&quot; + workout.getWorkoutId();</span>
+
+<span class="nc" id="L217">        JsonObjectRequest request = new JsonObjectRequest(</span>
+                Request.Method.DELETE,
+                url,
+                null,
+                response -&gt; {
+<span class="nc" id="L222">                    workoutList.remove(position);</span>
+<span class="nc" id="L223">                    notifyItemRemoved(position);</span>
+<span class="nc" id="L224">                    Toast.makeText(context, &quot;Workout deleted!&quot;, Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L225">                },</span>
+<span class="nc" id="L226">                error -&gt; Toast.makeText(context, &quot;Delete failed: &quot; + error.getMessage(), Toast.LENGTH_LONG).show()</span>
+        );
+
+<span class="nc" id="L229">        VolleySingleton.getInstance(context).addToRequestQueue(request);</span>
+<span class="nc" id="L230">    }</span>
+
+
+    // UPDATE ASSIGNED WORKOUT STATUS
+
+    private void updateAssignedWorkoutStatus(Workout workout, String newStatus, int position) {
+<span class="nc bnc" id="L236" title="All 2 branches missed.">        if (position == RecyclerView.NO_POSITION) return;</span>
+
+<span class="nc" id="L238">        Integer assignedWorkoutId = workout.getAssignedWorkoutId();</span>
+<span class="nc bnc" id="L239" title="All 2 branches missed.">        if (assignedWorkoutId == null) {</span>
+<span class="nc" id="L240">            Toast.makeText(context, &quot;Missing assignedWorkoutId&quot;, Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L241">            return;</span>
+        }
+
+<span class="nc" id="L244">        String url = ASSIGNED_WORKOUTS_URL + &quot;/&quot; + assignedWorkoutId + &quot;/status&quot;;</span>
+
+<span class="nc" id="L246">        JSONObject body = new JSONObject();</span>
+        try {
+<span class="nc" id="L248">            body.put(&quot;status&quot;, newStatus);</span>
+<span class="nc" id="L249">        } catch (JSONException e) {</span>
+<span class="nc" id="L250">            Toast.makeText(context, &quot;JSON error: &quot; + e.getMessage(), Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L251">            return;</span>
+<span class="nc" id="L252">        }</span>
+
+<span class="nc" id="L254">        JsonObjectRequest request = new JsonObjectRequest(</span>
+                Request.Method.PUT,
+                url,
+                body,
+                response -&gt; {
+                    // Update local workout object too
+<span class="nc" id="L260">                    workout.setStatus(newStatus);</span>
+
+                    // If rejected, remove it from the visible list
+<span class="nc bnc" id="L263" title="All 2 branches missed.">                    if (&quot;rejected&quot;.equalsIgnoreCase(newStatus)) {</span>
+<span class="nc" id="L264">                        workoutList.remove(position);</span>
+<span class="nc" id="L265">                        notifyItemRemoved(position);</span>
+<span class="nc" id="L266">                        Toast.makeText(context, &quot;Workout rejected&quot;, Toast.LENGTH_LONG).show();</span>
+                    } else {
+<span class="nc" id="L268">                        notifyItemChanged(position);</span>
+<span class="nc" id="L269">                        Toast.makeText(context, &quot;Status updated to &quot; + newStatus, Toast.LENGTH_LONG).show();</span>
+                    }
+<span class="nc" id="L271">                },</span>
+<span class="nc" id="L272">                error -&gt; Toast.makeText(context, &quot;Assigned workout update failed: &quot; + error.getMessage(), Toast.LENGTH_LONG).show()</span>
+<span class="nc" id="L273">        ) {</span>
+            @Override
+            public String getBodyContentType() {
+<span class="nc" id="L276">                return &quot;application/json; charset=utf-8&quot;;</span>
+            }
+        };
+
+<span class="nc" id="L280">        VolleySingleton.getInstance(context).addToRequestQueue(request);</span>
+<span class="nc" id="L281">    }</span>
+
+
+    // SELF VIEW HOLDER
+
+    static class SelfWorkoutViewHolder extends RecyclerView.ViewHolder {
+        EditText editName, editDate, editDescription;
+        TextView txtDuration, txtStatus, txtSourceType;
+        Button btnSave, btnDelete, btnDurationMinus, btnDurationPlus;
+
+        public SelfWorkoutViewHolder(@NonNull View itemView) {
+<span class="fc" id="L292">            super(itemView);</span>
+
+<span class="fc" id="L294">            editName = itemView.findViewById(R.id.itemWorkoutName);</span>
+<span class="fc" id="L295">            editDate = itemView.findViewById(R.id.itemWorkoutDate);</span>
+<span class="fc" id="L296">            editDescription = itemView.findViewById(R.id.itemWorkoutDescription);</span>
+
+<span class="fc" id="L298">            txtDuration = itemView.findViewById(R.id.itemWorkoutDuration);</span>
+<span class="fc" id="L299">            txtStatus = itemView.findViewById(R.id.itemWorkoutStatus);</span>
+<span class="fc" id="L300">            txtSourceType = itemView.findViewById(R.id.itemWorkoutSourceType);</span>
+
+<span class="fc" id="L302">            btnSave = itemView.findViewById(R.id.btnItemSave);</span>
+<span class="fc" id="L303">            btnDelete = itemView.findViewById(R.id.btnItemDelete);</span>
+<span class="fc" id="L304">            btnDurationMinus = itemView.findViewById(R.id.btnDurationMinus);</span>
+<span class="fc" id="L305">            btnDurationPlus = itemView.findViewById(R.id.btnDurationPlus);</span>
+<span class="fc" id="L306">        }</span>
+    }
+
+
+    // ASSIGNED VIEW HOLDER
+
+    static class AssignedWorkoutViewHolder extends RecyclerView.ViewHolder {
+        CardView cardAssignedWorkout;
+//, txtDuration
+        TextView txtName, txtDate, txtDescription;
+        TextView txtSourceType, txtStatus;
+
+        Button btnAccept, btnReject, btnComplete;
+
+        public AssignedWorkoutViewHolder(@NonNull View itemView) {
+<span class="nc" id="L321">            super(itemView);</span>
+
+<span class="nc" id="L323">            cardAssignedWorkout = itemView.findViewById(R.id.cardAssignedWorkout);</span>
+
+<span class="nc" id="L325">            txtName = itemView.findViewById(R.id.txtAssignedWorkoutName);</span>
+<span class="nc" id="L326">            txtDate = itemView.findViewById(R.id.txtAssignedWorkoutDate);</span>
+            //txtDuration = itemView.findViewById(R.id.txtAssignedWorkoutDuration);
+<span class="nc" id="L328">            txtDescription = itemView.findViewById(R.id.txtAssignedWorkoutDescription);</span>
+
+<span class="nc" id="L330">            txtSourceType = itemView.findViewById(R.id.txtAssignedWorkoutSourceType);</span>
+<span class="nc" id="L331">            txtStatus = itemView.findViewById(R.id.txtAssignedWorkoutStatus);</span>
+
+<span class="nc" id="L333">            btnAccept = itemView.findViewById(R.id.btnAssignedAccept);</span>
+<span class="nc" id="L334">            btnReject = itemView.findViewById(R.id.btnAssignedReject);</span>
+<span class="nc" id="L335">            btnComplete = itemView.findViewById(R.id.btnAssignedComplete);</span>
+<span class="nc" id="L336">        }</span>
+    }
+}
+
+
+
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

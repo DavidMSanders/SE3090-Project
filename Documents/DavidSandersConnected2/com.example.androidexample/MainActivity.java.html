@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MainActivity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample</a> &gt; <span class="el_source">MainActivity.java</span></div><h1>MainActivity.java</h1><pre class="source lang-java linenums">package com.example.androidexample;
+
+import androidx.appcompat.app.AppCompatActivity;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
+
+import android.content.Intent;
+
+<span class="fc" id="L11">public class MainActivity extends AppCompatActivity {</span>
+
+    // Default API URL for demonstration
+    //private String url = &quot;https://jsonplaceholder.typicode.com/users&quot;;
+    //private Spinner spMethod;
+    //private EditText etUrl, etRequest;
+    //private TextView tvResponse;
+    //private Button btnSend;
+    private String method;
+
+    private Button btnGoToDelete;
+
+    private Button btnGoToWorkout;
+
+    private Button btnGoToWorkoutList;
+
+    private TextView tvCurrentUser;
+    private Button btnLogout;
+
+    private Button btnGroupList;
+
+    private Button btnWorkoutPlans;
+
+    private Button btnGoToCalendar;
+
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+<span class="fc" id="L39">        super.onCreate(savedInstanceState);</span>
+<span class="fc" id="L40">        setContentView(R.layout.activity_main);</span>
+<span class="fc" id="L41">        AppTopBarController.setup(this);</span>
+
+        // Initialize UI components
+        //etUrl = findViewById(R.id.etUrl);
+        //etRequest = findViewById(R.id.etRequest);
+        //tvResponse = findViewById(R.id.tvResponse);
+        //btnSend = findViewById(R.id.sendBtn);
+        //spMethod = findViewById(R.id.spMethod);
+
+        //pers. user logic
+<span class="fc" id="L51">        tvCurrentUser = findViewById(R.id.tvCurrentUser);</span>
+<span class="fc" id="L52">        btnLogout = findViewById(R.id.btnLogout);</span>
+<span class="fc" id="L53">        KeepUser keepUser = new KeepUser(this);</span>
+
+<span class="pc bpc" id="L55" title="1 of 2 branches missed.">        if (keepUser.isLoggedIn()) {</span>
+<span class="fc" id="L56">            String username = keepUser.getUsername();</span>
+<span class="fc" id="L57">            tvCurrentUser.setText(&quot;Logged in as: &quot; + username);</span>
+<span class="fc" id="L58">        } else {</span>
+<span class="nc" id="L59">            tvCurrentUser.setText(&quot;Not logged in&quot;);</span>
+        }
+
+<span class="fc" id="L62">        btnLogout.setOnClickListener(v -&gt; {</span>
+<span class="nc" id="L63">            NotificationSyncManager.getInstance(this).stop();</span>
+<span class="nc" id="L64">            keepUser.clearUser();</span>
+<span class="nc" id="L65">            SessionManager.clearSession(this);</span>
+
+<span class="nc" id="L67">            Intent intent = new Intent(MainActivity.this, LandingActivity.class);</span>
+<span class="nc" id="L68">            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);</span>
+<span class="nc" id="L69">            startActivity(intent);</span>
+<span class="nc" id="L70">            finish();</span>
+<span class="nc" id="L71">        });</span>
+
+<span class="fc" id="L73">        btnGoToDelete = findViewById(R.id.btnGoToDelete);</span>
+<span class="fc" id="L74">        btnGoToWorkout = findViewById(R.id.btnGoToWorkout);</span>
+
+<span class="fc" id="L76">        btnGoToWorkoutList = findViewById(R.id.WorkoutList);</span>
+<span class="fc" id="L77">        btnGoToCalendar = findViewById(R.id.btnGoToCalendar);</span>
+
+<span class="fc" id="L79">        btnGroupList = findViewById(R.id.btnGroupList);</span>
+
+<span class="fc" id="L81">        Button btnTestingPage = findViewById(R.id.btnTestingPage);</span>
+
+<span class="fc" id="L83">        btnWorkoutPlans = findViewById(R.id.btnWorkoutPlans);</span>
+
+<span class="fc" id="L85">        String role = keepUser.getRoleOrDefault();</span>
+<span class="pc bpc" id="L86" title="3 of 4 branches missed.">        if(role.equalsIgnoreCase(&quot;trainer&quot;) || role.equalsIgnoreCase(&quot;admin&quot;))</span>
+<span class="fc" id="L87">            btnWorkoutPlans.setVisibility(View.VISIBLE);</span>
+        else
+<span class="nc" id="L89">            btnWorkoutPlans.setVisibility(View.GONE);</span>
+
+
+
+<span class="fc" id="L93">        Button btnPersonalBests = findViewById(R.id.btnPersonalBests);</span>
+
+<span class="fc" id="L95">        btnPersonalBests.setOnClickListener(v -&gt; {</span>
+<span class="nc" id="L96">            Intent intent = new Intent(MainActivity.this, PersonalBestActivity.class);</span>
+<span class="nc" id="L97">            startActivity(intent);</span>
+<span class="nc" id="L98">        });</span>
+
+<span class="fc" id="L100">        btnWorkoutPlans.setOnClickListener(v -&gt; {</span>
+<span class="nc" id="L101">            Intent intent = new Intent(MainActivity.this, WorkoutPlanListActivity.class);</span>
+<span class="nc" id="L102">            startActivity(intent);</span>
+<span class="nc" id="L103">        });</span>
+
+<span class="fc" id="L105">        btnTestingPage.setOnClickListener(v -&gt; {</span>
+<span class="nc" id="L106">            Intent intent = new Intent(MainActivity.this, TestingActivity.class);</span>
+<span class="nc" id="L107">            startActivity(intent);</span>
+<span class="nc" id="L108">        });</span>
+
+<span class="fc" id="L110">        btnGroupList.setOnClickListener(v -&gt; {</span>
+<span class="nc" id="L111">            Intent intent = new Intent(MainActivity.this, GroupListActivity.class);</span>
+<span class="nc" id="L112">            startActivity(intent);</span>
+<span class="nc" id="L113">        });</span>
+
+<span class="fc" id="L115">        btnGoToDelete.setOnClickListener(v -&gt; {</span>
+<span class="nc" id="L116">            Intent intent = new Intent(MainActivity.this, DeleteUserActivity.class);</span>
+<span class="nc" id="L117">            startActivity(intent);</span>
+<span class="nc" id="L118">        });</span>
+
+<span class="fc" id="L120">        btnGoToWorkout.setOnClickListener(v -&gt; {</span>
+<span class="nc" id="L121">            Intent intent = new Intent(MainActivity.this, CreateWorkoutActivity.class);</span>
+<span class="nc" id="L122">            startActivity(intent);</span>
+<span class="nc" id="L123">        });</span>
+
+<span class="fc" id="L125">        btnGoToWorkoutList.setOnClickListener(v -&gt; {</span>
+<span class="nc" id="L126">            Intent intent = new Intent(MainActivity.this, WorkoutListActivity.class);</span>
+<span class="nc" id="L127">            startActivity(intent);</span>
+<span class="nc" id="L128">        });</span>
+
+<span class="pc bpc" id="L130" title="1 of 2 branches missed.">        if (btnGoToCalendar != null) {</span>
+<span class="fc" id="L131">            btnGoToCalendar.setOnClickListener(v -&gt; {</span>
+<span class="nc" id="L132">                Intent intent = new Intent(MainActivity.this, CalendarActivity.class);</span>
+<span class="nc" id="L133">                startActivity(intent);</span>
+<span class="nc" id="L134">            });</span>
+        }
+/*
+        etUrl.setText(url); // Set default URL in the input field
+
+        // Initialize Spinner for selecting request method
+        String[] methods = new String[]{&quot;GET&quot;, &quot;POST&quot;};
+        ArrayAdapter&lt;String&gt; adapter = new ArrayAdapter&lt;&gt;(this, android.R.layout.simple_spinner_dropdown_item, methods);
+        spMethod.setAdapter(adapter);
+        spMethod.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView&lt;?&gt; parent, View view, int position, long id) {
+                method = (String) parent.getItemAtPosition(position);
+                if (method.equals(&quot;GET&quot;)) {
+                    etRequest.setText(&quot;&quot;); // Clear input field for GET
+                    etRequest.setEnabled(false); // Disable input for GET requests
+                } else {
+                    etRequest.setHint(&quot;Enter JSON object here:&quot;);
+                    etRequest.setEnabled(true); // Enable input for POST requests
+                }
+            }
+            @Override
+            public void onNothingSelected(AdapterView&lt;?&gt; parent) {
+                method = &quot;GET&quot;; // Default to GET if nothing is selected
+            }
+        });
+
+        // Set onClickListener for the send button
+        btnSend.setOnClickListener(v -&gt; {
+            url = etUrl.getText().toString().trim(); // Get user-entered URL
+            if (method.equals(&quot;GET&quot;)) getRequest();
+            else postRequest();
+        });
+    }
+
+    // Method to handle GET request
+    private void getRequest() {
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
+                response -&gt; tvResponse.setText(&quot;Response: &quot; + response), // Display response
+                error -&gt; tvResponse.setText(&quot;Error: &quot; + error.toString())) { // Handle error
+            @Override
+            public Map&lt;String, String&gt; getHeaders() throws AuthFailureError {
+                return new HashMap&lt;&gt;(); // Return empty headers
+            }
+        };
+        Volley.newRequestQueue(this).add(stringRequest); // Add request to queue
+    }
+
+    // Method to handle POST request
+    private void postRequest() {
+        Log.d(&quot;PostRequest&quot;, &quot;Preparing request...&quot;);
+        JSONObject postBody;
+        try {
+            postBody = new JSONObject(etRequest.getText().toString()); // Convert input to JSON object
+            Log.d(&quot;PostRequest&quot;, &quot;Request body: &quot; + postBody.toString());
+        } catch (JSONException e) {
+            Log.e(&quot;PostRequest&quot;, &quot;Invalid JSON format&quot;, e);
+            Toast.makeText(this, &quot;Invalid JSON format&quot;, Toast.LENGTH_SHORT).show();
+            return; // Exit if JSON is invalid
+        }
+
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url, postBody,
+                response -&gt; {
+                    Log.d(&quot;PostRequest&quot;, &quot;Response received: &quot; + response.toString());
+                    tvResponse.setText(&quot;Response: &quot; + response.toString()); // Display response
+                },
+                error -&gt; {
+                    Log.e(&quot;PostRequest&quot;, &quot;Error response received&quot;, error);
+                    tvResponse.setText(&quot;Error: &quot; + (error.getMessage() != null ? error.getMessage() : &quot;Unknown error&quot;)); // Handle error
+                }) {
+            @Override
+            public Map&lt;String, String&gt; getHeaders() throws AuthFailureError {
+                HashMap&lt;String, String&gt; headers = new HashMap&lt;&gt;();
+                headers.put(&quot;Content-Type&quot;, &quot;application/json&quot;); // Set content type
+                Log.d(&quot;PostRequest&quot;, &quot;Headers set: &quot; + headers.toString());
+                return headers;
+            }
+        };
+        Log.d(&quot;PostRequest&quot;, &quot;Sending request...&quot;);
+        Volley.newRequestQueue(this).add(request); // Add request to queue
+    }
+*/
+
+<span class="fc" id="L217">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

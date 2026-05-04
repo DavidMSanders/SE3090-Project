@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CreateWorkoutPlanActivity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample</a> &gt; <span class="el_source">CreateWorkoutPlanActivity.java</span></div><h1>CreateWorkoutPlanActivity.java</h1><pre class="source lang-java linenums">package com.example.androidexample;
+
+import android.os.Bundle;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.android.volley.Request;
+import com.android.volley.toolbox.JsonObjectRequest;
+
+import org.json.JSONObject;
+
+<span class="fc" id="L15">public class CreateWorkoutPlanActivity extends AppCompatActivity {</span>
+
+    private EditText etWorkoutPlanName, etWorkoutPlanDescription;
+    private Button btnSubmitWorkoutPlan;
+    //http://coms-3090-035.class.las.iastate.edu:8080
+//https://18366156-06c4-4fa7-b2cb-53279f7fd5ad.mock.pstmn.io
+    private static final String BASE_URL = &quot;http://coms-3090-035.class.las.iastate.edu:8080/api/v1&quot;;
+
+    private int trainerId;
+
+    private Button btnBackCreateWorkoutPlan;
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+<span class="fc" id="L28">        super.onCreate(savedInstanceState);</span>
+<span class="fc" id="L29">        setContentView(R.layout.activity_create_workout_plan);</span>
+
+<span class="fc" id="L31">        etWorkoutPlanName = findViewById(R.id.etWorkoutPlanName);</span>
+<span class="fc" id="L32">        etWorkoutPlanDescription = findViewById(R.id.etWorkoutPlanDescription);</span>
+<span class="fc" id="L33">        btnSubmitWorkoutPlan = findViewById(R.id.btnSubmitWorkoutPlan);</span>
+
+<span class="fc" id="L35">        btnBackCreateWorkoutPlan = findViewById(R.id.btnBackCreateWorkoutPlan);</span>
+<span class="fc" id="L36">        btnBackCreateWorkoutPlan.setOnClickListener(v -&gt; finish());</span>
+
+<span class="fc" id="L38">        KeepUser keepUser = new KeepUser(this);</span>
+<span class="fc" id="L39">        trainerId = keepUser.getUserId();</span>
+
+<span class="fc" id="L41">        btnSubmitWorkoutPlan.setOnClickListener(v -&gt; createWorkoutPlan());</span>
+<span class="fc" id="L42">    }</span>
+
+    private void createWorkoutPlan() {
+<span class="fc" id="L45">        String planName = etWorkoutPlanName.getText().toString().trim();</span>
+<span class="fc" id="L46">        String planDescription = etWorkoutPlanDescription.getText().toString().trim();</span>
+
+<span class="pc bpc" id="L48" title="1 of 2 branches missed.">        if (planName.isEmpty()) {</span>
+<span class="fc" id="L49">            Toast.makeText(this, &quot;Enter a workout plan name&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="fc" id="L50">            return;</span>
+        }
+
+<span class="nc" id="L53">        String url = BASE_URL + &quot;/workout-plans&quot;;</span>
+
+        try {
+<span class="nc" id="L56">            JSONObject body = new JSONObject();</span>
+<span class="nc" id="L57">            body.put(&quot;trainerId&quot;, trainerId);</span>
+<span class="nc" id="L58">            body.put(&quot;planName&quot;, planName);</span>
+<span class="nc" id="L59">            body.put(&quot;planDescription&quot;, planDescription);</span>
+
+<span class="nc" id="L61">            JsonObjectRequest request = new JsonObjectRequest(</span>
+                    Request.Method.POST,
+                    url,
+                    body,
+                    response -&gt; {
+<span class="nc" id="L66">                        Toast.makeText(this, &quot;Workout plan created&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L67">                        finish();</span>
+<span class="nc" id="L68">                    },</span>
+<span class="nc" id="L69">                    error -&gt; Toast.makeText(this, &quot;Failed to create workout plan&quot;, Toast.LENGTH_SHORT).show()</span>
+            );
+
+<span class="nc" id="L72">            VolleySingleton.getInstance(this).addToRequestQueue(request);</span>
+
+<span class="nc" id="L74">        } catch (Exception e) {</span>
+<span class="nc" id="L75">            Toast.makeText(this, &quot;Error building request&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L76">        }</span>
+<span class="nc" id="L77">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

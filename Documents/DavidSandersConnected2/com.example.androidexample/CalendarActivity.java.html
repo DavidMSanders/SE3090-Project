@@ -1,0 +1,592 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CalendarActivity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample</a> &gt; <span class="el_source">CalendarActivity.java</span></div><h1>CalendarActivity.java</h1><pre class="source lang-java linenums">package com.example.androidexample;
+
+import android.app.Activity;
+import android.os.Bundle;
+import android.util.Log;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.Toast;
+import android.widget.Spinner;
+import android.widget.ArrayAdapter;
+
+import com.android.volley.Request;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.github.sundeepk.compactcalendarview.CompactCalendarView;
+import com.github.sundeepk.compactcalendarview.domain.Event;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Locale;
+import android.graphics.Color;
+
+<span class="nc" id="L36">public class CalendarActivity extends Activity {</span>
+
+    private CompactCalendarView calendarView;
+    private TextView tvCurrentMonth;
+    private EditText etEventTitle;
+    private EditText etEventDescription;
+    private EditText etStartTime;
+    private EditText etEndTime;
+    private Button btnSaveEvent;
+    private Button btnEditEvent;
+    private Button btnDeleteEvent;
+    private Button btnShareEvent;
+    private EditText etShareUsername;
+    private TextView tvParticipantsBox;
+    private Spinner eventTypeSpinner;
+
+    private String selectedDate;
+    private Date selectedDateObj;
+    // Store events to display
+<span class="nc" id="L55">    private List&lt;Event&gt; events = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L56">    private long selectedEventId = -1;</span>
+
+    // api url
+    private static final String BASE_URL = &quot;http://coms-3090-035.class.las.iastate.edu:8080&quot;;
+    private long CURRENT_USER_ID;
+
+<span class="nc" id="L62">    private DateTimeFormatter formatter = DateTimeFormatter.ofPattern(&quot;M/d/yyyy&quot;);</span>
+<span class="nc" id="L63">    private final DateTimeFormatter monthFormatter = DateTimeFormatter.ofPattern(&quot;MMMM yyyy&quot;, Locale.getDefault());</span>
+<span class="nc" id="L64">    private final DateTimeFormatter uiTimeFormatter = DateTimeFormatter.ofPattern(&quot;HH:mm&quot;);</span>
+<span class="nc" id="L65">    private final DateTimeFormatter apiTimeFormatter = DateTimeFormatter.ofPattern(&quot;HH:mm:ss&quot;);</span>
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+<span class="nc" id="L69">        super.onCreate(savedInstanceState);</span>
+<span class="nc" id="L70">        setContentView(R.layout.activity_calendar);</span>
+<span class="nc" id="L71">        AppTopBarController.setup(this);</span>
+
+<span class="nc" id="L73">        String userIdStr = new KeepUser(this).getUserIdString();</span>
+<span class="nc bnc" id="L74" title="All 2 branches missed.">        if (userIdStr.isEmpty()) {</span>
+<span class="nc" id="L75">            userIdStr = SessionManager.getUserId(this);</span>
+        }
+        try {
+<span class="nc bnc" id="L78" title="All 2 branches missed.">            CURRENT_USER_ID = userIdStr.isEmpty() ? 1 : Long.parseLong(userIdStr);</span>
+<span class="nc" id="L79">        } catch (NumberFormatException e) {</span>
+<span class="nc" id="L80">            Log.e(&quot;Calendar&quot;, &quot;Invalid user id, using fallback&quot;, e);</span>
+<span class="nc" id="L81">            CURRENT_USER_ID = 1;</span>
+<span class="nc" id="L82">            Toast.makeText(this, &quot;Invalid user session, using default account&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L83">        }</span>
+
+<span class="nc" id="L85">        calendarView = (CompactCalendarView) findViewById(R.id.calendarView);</span>
+<span class="nc" id="L86">        tvCurrentMonth = findViewById(R.id.tvCurrentMonth);</span>
+<span class="nc" id="L87">        etEventTitle = findViewById(R.id.etEventTitle);</span>
+<span class="nc" id="L88">        etEventDescription = findViewById(R.id.etEventDescription);</span>
+<span class="nc" id="L89">        etStartTime = findViewById(R.id.etStartTime);</span>
+<span class="nc" id="L90">        etEndTime = findViewById(R.id.etEndTime);</span>
+<span class="nc" id="L91">        btnSaveEvent = findViewById(R.id.btnSaveEvent);</span>
+<span class="nc" id="L92">        btnEditEvent = findViewById(R.id.btnEditEvent);</span>
+<span class="nc" id="L93">        btnDeleteEvent = findViewById(R.id.btnDeleteEvent);</span>
+<span class="nc" id="L94">        btnShareEvent = findViewById(R.id.btnShareEvent);</span>
+<span class="nc" id="L95">        etShareUsername = findViewById(R.id.etShareUsername);</span>
+<span class="nc" id="L96">        tvParticipantsBox = findViewById(R.id.tvParticipantsBox);</span>
+<span class="nc" id="L97">        eventTypeSpinner = findViewById(R.id.eventTypeSpinner);</span>
+
+<span class="nc" id="L99">        String[] eventTypes = {&quot;Single&quot;, &quot;Every Sunday&quot;, &quot;Every Monday&quot;, &quot;Every Tuesday&quot;, &quot;Every Wednesday&quot;, &quot;Every Thursday&quot;, &quot;Every Friday&quot;, &quot;Every Saturday&quot;};</span>
+<span class="nc" id="L100">        ArrayAdapter&lt;String&gt; adapter = new ArrayAdapter&lt;&gt;(this, android.R.layout.simple_spinner_dropdown_item, eventTypes);</span>
+<span class="nc" id="L101">        eventTypeSpinner.setAdapter(adapter);</span>
+
+        // Initialize selectedDate with today's date
+<span class="nc" id="L104">        selectedDateObj = new Date();</span>
+<span class="nc" id="L105">        LocalDate localDate = selectedDateObj.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();</span>
+<span class="nc" id="L106">        selectedDate = localDate.format(formatter);</span>
+<span class="nc" id="L107">        updateCurrentMonthLabel(selectedDateObj);</span>
+        
+        // Set up calendar
+<span class="nc" id="L110">        calendarView.setUseThreeLetterAbbreviation(true);</span>
+
+        // Get existing events for current month
+<span class="nc" id="L113">        getRequest(selectedDateObj);</span>
+        
+        // Show details for the initial date (Today)
+<span class="nc" id="L116">        showEventsForDate(selectedDateObj);</span>
+
+<span class="nc" id="L118">        calendarView.setListener(new CompactCalendarView.CompactCalendarViewListener() {</span>
+            @Override
+            public void onDayClick(Date dateClicked) {
+<span class="nc" id="L121">                selectedDateObj = dateClicked;</span>
+<span class="nc" id="L122">                LocalDate localDate = dateClicked.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();</span>
+<span class="nc" id="L123">                selectedDate = localDate.format(formatter);</span>
+<span class="nc" id="L124">                Toast.makeText(CalendarActivity.this, &quot;Selected: &quot; + selectedDate, Toast.LENGTH_SHORT).show();</span>
+
+                // Show details from loaded events
+<span class="nc" id="L127">                showEventsForDate(dateClicked);</span>
+<span class="nc" id="L128">            }</span>
+
+            @Override
+            public void onMonthScroll(Date firstDayOfNewMonth) {
+<span class="nc" id="L132">                Log.d(&quot;Calendar&quot;, &quot;Month was scrolled to: &quot; + firstDayOfNewMonth);</span>
+<span class="nc" id="L133">                updateCurrentMonthLabel(firstDayOfNewMonth);</span>
+<span class="nc" id="L134">                getRequest(firstDayOfNewMonth); // Refresh events for visible month</span>
+<span class="nc" id="L135">            }</span>
+        });
+
+<span class="nc" id="L138">        btnSaveEvent.setOnClickListener(v -&gt; postRequest());</span>
+<span class="nc" id="L139">        btnEditEvent.setOnClickListener(v -&gt; editRequest());</span>
+<span class="nc" id="L140">        btnDeleteEvent.setOnClickListener(v -&gt; deleteRequest());</span>
+<span class="nc" id="L141">          btnShareEvent.setOnClickListener(v -&gt; shareRequest());</span>
+<span class="nc" id="L142">    }</span>
+
+    // Fetch events for the month shown by the calendar
+    // GET /api/v1/users/{userId}/events/month?year=YYYY&amp;month=M
+    private void getRequest(Date monthDate) {
+<span class="nc bnc" id="L147" title="All 2 branches missed.">        Date targetDate = (monthDate != null) ? monthDate : new Date();</span>
+<span class="nc" id="L148">        LocalDate targetLocalDate = targetDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();</span>
+<span class="nc" id="L149">        int year = targetLocalDate.getYear();</span>
+<span class="nc" id="L150">        int month = targetLocalDate.getMonthValue();</span>
+
+<span class="nc" id="L152">        String getUrl = BASE_URL + &quot;/api/v1/users/&quot; + CURRENT_USER_ID + &quot;/events/month?year=&quot; + year + &quot;&amp;month=&quot; + month;</span>
+<span class="nc" id="L153">        JsonArrayRequest request = new JsonArrayRequest(Request.Method.GET, getUrl, null,</span>
+                response -&gt; {
+<span class="nc" id="L155">                    Log.d(&quot;CalendarGet&quot;, &quot;Response: &quot; + response.toString());</span>
+<span class="nc" id="L156">                    calendarView.removeAllEvents();</span>
+<span class="nc" id="L157">                    events.clear();</span>
+                    
+                    try {
+<span class="nc bnc" id="L160" title="All 2 branches missed.">                        for (int i = 0; i &lt; response.length(); i++) {</span>
+<span class="nc" id="L161">                            JSONObject eventObj = response.getJSONObject(i);</span>
+<span class="nc" id="L162">                            String dateStr = eventObj.optString(&quot;date&quot;);</span>
+                            
+<span class="nc bnc" id="L164" title="All 4 branches missed.">                            if (dateStr == null || dateStr.isEmpty()) continue;</span>
+                            
+                            try {
+<span class="nc" id="L167">                                LocalDate date = LocalDate.parse(dateStr); </span>
+<span class="nc" id="L168">                                long millis = date.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli();</span>
+                                
+                                // Store the whole JSONObject as data in the Event
+<span class="nc" id="L171">                                Event ev = new Event(Color.RED, millis, eventObj);</span>
+<span class="nc" id="L172">                                calendarView.addEvent(ev);</span>
+<span class="nc" id="L173">                                events.add(ev);</span>
+<span class="nc" id="L174">                            } catch (Exception e) {</span>
+<span class="nc" id="L175">                                Log.e(&quot;CalendarGet&quot;, &quot;Date Parse Error: &quot; + dateStr, e);</span>
+<span class="nc" id="L176">                            }</span>
+                        }
+                        // Refresh UI for currently selected date after loading
+<span class="nc" id="L179">                        showEventsForDate(selectedDateObj);</span>
+<span class="nc" id="L180">                    } catch (JSONException e) {</span>
+<span class="nc" id="L181">                         Log.e(&quot;CalendarGet&quot;, &quot;JSON Parse Error&quot;, e);</span>
+<span class="nc" id="L182">                    }</span>
+<span class="nc" id="L183">                },</span>
+                error -&gt; {
+<span class="nc" id="L185">                    Log.e(&quot;CalendarGet&quot;, &quot;Error fetching events&quot;, error);</span>
+<span class="nc" id="L186">                    Toast.makeText(CalendarActivity.this,</span>
+<span class="nc" id="L187">                        extractServerErrorMessage(error, &quot;Error fetching events&quot;),</span>
+<span class="nc" id="L188">                        Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L189">                });</span>
+<span class="nc" id="L190">            enqueue(request);</span>
+<span class="nc" id="L191">    }</span>
+
+    // Helper to show events for a selected day from local list
+    private void showEventsForDate(Date date) {
+<span class="nc" id="L195">        List&lt;Event&gt; dayEvents = calendarView.getEvents(date);</span>
+<span class="nc" id="L196">        etEventTitle.setText(&quot;&quot;);</span>
+<span class="nc" id="L197">        etEventDescription.setText(&quot;&quot;);</span>
+<span class="nc" id="L198">        etStartTime.setText(&quot;&quot;);</span>
+<span class="nc" id="L199">        etEndTime.setText(&quot;&quot;);</span>
+<span class="nc" id="L200">        tvParticipantsBox.setText(&quot;Select an event to view participants.&quot;);</span>
+<span class="nc" id="L201">        selectedEventId = -1; // Reset selection</span>
+
+<span class="nc bnc" id="L203" title="All 4 branches missed.">        if (dayEvents != null &amp;&amp; !dayEvents.isEmpty()) {</span>
+<span class="nc" id="L204">            Event ev = dayEvents.get(0); // Just showing the first one for now</span>
+<span class="nc bnc" id="L205" title="All 2 branches missed.">            if (ev.getData() instanceof JSONObject) {</span>
+<span class="nc" id="L206">                JSONObject data = (JSONObject) ev.getData();</span>
+<span class="nc" id="L207">                String title = data.optString(&quot;title&quot;);</span>
+<span class="nc" id="L208">                String notes = data.optString(&quot;notes&quot;, data.optString(&quot;note&quot;, &quot;&quot;));</span>
+<span class="nc" id="L209">                String startTime = data.optString(&quot;startTime&quot;);</span>
+<span class="nc" id="L210">                String endTime = data.optString(&quot;endTime&quot;);</span>
+
+<span class="nc" id="L212">                etEventTitle.setText(title);</span>
+<span class="nc" id="L213">                etEventDescription.setText(notes);</span>
+<span class="nc" id="L214">                etStartTime.setText(formatTimeForUi(startTime));</span>
+<span class="nc" id="L215">                etEndTime.setText(formatTimeForUi(endTime));</span>
+
+<span class="nc" id="L217">                selectedEventId = parseEventId(data);</span>
+<span class="nc" id="L218">                fetchParticipants(selectedEventId);</span>
+            }
+        }
+<span class="nc" id="L221">    }</span>
+
+    private void fetchParticipants(long eventId) {
+<span class="nc" id="L224">        String url = BASE_URL + &quot;/api/v1/events/&quot; + eventId + &quot;/participants&quot;;</span>
+<span class="nc" id="L225">        JsonArrayRequest request = new JsonArrayRequest(Request.Method.GET, url, null,</span>
+<span class="nc" id="L226">                response -&gt; renderParticipants(response),</span>
+                error -&gt; {
+<span class="nc" id="L228">                    Log.e(&quot;CalendarParticipants&quot;, &quot;Error fetching participants&quot;, error);</span>
+<span class="nc" id="L229">                    tvParticipantsBox.setText(&quot;Unable to load participants.&quot;);</span>
+<span class="nc" id="L230">                });</span>
+<span class="nc" id="L231">        enqueue(request);</span>
+<span class="nc" id="L232">    }</span>
+
+    private void renderParticipants(JSONArray response) {
+<span class="nc bnc" id="L235" title="All 4 branches missed.">        if (response == null || response.length() == 0) {</span>
+<span class="nc" id="L236">            tvParticipantsBox.setText(&quot;No participants yet.&quot;);</span>
+<span class="nc" id="L237">            return;</span>
+        }
+
+<span class="nc" id="L240">        StringBuilder builder = new StringBuilder();</span>
+<span class="nc bnc" id="L241" title="All 2 branches missed.">        for (int i = 0; i &lt; response.length(); i++) {</span>
+<span class="nc" id="L242">            JSONObject participant = response.optJSONObject(i);</span>
+<span class="nc bnc" id="L243" title="All 2 branches missed.">            if (participant == null) {</span>
+<span class="nc" id="L244">                continue;</span>
+            }
+
+<span class="nc" id="L247">            String username = participant.optString(&quot;username&quot;, &quot;&quot;).trim();</span>
+<span class="nc" id="L248">            String status = participant.optString(&quot;status&quot;, &quot;INVITED&quot;).trim();</span>
+<span class="nc" id="L249">            long userId = participant.optLong(&quot;userId&quot;, -1);</span>
+
+<span class="nc bnc" id="L251" title="All 4 branches missed.">            String label = username.isEmpty() ? (userId == -1 ? &quot;Unknown user&quot; : &quot;User &quot; + userId) : username;</span>
+<span class="nc" id="L252">            builder.append(&quot;- &quot;).append(label);</span>
+<span class="nc bnc" id="L253" title="All 2 branches missed.">            if (!status.isEmpty()) {</span>
+<span class="nc" id="L254">                builder.append(&quot; (&quot;).append(status).append(&quot;)&quot;);</span>
+            }
+<span class="nc bnc" id="L256" title="All 2 branches missed.">            if (i &lt; response.length() - 1) {</span>
+<span class="nc" id="L257">                builder.append(&quot;\n&quot;);</span>
+            }
+        }
+
+<span class="nc" id="L261">        tvParticipantsBox.setText(builder.toString());</span>
+<span class="nc" id="L262">    }</span>
+
+    private String formatTimeForUi(String apiValue) {
+<span class="nc bnc" id="L265" title="All 4 branches missed.">        if (apiValue == null || apiValue.trim().isEmpty()) {</span>
+<span class="nc" id="L266">            return &quot;&quot;;</span>
+        }
+        try {
+<span class="nc" id="L269">            return LocalTime.parse(apiValue.trim()).format(uiTimeFormatter);</span>
+<span class="nc" id="L270">        } catch (Exception ignored) {</span>
+<span class="nc" id="L271">            return apiValue;</span>
+        }
+    }
+
+    private String normalizeTimeForApi(EditText input, String label) {
+<span class="nc" id="L276">        String raw = input.getText().toString().trim();</span>
+<span class="nc bnc" id="L277" title="All 2 branches missed.">        if (raw.isEmpty()) {</span>
+<span class="nc" id="L278">            return &quot;&quot;;</span>
+        }
+
+        try {
+            LocalTime parsed;
+<span class="nc bnc" id="L283" title="All 2 branches missed.">            if (raw.length() == 5) {</span>
+<span class="nc" id="L284">                parsed = LocalTime.parse(raw, uiTimeFormatter);</span>
+            } else {
+<span class="nc" id="L286">                parsed = LocalTime.parse(raw);</span>
+            }
+<span class="nc" id="L288">            return parsed.format(apiTimeFormatter);</span>
+<span class="nc" id="L289">        } catch (Exception e) {</span>
+<span class="nc" id="L290">            Toast.makeText(this, label + &quot; must be HH:mm&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L291">            input.requestFocus();</span>
+<span class="nc" id="L292">            return null;</span>
+        }
+    }
+
+    private boolean validateTimeRange(String startTime, String endTime) {
+<span class="nc bnc" id="L297" title="All 4 branches missed.">        if (startTime.isEmpty() || endTime.isEmpty()) {</span>
+<span class="nc" id="L298">            return true;</span>
+        }
+
+<span class="nc" id="L301">        LocalTime start = LocalTime.parse(startTime, apiTimeFormatter);</span>
+<span class="nc" id="L302">        LocalTime end = LocalTime.parse(endTime, apiTimeFormatter);</span>
+<span class="nc bnc" id="L303" title="All 2 branches missed.">        if (end.isBefore(start)) {</span>
+<span class="nc" id="L304">            Toast.makeText(this, &quot;End time must be after start time&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L305">            etEndTime.requestFocus();</span>
+<span class="nc" id="L306">            return false;</span>
+        }
+<span class="nc" id="L308">        return true;</span>
+    }
+
+    private long parseEventId(JSONObject eventObj) {
+<span class="nc" id="L312">        long id = eventObj.optLong(&quot;id&quot;, -1);</span>
+<span class="nc bnc" id="L313" title="All 2 branches missed.">        if (id != -1) {</span>
+<span class="nc" id="L314">            return id;</span>
+        }
+<span class="nc" id="L316">        return eventObj.optLong(&quot;eventId&quot;, -1);</span>
+    }
+
+    private void updateCurrentMonthLabel(Date date) {
+<span class="nc" id="L320">        LocalDate localDate = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();</span>
+<span class="nc" id="L321">        tvCurrentMonth.setText(localDate.format(monthFormatter));</span>
+<span class="nc" id="L322">    }</span>
+
+    // Helper method to convert date to backend format
+    private String formatDateForBackend(String dateString) {
+        try {
+<span class="nc" id="L327">            LocalDate date = LocalDate.parse(dateString, formatter);</span>
+<span class="nc" id="L328">            return date.format(DateTimeFormatter.ISO_LOCAL_DATE);</span>
+<span class="nc" id="L329">        } catch (Exception e) {</span>
+<span class="nc" id="L330">            Log.e(&quot;Calendar&quot;, &quot;Date conversion error&quot;, e);</span>
+<span class="nc" id="L331">            return dateString;</span>
+        }
+    } 
+
+    // Method to handle POST request (Create single or recurring event)
+    private void postRequest() {
+<span class="nc" id="L337">        Log.d(&quot;CalendarPost&quot;, &quot;Preparing request...&quot;);</span>
+<span class="nc" id="L338">        final String finalDate = formatDateForBackend(selectedDate);</span>
+<span class="nc" id="L339">        String eventType = eventTypeSpinner.getSelectedItem().toString();</span>
+<span class="nc" id="L340">        String eventTitle = etEventTitle.getText().toString().trim();</span>
+<span class="nc" id="L341">        String eventNotes = etEventDescription.getText().toString().trim();</span>
+<span class="nc" id="L342">        String startTime = normalizeTimeForApi(etStartTime, &quot;Start time&quot;);</span>
+<span class="nc" id="L343">        String endTime = normalizeTimeForApi(etEndTime, &quot;End time&quot;);</span>
+
+<span class="nc bnc" id="L345" title="All 4 branches missed.">        if (startTime == null || endTime == null) {</span>
+<span class="nc" id="L346">            return;</span>
+        }
+
+<span class="nc bnc" id="L349" title="All 2 branches missed.">        if (eventTitle.isEmpty()) {</span>
+<span class="nc" id="L350">            Toast.makeText(this, &quot;Enter a workout title&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L351">            return;</span>
+        }
+<span class="nc bnc" id="L353" title="All 2 branches missed.">        if (!validateTimeRange(startTime, endTime)) {</span>
+<span class="nc" id="L354">            return;</span>
+        }
+        
+        String url;
+<span class="nc bnc" id="L358" title="All 2 branches missed.">        if (eventType.equals(&quot;Single&quot;)) {</span>
+<span class="nc" id="L359">            url = BASE_URL + &quot;/api/v1/events&quot;;</span>
+        } else {
+<span class="nc" id="L361">            url = BASE_URL + &quot;/api/v1/events/recurring&quot;;</span>
+        }
+
+<span class="nc" id="L364">        JSONObject requestBody = new JSONObject();</span>
+        try {
+<span class="nc" id="L366">            requestBody.put(&quot;userId&quot;, CURRENT_USER_ID);</span>
+<span class="nc" id="L367">            requestBody.put(&quot;date&quot;, finalDate);</span>
+<span class="nc" id="L368">            requestBody.put(&quot;title&quot;, eventTitle);</span>
+<span class="nc" id="L369">            requestBody.put(&quot;notes&quot;, eventNotes);</span>
+<span class="nc" id="L370">            requestBody.put(&quot;note&quot;, eventNotes);</span>
+<span class="nc bnc" id="L371" title="All 2 branches missed.">            if (!startTime.isEmpty()) {</span>
+<span class="nc" id="L372">                requestBody.put(&quot;startTime&quot;, startTime);</span>
+            }
+<span class="nc bnc" id="L374" title="All 2 branches missed.">            if (!endTime.isEmpty()) {</span>
+<span class="nc" id="L375">                requestBody.put(&quot;endTime&quot;, endTime);</span>
+            }
+            
+<span class="nc bnc" id="L378" title="All 2 branches missed.">            if (!eventType.equals(&quot;Single&quot;)) {</span>
+<span class="nc" id="L379">                 String dayOfWeek = eventType.replace(&quot;Every &quot;, &quot;&quot;).toUpperCase();</span>
+<span class="nc" id="L380">                 requestBody.put(&quot;dayOfWeek&quot;, dayOfWeek);</span>
+            }
+<span class="nc" id="L382">        } catch (JSONException e) {</span>
+<span class="nc" id="L383">            e.printStackTrace();</span>
+<span class="nc" id="L384">        }</span>
+
+<span class="nc" id="L386">        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url, requestBody,</span>
+                response -&gt; {
+<span class="nc" id="L388">                    Log.d(&quot;CalendarPost&quot;, &quot;Response received: &quot; + response);</span>
+<span class="nc" id="L389">                    Toast.makeText(CalendarActivity.this, &quot;Event Saved (&quot; + eventType + &quot;)&quot;, Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L390">                    etEventTitle.setText(&quot;&quot;);</span>
+<span class="nc" id="L391">                    etEventDescription.setText(&quot;&quot;); </span>
+<span class="nc" id="L392">                    etStartTime.setText(&quot;&quot;);</span>
+<span class="nc" id="L393">                    etEndTime.setText(&quot;&quot;);</span>
+<span class="nc" id="L394">                    getRequest(selectedDateObj); // Refresh current month</span>
+<span class="nc" id="L395">                },</span>
+                error -&gt; {
+<span class="nc" id="L397">                    Log.e(&quot;CalendarPost&quot;, &quot;Error response received&quot;, error);</span>
+<span class="nc" id="L398">                    Toast.makeText(CalendarActivity.this,</span>
+<span class="nc" id="L399">                        extractServerErrorMessage(error, &quot;Error Saving Event&quot;),</span>
+<span class="nc" id="L400">                        Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L401">                });</span>
+        
+<span class="nc" id="L403">        Log.d(&quot;CalendarPost&quot;, &quot;Sending request...&quot;);</span>
+<span class="nc" id="L404">            enqueue(request);</span>
+<span class="nc" id="L405">    }</span>
+
+    // Method to handle PUT request (Edit event)
+    // PUT /api/v1/events/{eventId}
+    private void editRequest() {
+<span class="nc bnc" id="L410" title="All 2 branches missed.">        if (selectedEventId == -1) {</span>
+<span class="nc" id="L411">            Toast.makeText(this, &quot;No event selected to edit&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L412">            return;</span>
+        }
+        
+<span class="nc" id="L415">        Log.d(&quot;CalendarPut&quot;, &quot;Preparing request...&quot;);</span>
+<span class="nc" id="L416">        String putUrl = BASE_URL + &quot;/api/v1/events/&quot; + selectedEventId;</span>
+        
+<span class="nc" id="L418">        final String finalDate = formatDateForBackend(selectedDate);</span>
+<span class="nc" id="L419">        String eventTitle = etEventTitle.getText().toString().trim();</span>
+<span class="nc" id="L420">        String eventNotes = etEventDescription.getText().toString().trim();</span>
+<span class="nc" id="L421">        String startTime = normalizeTimeForApi(etStartTime, &quot;Start time&quot;);</span>
+<span class="nc" id="L422">        String endTime = normalizeTimeForApi(etEndTime, &quot;End time&quot;);</span>
+
+<span class="nc bnc" id="L424" title="All 4 branches missed.">        if (startTime == null || endTime == null) {</span>
+<span class="nc" id="L425">            return;</span>
+        }
+
+<span class="nc bnc" id="L428" title="All 2 branches missed.">        if (eventTitle.isEmpty()) {</span>
+<span class="nc" id="L429">            Toast.makeText(this, &quot;Enter a workout title&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L430">            return;</span>
+        }
+<span class="nc bnc" id="L432" title="All 2 branches missed.">        if (!validateTimeRange(startTime, endTime)) {</span>
+<span class="nc" id="L433">            return;</span>
+        }
+
+<span class="nc" id="L436">        JSONObject requestBody = new JSONObject();</span>
+        try {
+<span class="nc" id="L438">            requestBody.put(&quot;userId&quot;, CURRENT_USER_ID);</span>
+<span class="nc" id="L439">            requestBody.put(&quot;date&quot;, finalDate);</span>
+<span class="nc" id="L440">            requestBody.put(&quot;title&quot;, eventTitle);</span>
+<span class="nc" id="L441">            requestBody.put(&quot;notes&quot;, eventNotes);</span>
+<span class="nc" id="L442">            requestBody.put(&quot;note&quot;, eventNotes);</span>
+<span class="nc bnc" id="L443" title="All 2 branches missed.">            if (!startTime.isEmpty()) {</span>
+<span class="nc" id="L444">                requestBody.put(&quot;startTime&quot;, startTime);</span>
+            }
+<span class="nc bnc" id="L446" title="All 2 branches missed.">            if (!endTime.isEmpty()) {</span>
+<span class="nc" id="L447">                requestBody.put(&quot;endTime&quot;, endTime);</span>
+            }
+<span class="nc" id="L449">        } catch (JSONException e) {</span>
+<span class="nc" id="L450">            e.printStackTrace();</span>
+<span class="nc" id="L451">        }</span>
+
+<span class="nc" id="L453">        JsonObjectRequest request = new JsonObjectRequest(Request.Method.PUT, putUrl, requestBody,</span>
+                response -&gt; {
+<span class="nc" id="L455">                    Log.d(&quot;CalendarPut&quot;, &quot;Response received: &quot; + response);</span>
+<span class="nc" id="L456">                    Toast.makeText(CalendarActivity.this, &quot;Event Updated&quot;, Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L457">                    etEventTitle.setText(&quot;&quot;);</span>
+<span class="nc" id="L458">                    etEventDescription.setText(&quot;&quot;); </span>
+<span class="nc" id="L459">                    etStartTime.setText(&quot;&quot;);</span>
+<span class="nc" id="L460">                    etEndTime.setText(&quot;&quot;);</span>
+<span class="nc" id="L461">                    getRequest(selectedDateObj);</span>
+<span class="nc" id="L462">                },</span>
+                error -&gt; {
+<span class="nc" id="L464">                    Log.e(&quot;CalendarPut&quot;, &quot;Error response received&quot;, error);</span>
+<span class="nc" id="L465">                    Toast.makeText(CalendarActivity.this,</span>
+<span class="nc" id="L466">                        extractServerErrorMessage(error, &quot;Error Updating Event&quot;),</span>
+<span class="nc" id="L467">                        Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L468">                });</span>
+
+<span class="nc" id="L470">        Log.d(&quot;CalendarPut&quot;, &quot;Sending request...&quot;);</span>
+<span class="nc" id="L471">            enqueue(request);</span>
+<span class="nc" id="L472">    }</span>
+
+    // Method to handle DELETE request
+    // DELETE /api/v1/events/{eventId}
+    private void deleteRequest() {
+<span class="nc bnc" id="L477" title="All 2 branches missed.">        if (selectedEventId == -1) {</span>
+<span class="nc" id="L478">            Toast.makeText(this, &quot;No event selected to delete&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L479">            return;</span>
+        }
+
+<span class="nc" id="L482">        Log.d(&quot;CalendarDelete&quot;, &quot;Preparing request...&quot;);</span>
+<span class="nc" id="L483">        String deleteUrl = BASE_URL + &quot;/api/v1/events/&quot; + selectedEventId;</span>
+
+<span class="nc" id="L485">        StringRequest request = new StringRequest(Request.Method.DELETE, deleteUrl,</span>
+                response -&gt; {
+<span class="nc" id="L487">                    Log.d(&quot;CalendarDelete&quot;, &quot;Response received: &quot; + response);</span>
+<span class="nc" id="L488">                    Toast.makeText(CalendarActivity.this, &quot;Event Deleted&quot;, Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L489">                    etEventTitle.setText(&quot;&quot;);</span>
+<span class="nc" id="L490">                    etEventDescription.setText(&quot;&quot;); </span>
+<span class="nc" id="L491">                    etStartTime.setText(&quot;&quot;);</span>
+<span class="nc" id="L492">                    etEndTime.setText(&quot;&quot;);</span>
+<span class="nc" id="L493">                    getRequest(selectedDateObj);</span>
+<span class="nc" id="L494">                },</span>
+                error -&gt; {
+<span class="nc" id="L496">                    Log.e(&quot;CalendarDelete&quot;, &quot;Error response received&quot;, error);</span>
+<span class="nc" id="L497">                    Toast.makeText(CalendarActivity.this,</span>
+<span class="nc" id="L498">                        extractServerErrorMessage(error, &quot;Error Deleting Event&quot;),</span>
+<span class="nc" id="L499">                        Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L500">                });</span>
+        
+<span class="nc" id="L502">        Log.d(&quot;CalendarDelete&quot;, &quot;Sending request to: &quot; + deleteUrl);</span>
+<span class="nc" id="L503">            enqueue(request);</span>
+<span class="nc" id="L504">    }</span>
+
+    // Method to add a participant to the selected event by userId
+    // POST /api/v1/events/{eventId}/participants
+    private void shareRequest() {
+<span class="nc bnc" id="L509" title="All 2 branches missed.">        if (selectedEventId == -1) {</span>
+<span class="nc" id="L510">            Toast.makeText(this, &quot;No event selected to share&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L511">            return;</span>
+        }
+
+<span class="nc" id="L514">        String inviteUserIdText = etShareUsername.getText().toString().trim();</span>
+<span class="nc bnc" id="L515" title="All 2 branches missed.">        if (inviteUserIdText.isEmpty()) {</span>
+<span class="nc" id="L516">            Toast.makeText(this, &quot;Enter a user ID to invite&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L517">            return;</span>
+        }
+
+        long inviteUserId;
+        try {
+<span class="nc" id="L522">            inviteUserId = Long.parseLong(inviteUserIdText);</span>
+<span class="nc" id="L523">        } catch (NumberFormatException e) {</span>
+<span class="nc" id="L524">            Toast.makeText(this, &quot;User ID must be a number&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L525">            return;</span>
+<span class="nc" id="L526">        }</span>
+
+<span class="nc bnc" id="L528" title="All 2 branches missed.">        if (inviteUserId == CURRENT_USER_ID) {</span>
+<span class="nc" id="L529">            Toast.makeText(this, &quot;You are already the event owner&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L530">            return;</span>
+        }
+
+<span class="nc" id="L533">        String shareUrl = BASE_URL + &quot;/api/v1/events/&quot; + selectedEventId + &quot;/participants&quot;;</span>
+
+<span class="nc" id="L535">        JSONObject requestBody = new JSONObject();</span>
+        try {
+<span class="nc" id="L537">            requestBody.put(&quot;userId&quot;, inviteUserId);</span>
+<span class="nc" id="L538">        } catch (JSONException e) {</span>
+<span class="nc" id="L539">            Log.e(&quot;CalendarShare&quot;, &quot;Failed to build share payload&quot;, e);</span>
+<span class="nc" id="L540">            Toast.makeText(this, &quot;Unable to share event&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L541">            return;</span>
+<span class="nc" id="L542">        }</span>
+
+<span class="nc" id="L544">        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, shareUrl, requestBody,</span>
+                response -&gt; {
+<span class="nc" id="L546">                    Log.d(&quot;CalendarShare&quot;, &quot;Response received: &quot; + response);</span>
+<span class="nc" id="L547">                String username = response.optString(&quot;username&quot;, &quot;&quot;).trim();</span>
+<span class="nc" id="L548">                String status = response.optString(&quot;status&quot;, &quot;INVITED&quot;).trim();</span>
+<span class="nc bnc" id="L549" title="All 2 branches missed.">                String label = username.isEmpty() ? (&quot;userId=&quot; + inviteUserId) : username;</span>
+<span class="nc" id="L550">                Toast.makeText(</span>
+                    CalendarActivity.this,
+                    &quot;Participant invited: &quot; + label + &quot; (&quot; + status + &quot;)&quot;,
+                    Toast.LENGTH_LONG
+<span class="nc" id="L554">                ).show();</span>
+<span class="nc" id="L555">                    etShareUsername.setText(&quot;&quot;);</span>
+<span class="nc" id="L556">                    fetchParticipants(selectedEventId);</span>
+<span class="nc" id="L557">                },</span>
+                error -&gt; {
+<span class="nc" id="L559">                    Log.e(&quot;CalendarShare&quot;, &quot;Error response received&quot;, error);</span>
+<span class="nc" id="L560">                    Toast.makeText(CalendarActivity.this,</span>
+<span class="nc" id="L561">                            extractServerErrorMessage(error, &quot;Error sharing event&quot;),</span>
+<span class="nc" id="L562">                            Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L563">                });</span>
+
+<span class="nc" id="L565">        Log.d(&quot;CalendarShare&quot;, &quot;Sending request to: &quot; + shareUrl);</span>
+<span class="nc" id="L566">        enqueue(request);</span>
+<span class="nc" id="L567">    }</span>
+
+    private void enqueue(Request&lt;?&gt; request) {
+<span class="nc" id="L570">        VolleySingleton.getInstance(getApplicationContext()).addToRequestQueue(request);</span>
+<span class="nc" id="L571">    }</span>
+
+    private String extractServerErrorMessage(VolleyError error, String fallbackMessage) {
+<span class="nc bnc" id="L574" title="All 6 branches missed.">        if (error == null || error.networkResponse == null || error.networkResponse.data == null) {</span>
+<span class="nc" id="L575">            return fallbackMessage;</span>
+        }
+
+        try {
+<span class="nc" id="L579">            String responseBody = new String(error.networkResponse.data, StandardCharsets.UTF_8);</span>
+<span class="nc" id="L580">            JSONObject obj = new JSONObject(responseBody);</span>
+<span class="nc" id="L581">            String message = obj.optString(&quot;message&quot;, &quot;&quot;).trim();</span>
+<span class="nc bnc" id="L582" title="All 2 branches missed.">            if (!message.isEmpty()) {</span>
+<span class="nc" id="L583">                return message;</span>
+            }
+<span class="nc" id="L585">        } catch (Exception ignored) {</span>
+            // Fallback to generic message if server response is not JSON.
+<span class="nc" id="L587">        }</span>
+<span class="nc" id="L588">        return fallbackMessage;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

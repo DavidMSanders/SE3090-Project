@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GroupCreateActivity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample</a> &gt; <span class="el_source">GroupCreateActivity.java</span></div><h1>GroupCreateActivity.java</h1><pre class="source lang-java linenums">package com.example.androidexample;
+
+import android.os.Bundle;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.android.volley.Request;
+import com.android.volley.toolbox.JsonObjectRequest;
+
+import org.json.JSONObject;
+
+<span class="nc" id="L15">public class GroupCreateActivity extends AppCompatActivity {</span>
+
+    private EditText TextCreateGroupName;
+    //private EditText TextCreateGroupType;
+    private EditText TextCreateGroupDescription;
+    private Button btnSubmitCreateGroup;
+    private Button btnBackFromCreateGroup;
+
+    private static final String BASE_URL =
+            &quot;http://coms-3090-035.class.las.iastate.edu:8080&quot;;
+    private static final String GROUP_TYPE = &quot;Trainer Group&quot;;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+<span class="nc" id="L29">        super.onCreate(savedInstanceState);</span>
+<span class="nc" id="L30">        setContentView(R.layout.activity_create_group);</span>
+
+<span class="nc" id="L32">        TextCreateGroupName = findViewById(R.id.etCreateGroupName);</span>
+        //TextCreateGroupType = findViewById(R.id.tvCreateGroupTypeValue);
+<span class="nc" id="L34">        TextCreateGroupDescription = findViewById(R.id.etCreateGroupDescription);</span>
+<span class="nc" id="L35">        btnSubmitCreateGroup = findViewById(R.id.btnSubmitCreateGroup);</span>
+<span class="nc" id="L36">        btnBackFromCreateGroup = findViewById(R.id.btnBackFromCreateGroup);</span>
+
+<span class="nc" id="L38">        btnSubmitCreateGroup.setOnClickListener(v -&gt; CreateGroup());</span>
+<span class="nc" id="L39">        btnBackFromCreateGroup.setOnClickListener(v -&gt; finish());</span>
+<span class="nc" id="L40">    }</span>
+
+    private void CreateGroup() {
+<span class="nc" id="L43">        String groupName = TextCreateGroupName.getText().toString().trim();</span>
+        //String groupType = TextCreateGroupType.getText().toString().trim();
+<span class="nc" id="L45">        String groupDescription = TextCreateGroupDescription.getText().toString().trim();</span>
+
+        //basic checks
+<span class="nc bnc" id="L48" title="All 2 branches missed.">        if (groupName.isEmpty()) {</span>
+<span class="nc" id="L49">            Toast.makeText(this, &quot;Please enter a group name&quot;, Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L50">            return;</span>
+        }
+<span class="nc bnc" id="L52" title="All 2 branches missed.">        if(groupDescription.isEmpty()){</span>
+<span class="nc" id="L53">            Toast.makeText(this, &quot;Please enter a group description&quot;, Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L54">            return;</span>
+        }
+
+        //import persistent user
+<span class="nc" id="L58">        KeepUser keepUser = new KeepUser(this);</span>
+<span class="nc" id="L59">        int userId = keepUser.getUserId();</span>
+
+        //String role = keepUser.getRole();
+        //could do FE role check but its already hidden otherwise so it should be fine
+
+<span class="nc" id="L64">        sendCreateGroupRequest(groupName, groupDescription, userId);</span>
+
+<span class="nc" id="L66">    }</span>
+    private void sendCreateGroupRequest(String groupName, String groupDescription, int userId) {
+<span class="nc" id="L68">        String url = BASE_URL + &quot;/api/v1/groups&quot;;</span>
+
+<span class="nc" id="L70">        JSONObject body = new JSONObject();</span>
+
+        try{
+<span class="nc" id="L73">            body.put(&quot;creatorId&quot;, userId);</span>
+<span class="nc" id="L74">            body.put(&quot;groupTitle&quot;, groupName);</span>
+<span class="nc" id="L75">            body.put(&quot;groupType&quot;, &quot;Trainer Group&quot;);</span>
+<span class="nc" id="L76">            body.put(&quot;groupDetails&quot;, groupDescription);</span>
+<span class="nc" id="L77">        } catch (Exception e){</span>
+<span class="nc" id="L78">            Toast.makeText(this, &quot;JSON error: &quot; + e.getMessage(), Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L79">            return;</span>
+
+<span class="nc" id="L81">        }</span>
+
+<span class="nc" id="L83">        JsonObjectRequest request = new JsonObjectRequest(</span>
+                Request.Method.POST,
+                url,
+                body,
+                response -&gt; {
+<span class="nc" id="L88">                    Toast.makeText(</span>
+                            GroupCreateActivity.this,
+                            &quot;Group created successfully&quot;,
+                            Toast.LENGTH_LONG
+<span class="nc" id="L92">                    ).show();</span>
+
+
+<span class="nc" id="L95">                    finish();</span>
+<span class="nc" id="L96">                },</span>
+                error -&gt; {
+<span class="nc" id="L98">                    Toast.makeText(</span>
+                            GroupCreateActivity.this,
+<span class="nc" id="L100">                            &quot;Failed to create group: &quot; + readableVolleyError(error),</span>
+                            Toast.LENGTH_LONG
+<span class="nc" id="L102">                    ).show();</span>
+<span class="nc" id="L103">                }</span>
+<span class="nc" id="L104">        ){</span>
+            @Override
+            public String getBodyContentType() {
+<span class="nc" id="L107">                return &quot;application/json; charset=utf-8&quot;;</span>
+            }
+        };
+
+<span class="nc" id="L111">        VolleySingleton.getInstance(this).addToRequestQueue(request);</span>
+
+<span class="nc" id="L113">    }</span>
+    private String readableVolleyError(com.android.volley.VolleyError error) {
+<span class="nc bnc" id="L115" title="All 2 branches missed.">        if(error==null) return &quot;Unknown error&quot;;</span>
+<span class="nc bnc" id="L116" title="All 2 branches missed.">        if(error.networkResponse!=null) {</span>
+<span class="nc" id="L117">            return &quot;HTTP &quot; + error.networkResponse.statusCode;</span>
+        }
+        else {
+<span class="nc" id="L120">            return error.toString();</span>
+        }
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

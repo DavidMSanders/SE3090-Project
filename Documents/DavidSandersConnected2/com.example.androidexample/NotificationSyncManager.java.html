@@ -1,0 +1,550 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>NotificationSyncManager.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample</a> &gt; <span class="el_source">NotificationSyncManager.java</span></div><h1>NotificationSyncManager.java</h1><pre class="source lang-java linenums">package com.example.androidexample;
+
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.net.Uri;
+import android.os.Handler;
+import android.os.Looper;
+import android.util.Log;
+
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.StringRequest;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+
+import okhttp3.OkHttpClient;
+import okhttp3.Request.Builder;
+import okhttp3.Response;
+import okhttp3.WebSocket;
+import okhttp3.WebSocketListener;
+import okio.ByteString;
+
+public final class NotificationSyncManager {
+
+    private static final String TAG = &quot;NotificationSync&quot;;
+
+    private static final String HTTP_BASE_URL = &quot;http://coms-3090-035.class.las.iastate.edu:8080&quot;;
+    private static final String WS_BASE_URL = &quot;ws://coms-3090-035.class.las.iastate.edu:8080&quot;;
+    private static final long WORKOUT_CHECK_INTERVAL_MS = 60_000L;
+    private static final String WORKOUT_ALERT_PREFS = &quot;workout_start_alerts&quot;;
+    private static final String WORKOUT_ALERT_KEY_PREFIX = &quot;sent_&quot;;
+
+    private static NotificationSyncManager instance;
+
+    private final Context appContext;
+    private final RequestQueue requestQueue;
+    private final OkHttpClient webSocketClient;
+    private final Handler mainHandler;
+
+    private WebSocket webSocket;
+<span class="fc" id="L52">    private String activeUserId = &quot;&quot;;</span>
+<span class="fc" id="L53">    private boolean closedByUser = false;</span>
+<span class="fc" id="L54">    private int reconnectAttempts = 0;</span>
+
+<span class="fc" id="L56">    private final Runnable workoutReminderRunnable = new Runnable() {</span>
+        @Override
+        public void run() {
+<span class="fc" id="L59">            synchronized (NotificationSyncManager.this) {</span>
+<span class="pc bpc" id="L60" title="2 of 4 branches missed.">                if (closedByUser || activeUserId.isEmpty()) {</span>
+<span class="nc" id="L61">                    return;</span>
+                }
+<span class="fc" id="L63">            }</span>
+
+<span class="fc" id="L65">            checkWorkoutStartAlerts(activeUserId);</span>
+<span class="fc" id="L66">            mainHandler.postDelayed(this, WORKOUT_CHECK_INTERVAL_MS);</span>
+<span class="fc" id="L67">        }</span>
+    };
+
+    public interface NotificationListCallback {
+        void onSuccess(List&lt;String&gt; notifications);
+        void onError(String errorMessage);
+    }
+
+    public interface OperationCallback {
+        void onSuccess();
+        void onError(String errorMessage);
+    }
+
+<span class="fc" id="L80">    private NotificationSyncManager(Context context) {</span>
+<span class="fc" id="L81">        this.appContext = context.getApplicationContext();</span>
+<span class="fc" id="L82">        this.requestQueue = VolleySingleton.getInstance(this.appContext).getRequestQueue();</span>
+<span class="fc" id="L83">        this.webSocketClient = new OkHttpClient.Builder().retryOnConnectionFailure(true).build();</span>
+<span class="fc" id="L84">        this.mainHandler = new Handler(Looper.getMainLooper());</span>
+<span class="fc" id="L85">    }</span>
+
+    public static synchronized NotificationSyncManager getInstance(Context context) {
+<span class="fc bfc" id="L88" title="All 2 branches covered.">        if (instance == null) {</span>
+<span class="fc" id="L89">            instance = new NotificationSyncManager(context);</span>
+        }
+<span class="fc" id="L91">        return instance;</span>
+    }
+
+    public synchronized void startForCurrentUser() {
+<span class="fc" id="L95">        KeepUser keepUser = new KeepUser(appContext);</span>
+<span class="pc bpc" id="L96" title="1 of 2 branches missed.">        if (!keepUser.isLoggedIn()) {</span>
+<span class="nc" id="L97">            return;</span>
+        }
+
+<span class="fc" id="L100">        String userId = keepUser.getUserIdString();</span>
+<span class="pc bpc" id="L101" title="1 of 2 branches missed.">        if (userId.isEmpty()) {</span>
+<span class="nc" id="L102">            return;</span>
+        }
+
+<span class="pc bpc" id="L105" title="1 of 4 branches missed.">        if (userId.equals(activeUserId) &amp;&amp; webSocket != null) {</span>
+<span class="fc" id="L106">            return;</span>
+        }
+
+<span class="fc" id="L109">        stopInternal(false);</span>
+<span class="fc" id="L110">        activeUserId = userId;</span>
+<span class="fc" id="L111">        closedByUser = false;</span>
+
+<span class="fc" id="L113">        fetchNotificationsForUser(userId, null);</span>
+<span class="fc" id="L114">        connectWebSocket(userId);</span>
+<span class="fc" id="L115">        startWorkoutReminderChecks(userId);</span>
+<span class="fc" id="L116">    }</span>
+
+    public synchronized void stop() {
+<span class="nc" id="L119">        stopInternal(true);</span>
+<span class="nc" id="L120">    }</span>
+
+    public void fetchNotificationsForCurrentUser(NotificationListCallback callback) {
+<span class="nc" id="L123">        String userId = new KeepUser(appContext).getUserIdString();</span>
+<span class="nc bnc" id="L124" title="All 2 branches missed.">        if (userId.isEmpty()) {</span>
+<span class="nc bnc" id="L125" title="All 2 branches missed.">            if (callback != null) {</span>
+<span class="nc" id="L126">                callback.onError(&quot;User id is not available&quot;);</span>
+            }
+<span class="nc" id="L128">            return;</span>
+        }
+<span class="nc" id="L130">        fetchNotificationsForUser(userId, callback);</span>
+<span class="nc" id="L131">    }</span>
+
+    public void fetchNotificationsForUser(String userId, NotificationListCallback callback) {
+<span class="fc" id="L134">        String url = HTTP_BASE_URL + &quot;/notifications/&quot; + Uri.encode(userId);</span>
+
+<span class="fc" id="L136">        JsonArrayRequest request = new JsonArrayRequest(Request.Method.GET, url, null,</span>
+                response -&gt; {
+<span class="fc" id="L138">                    List&lt;String&gt; formatted = formatHistory(response);</span>
+<span class="fc" id="L139">                    AppNotificationManager.replaceNotifications(appContext, formatted);</span>
+<span class="pc bpc" id="L140" title="1 of 2 branches missed.">                    if (callback != null) {</span>
+<span class="nc" id="L141">                        callback.onSuccess(formatted);</span>
+                    }
+<span class="fc" id="L143">                },</span>
+                error -&gt; {
+<span class="nc" id="L145">                    String message = readableVolleyError(error);</span>
+<span class="nc bnc" id="L146" title="All 2 branches missed.">                    if (callback != null) {</span>
+<span class="nc" id="L147">                        callback.onError(message);</span>
+                    }
+<span class="nc" id="L149">                    Log.w(TAG, &quot;fetchNotificationsForUser failed: &quot; + message);</span>
+<span class="nc" id="L150">                });</span>
+
+<span class="fc" id="L152">        requestQueue.add(request);</span>
+<span class="fc" id="L153">    }</span>
+
+    public void fetchNotificationsByReadStatus(String userId, boolean isRead, NotificationListCallback callback) {
+<span class="nc" id="L156">        String url = HTTP_BASE_URL + &quot;/notifications/&quot; + Uri.encode(userId) + &quot;/filter?isRead=&quot; + isRead;</span>
+
+<span class="nc" id="L158">        JsonArrayRequest request = new JsonArrayRequest(Request.Method.GET, url, null,</span>
+                response -&gt; {
+<span class="nc" id="L160">                    List&lt;String&gt; formatted = formatHistory(response);</span>
+<span class="nc bnc" id="L161" title="All 2 branches missed.">                    if (callback != null) {</span>
+<span class="nc" id="L162">                        callback.onSuccess(formatted);</span>
+                    }
+<span class="nc" id="L164">                },</span>
+                error -&gt; {
+<span class="nc" id="L166">                    String message = readableVolleyError(error);</span>
+<span class="nc bnc" id="L167" title="All 2 branches missed.">                    if (callback != null) {</span>
+<span class="nc" id="L168">                        callback.onError(message);</span>
+                    }
+<span class="nc" id="L170">                });</span>
+
+<span class="nc" id="L172">        requestQueue.add(request);</span>
+<span class="nc" id="L173">    }</span>
+
+    public void markAsRead(long notificationId, OperationCallback callback) {
+<span class="nc" id="L176">        sendNoBodyRequest(Request.Method.PUT, HTTP_BASE_URL + &quot;/notifications/&quot; + notificationId + &quot;/read&quot;, callback);</span>
+<span class="nc" id="L177">    }</span>
+
+    public void markAsUnread(long notificationId, OperationCallback callback) {
+<span class="nc" id="L180">        sendNoBodyRequest(Request.Method.PUT, HTTP_BASE_URL + &quot;/notifications/&quot; + notificationId + &quot;/unread&quot;, callback);</span>
+<span class="nc" id="L181">    }</span>
+
+    public void deleteNotification(long notificationId, OperationCallback callback) {
+<span class="nc" id="L184">        sendNoBodyRequest(Request.Method.DELETE, HTTP_BASE_URL + &quot;/notifications/&quot; + notificationId, callback);</span>
+<span class="nc" id="L185">    }</span>
+
+    public void sendTestNotification(String senderId, String receiverId, String category, String message, OperationCallback callback) {
+<span class="nc" id="L188">        String url = HTTP_BASE_URL + &quot;/notifications/send&quot;</span>
+<span class="nc" id="L189">                + &quot;?senderId=&quot; + Uri.encode(senderId)</span>
+<span class="nc" id="L190">                + &quot;&amp;receiverId=&quot; + Uri.encode(receiverId)</span>
+<span class="nc" id="L191">                + &quot;&amp;category=&quot; + Uri.encode(category)</span>
+<span class="nc" id="L192">                + &quot;&amp;message=&quot; + Uri.encode(message);</span>
+
+<span class="nc" id="L194">        sendNoBodyRequest(Request.Method.GET, url, callback);</span>
+<span class="nc" id="L195">    }</span>
+
+    private synchronized void connectWebSocket(String userId) {
+<span class="fc" id="L198">        String wsUrl = WS_BASE_URL + &quot;/notifications/&quot; + Uri.encode(userId);</span>
+
+<span class="fc" id="L200">        webSocket = webSocketClient.newWebSocket(new Builder().url(wsUrl).build(), new WebSocketListener() {</span>
+            @Override
+            public void onOpen(WebSocket socket, Response response) {
+<span class="fc" id="L203">                reconnectAttempts = 0;</span>
+<span class="fc" id="L204">                Log.d(TAG, &quot;WebSocket connected for user=&quot; + userId);</span>
+<span class="fc" id="L205">            }</span>
+
+            @Override
+            public void onMessage(WebSocket socket, String text) {
+<span class="nc" id="L209">                handleIncomingMessage(text);</span>
+<span class="nc" id="L210">            }</span>
+
+            @Override
+            public void onMessage(WebSocket socket, ByteString bytes) {
+<span class="nc" id="L214">                handleIncomingMessage(bytes.utf8());</span>
+<span class="nc" id="L215">            }</span>
+
+            @Override
+            public void onClosing(WebSocket socket, int code, String reason) {
+<span class="nc" id="L219">                socket.close(code, reason);</span>
+<span class="nc" id="L220">            }</span>
+
+            @Override
+            public void onClosed(WebSocket socket, int code, String reason) {
+<span class="nc bnc" id="L224" title="All 2 branches missed.">                if (!closedByUser) {</span>
+<span class="nc" id="L225">                    scheduleReconnect(userId);</span>
+                }
+<span class="nc" id="L227">            }</span>
+
+            @Override
+            public void onFailure(WebSocket socket, Throwable t, Response response) {
+<span class="fc" id="L231">                Log.w(TAG, &quot;WebSocket failure: &quot; + t.getMessage());</span>
+<span class="pc bpc" id="L232" title="1 of 2 branches missed.">                if (!closedByUser) {</span>
+<span class="fc" id="L233">                    scheduleReconnect(userId);</span>
+                }
+<span class="fc" id="L235">            }</span>
+        });
+<span class="fc" id="L237">    }</span>
+
+    private synchronized void stopInternal(boolean clearUser) {
+<span class="fc" id="L240">        closedByUser = true;</span>
+<span class="fc" id="L241">        reconnectAttempts = 0;</span>
+<span class="fc" id="L242">        mainHandler.removeCallbacksAndMessages(null);</span>
+
+<span class="pc bpc" id="L244" title="1 of 2 branches missed.">        if (webSocket != null) {</span>
+<span class="nc" id="L245">            webSocket.close(1000, &quot;Client closing&quot;);</span>
+<span class="nc" id="L246">            webSocket = null;</span>
+        }
+
+<span class="pc bpc" id="L249" title="1 of 2 branches missed.">        if (clearUser) {</span>
+<span class="nc" id="L250">            activeUserId = &quot;&quot;;</span>
+        }
+<span class="fc" id="L252">    }</span>
+
+    private synchronized void startWorkoutReminderChecks(String userId) {
+<span class="pc bpc" id="L255" title="2 of 4 branches missed.">        if (userId == null || userId.trim().isEmpty()) {</span>
+<span class="nc" id="L256">            return;</span>
+        }
+
+<span class="fc" id="L259">        mainHandler.removeCallbacks(workoutReminderRunnable);</span>
+<span class="fc" id="L260">        mainHandler.post(workoutReminderRunnable);</span>
+<span class="fc" id="L261">    }</span>
+
+    private void checkWorkoutStartAlerts(String userId) {
+<span class="fc" id="L264">        LocalDate today = LocalDate.now();</span>
+<span class="fc" id="L265">        String url = HTTP_BASE_URL + &quot;/api/v1/users/&quot; + Uri.encode(userId)</span>
+<span class="fc" id="L266">                + &quot;/events/day?year=&quot; + today.getYear()</span>
+<span class="fc" id="L267">                + &quot;&amp;month=&quot; + today.getMonthValue()</span>
+<span class="fc" id="L268">                + &quot;&amp;day=&quot; + today.getDayOfMonth();</span>
+
+<span class="fc" id="L270">        JsonArrayRequest request = new JsonArrayRequest(Request.Method.GET, url, null,</span>
+<span class="fc" id="L271">                response -&gt; processWorkoutAlerts(response),</span>
+<span class="nc" id="L272">                error -&gt; Log.w(TAG, &quot;Workout alert check failed: &quot; + readableVolleyError(error)));</span>
+
+<span class="fc" id="L274">        requestQueue.add(request);</span>
+<span class="fc" id="L275">    }</span>
+
+    private void processWorkoutAlerts(JSONArray events) {
+<span class="pc bpc" id="L278" title="2 of 4 branches missed.">        if (events == null || events.length() == 0) {</span>
+<span class="nc" id="L279">            return;</span>
+        }
+
+<span class="fc" id="L282">        LocalDateTime now = LocalDateTime.now();</span>
+<span class="fc bfc" id="L283" title="All 2 branches covered.">        for (int i = 0; i &lt; events.length(); i++) {</span>
+<span class="fc" id="L284">            JSONObject event = events.optJSONObject(i);</span>
+<span class="pc bpc" id="L285" title="1 of 2 branches missed.">            if (event == null) {</span>
+<span class="nc" id="L286">                continue;</span>
+            }
+
+<span class="fc" id="L289">            String dateValue = event.optString(&quot;date&quot;, &quot;&quot;).trim();</span>
+<span class="fc" id="L290">            String startValue = event.optString(&quot;startTime&quot;, &quot;&quot;).trim();</span>
+<span class="pc bpc" id="L291" title="2 of 4 branches missed.">            if (dateValue.isEmpty() || startValue.isEmpty()) {</span>
+<span class="nc" id="L292">                continue;</span>
+            }
+
+            LocalDate eventDate;
+            LocalTime startTime;
+            try {
+<span class="fc" id="L298">                eventDate = LocalDate.parse(dateValue);</span>
+<span class="nc" id="L299">                startTime = LocalTime.parse(startValue);</span>
+<span class="fc" id="L300">            } catch (Exception ignored) {</span>
+<span class="fc" id="L301">                continue;</span>
+<span class="nc" id="L302">            }</span>
+
+<span class="nc" id="L304">            LocalDateTime startDateTime = LocalDateTime.of(eventDate, startTime);</span>
+<span class="nc bnc" id="L305" title="All 4 branches missed.">            if (now.isBefore(startDateTime) || !now.isBefore(startDateTime.plusMinutes(2))) {</span>
+<span class="nc" id="L306">                continue;</span>
+            }
+
+<span class="nc" id="L309">            long eventId = extractEventId(event);</span>
+<span class="nc" id="L310">            String alertKey = eventId + &quot;|&quot; + dateValue + &quot;|&quot; + startValue;</span>
+<span class="nc bnc" id="L311" title="All 2 branches missed.">            if (isWorkoutAlertSent(alertKey)) {</span>
+<span class="nc" id="L312">                continue;</span>
+            }
+
+<span class="nc" id="L315">            String title = event.optString(&quot;title&quot;, &quot;Workout&quot;).trim();</span>
+<span class="nc bnc" id="L316" title="All 2 branches missed.">            if (title.isEmpty()) {</span>
+<span class="nc" id="L317">                title = &quot;Workout&quot;;</span>
+            }
+
+<span class="nc" id="L320">            AppNotificationManager.addNotification(appContext,</span>
+<span class="nc" id="L321">                    &quot;\u0001Workout starting now: &quot; + title + &quot; at &quot; + startTime.toString());</span>
+<span class="nc" id="L322">            markWorkoutAlertSent(alertKey);</span>
+        }
+<span class="fc" id="L324">    }</span>
+
+    private long extractEventId(JSONObject event) {
+<span class="nc" id="L327">        long id = event.optLong(&quot;id&quot;, -1);</span>
+<span class="nc bnc" id="L328" title="All 2 branches missed.">        if (id != -1) {</span>
+<span class="nc" id="L329">            return id;</span>
+        }
+<span class="nc" id="L331">        return event.optLong(&quot;eventId&quot;, -1);</span>
+    }
+
+    private SharedPreferences getWorkoutAlertPrefs() {
+<span class="nc" id="L335">        return appContext.getSharedPreferences(WORKOUT_ALERT_PREFS, Context.MODE_PRIVATE);</span>
+    }
+
+    private String sentWorkoutAlertKey() {
+<span class="nc" id="L339">        return WORKOUT_ALERT_KEY_PREFIX + activeUserId;</span>
+    }
+
+    private boolean isWorkoutAlertSent(String alertKey) {
+<span class="nc" id="L343">        Set&lt;String&gt; sent = getWorkoutAlertPrefs().getStringSet(sentWorkoutAlertKey(), new HashSet&lt;&gt;());</span>
+<span class="nc bnc" id="L344" title="All 4 branches missed.">        return sent != null &amp;&amp; sent.contains(alertKey);</span>
+    }
+
+    private void markWorkoutAlertSent(String alertKey) {
+<span class="nc" id="L348">        SharedPreferences prefs = getWorkoutAlertPrefs();</span>
+<span class="nc" id="L349">        Set&lt;String&gt; current = prefs.getStringSet(sentWorkoutAlertKey(), new HashSet&lt;&gt;());</span>
+<span class="nc bnc" id="L350" title="All 2 branches missed.">        Set&lt;String&gt; updated = new HashSet&lt;&gt;(current != null ? current : new HashSet&lt;&gt;());</span>
+<span class="nc" id="L351">        updated.add(alertKey);</span>
+<span class="nc" id="L352">        prefs.edit().putStringSet(sentWorkoutAlertKey(), updated).apply();</span>
+<span class="nc" id="L353">    }</span>
+
+    private void scheduleReconnect(String userId) {
+<span class="fc" id="L356">        reconnectAttempts++;</span>
+<span class="fc" id="L357">        long delayMs = Math.min(30000L, 1000L * reconnectAttempts);</span>
+
+<span class="fc" id="L359">        mainHandler.postDelayed(() -&gt; {</span>
+<span class="fc" id="L360">            synchronized (NotificationSyncManager.this) {</span>
+<span class="pc bpc" id="L361" title="1 of 2 branches missed.">                if (closedByUser) {</span>
+<span class="nc" id="L362">                    return;</span>
+                }
+<span class="pc bpc" id="L364" title="1 of 2 branches missed.">                if (!userId.equals(activeUserId)) {</span>
+<span class="nc" id="L365">                    return;</span>
+                }
+<span class="fc" id="L367">                connectWebSocket(userId);</span>
+<span class="fc" id="L368">            }</span>
+<span class="fc" id="L369">        }, delayMs);</span>
+<span class="fc" id="L370">    }</span>
+
+    private void handleIncomingMessage(String rawMessage) {
+<span class="nc bnc" id="L373" title="All 4 branches missed.">        if (rawMessage == null || rawMessage.trim().isEmpty()) {</span>
+<span class="nc" id="L374">            return;</span>
+        }
+
+<span class="nc" id="L377">        String formatted = parseIncomingNotification(rawMessage.trim());</span>
+<span class="nc bnc" id="L378" title="All 2 branches missed.">        if (formatted.isEmpty()) {</span>
+<span class="nc" id="L379">            return;</span>
+        }
+
+<span class="nc" id="L382">        AppNotificationManager.addNotification(appContext, formatted);</span>
+<span class="nc" id="L383">    }</span>
+
+    private String parseIncomingNotification(String raw) {
+        try {
+<span class="nc" id="L387">            JSONObject notification = new JSONObject(raw);</span>
+<span class="nc" id="L388">            return coreNotificationText(notification);</span>
+<span class="nc" id="L389">        } catch (Exception ignored) {</span>
+<span class="nc" id="L390">            return raw;</span>
+        }
+    }
+
+    private List&lt;String&gt; formatHistory(JSONArray response) {
+<span class="fc" id="L395">        List&lt;String&gt; formatted = new ArrayList&lt;&gt;();</span>
+<span class="pc bpc" id="L396" title="1 of 2 branches missed.">        if (response == null) {</span>
+<span class="nc" id="L397">            return formatted;</span>
+        }
+
+<span class="pc bpc" id="L400" title="1 of 2 branches missed.">        for (int i = 0; i &lt; response.length(); i++) {</span>
+<span class="nc" id="L401">            JSONObject item = response.optJSONObject(i);</span>
+<span class="nc bnc" id="L402" title="All 2 branches missed.">            if (item == null) {</span>
+<span class="nc" id="L403">                continue;</span>
+            }
+
+<span class="nc" id="L406">            String timestamp = extractTimestamp(item);</span>
+<span class="nc" id="L407">            String content = coreNotificationText(item);</span>
+<span class="nc bnc" id="L408" title="All 2 branches missed.">            if (content.isEmpty()) {</span>
+<span class="nc" id="L409">                continue;</span>
+            }
+
+<span class="nc bnc" id="L412" title="All 2 branches missed.">            if (timestamp.isEmpty()) {</span>
+<span class="nc" id="L413">                formatted.add(content);</span>
+            } else {
+                // Keep style marker at front of the full stored string
+<span class="nc bnc" id="L416" title="All 4 branches missed.">                if (!content.isEmpty() &amp;&amp; content.charAt(0) &lt; '\u0020') {</span>
+<span class="nc" id="L417">                    formatted.add(content.charAt(0) + timestamp + &quot; - &quot; + content.substring(1));</span>
+                } else {
+<span class="nc" id="L419">                    formatted.add(timestamp + &quot; - &quot; + content);</span>
+                }
+            }
+        }
+
+<span class="fc" id="L424">        return formatted;</span>
+    }
+
+    private String coreNotificationText(JSONObject item) {
+<span class="nc" id="L428">        String category = extractCategoryName(item);</span>
+<span class="nc" id="L429">        String message = item.optString(&quot;message&quot;, &quot;&quot;).trim();</span>
+<span class="nc bnc" id="L430" title="All 2 branches missed.">        if (message.isEmpty()) {</span>
+<span class="nc" id="L431">            message = item.optString(&quot;content&quot;, &quot;&quot;).trim();</span>
+        }
+
+<span class="nc" id="L434">        String sender = extractSenderLabel(item);</span>
+
+<span class="nc bnc" id="L436" title="All 2 branches missed.">        if (message.isEmpty()) {</span>
+<span class="nc" id="L437">            return &quot;&quot;;</span>
+        }
+
+        String text;
+<span class="nc bnc" id="L441" title="All 2 branches missed.">        if (!sender.isEmpty()) {</span>
+<span class="nc" id="L442">            text = String.format(Locale.US, &quot;from %s: %s&quot;, sender, message);</span>
+        } else {
+<span class="nc" id="L444">            text = message;</span>
+        }
+
+        // Prefix special categories with hidden markers so the UI can style them
+<span class="nc bnc" id="L448" title="All 2 branches missed.">        if (&quot;ALERT&quot;.equalsIgnoreCase(category)) {</span>
+<span class="nc" id="L449">            text = &quot;\u0001&quot; + text;</span>
+<span class="nc bnc" id="L450" title="All 2 branches missed.">        } else if (&quot;TEST&quot;.equalsIgnoreCase(category)) {</span>
+<span class="nc" id="L451">            text = &quot;\u0002&quot; + text;</span>
+        }
+<span class="nc" id="L453">        return text;</span>
+    }
+
+    private String extractCategoryName(JSONObject item) {
+<span class="nc" id="L457">        JSONObject categoryObject = item.optJSONObject(&quot;category&quot;);</span>
+<span class="nc bnc" id="L458" title="All 2 branches missed.">        if (categoryObject != null) {</span>
+<span class="nc" id="L459">            String categoryName = categoryObject.optString(&quot;name&quot;, &quot;&quot;).trim();</span>
+<span class="nc bnc" id="L460" title="All 2 branches missed.">            if (!categoryName.isEmpty()) {</span>
+<span class="nc" id="L461">                return categoryName;</span>
+            }
+        }
+
+<span class="nc" id="L465">        String category = item.optString(&quot;category&quot;, &quot;&quot;).trim();</span>
+<span class="nc bnc" id="L466" title="All 2 branches missed.">        return category.isEmpty() ? &quot;NOTICE&quot; : category;</span>
+    }
+
+    private String extractSenderLabel(JSONObject item) {
+<span class="nc" id="L470">        JSONObject userObject = item.optJSONObject(&quot;user&quot;);</span>
+<span class="nc bnc" id="L471" title="All 2 branches missed.">        if (userObject != null) {</span>
+<span class="nc" id="L472">            String accountName = userObject.optString(&quot;accountName&quot;, &quot;&quot;).trim();</span>
+<span class="nc bnc" id="L473" title="All 2 branches missed.">            if (!accountName.isEmpty()) {</span>
+<span class="nc" id="L474">                return accountName;</span>
+            }
+
+<span class="nc" id="L477">            Object userId = userObject.opt(&quot;userId&quot;);</span>
+<span class="nc bnc" id="L478" title="All 2 branches missed.">            if (userId != null) {</span>
+<span class="nc" id="L479">                String userIdValue = String.valueOf(userId).trim();</span>
+<span class="nc bnc" id="L480" title="All 4 branches missed.">                if (!userIdValue.isEmpty() &amp;&amp; !&quot;null&quot;.equalsIgnoreCase(userIdValue)) {</span>
+<span class="nc" id="L481">                    return userIdValue;</span>
+                }
+            }
+        }
+
+<span class="nc" id="L486">        Object senderId = item.opt(&quot;senderId&quot;);</span>
+<span class="nc bnc" id="L487" title="All 2 branches missed.">        if (senderId == null) {</span>
+<span class="nc" id="L488">            return &quot;&quot;;</span>
+        }
+
+<span class="nc" id="L491">        String sender = String.valueOf(senderId).trim();</span>
+<span class="nc bnc" id="L492" title="All 2 branches missed.">        return &quot;null&quot;.equalsIgnoreCase(sender) ? &quot;&quot; : sender;</span>
+    }
+
+    private String extractTimestamp(JSONObject item) {
+<span class="nc" id="L496">        String value = item.optString(&quot;createdAt&quot;, &quot;&quot;).trim();</span>
+<span class="nc bnc" id="L497" title="All 2 branches missed.">        if (value.isEmpty()) {</span>
+<span class="nc" id="L498">            value = item.optString(&quot;timestamp&quot;, &quot;&quot;).trim();</span>
+        }
+<span class="nc bnc" id="L500" title="All 2 branches missed.">        if (value.isEmpty()) {</span>
+<span class="nc" id="L501">            return &quot;&quot;;</span>
+        }
+
+        // Shorten ISO timestamp (e.g. 2026-04-09T22:58:52.374...) → &quot;04/09 22:58&quot;
+        try {
+<span class="nc" id="L506">            int tIndex = value.indexOf('T');</span>
+<span class="nc bnc" id="L507" title="All 2 branches missed.">            if (tIndex &gt;= 8) {</span>
+<span class="nc" id="L508">                String datePart = value.substring(5, 10).replace('-', '/'); // MM/dd</span>
+<span class="nc" id="L509">                String timePart = value.substring(tIndex + 1, tIndex + 6);  // HH:mm</span>
+<span class="nc" id="L510">                return datePart + &quot; &quot; + timePart;</span>
+            }
+<span class="nc" id="L512">        } catch (Exception ignored) {</span>
+            // fall through to plain value
+<span class="nc" id="L514">        }</span>
+<span class="nc" id="L515">        return value.replace('T', ' ').replace(&quot;Z&quot;, &quot;&quot;);</span>
+    }
+
+    private void sendNoBodyRequest(int method, String url, OperationCallback callback) {
+<span class="nc" id="L519">        StringRequest request = new StringRequest(method, url,</span>
+                response -&gt; {
+<span class="nc bnc" id="L521" title="All 2 branches missed.">                    if (callback != null) {</span>
+<span class="nc" id="L522">                        callback.onSuccess();</span>
+                    }
+<span class="nc" id="L524">                },</span>
+                error -&gt; {
+<span class="nc bnc" id="L526" title="All 2 branches missed.">                    if (callback != null) {</span>
+<span class="nc" id="L527">                        callback.onError(readableVolleyError(error));</span>
+                    }
+<span class="nc" id="L529">                });</span>
+
+<span class="nc" id="L531">        requestQueue.add(request);</span>
+<span class="nc" id="L532">    }</span>
+
+    private String readableVolleyError(com.android.volley.VolleyError error) {
+<span class="nc bnc" id="L535" title="All 2 branches missed.">        if (error == null) {</span>
+<span class="nc" id="L536">            return &quot;Unknown error&quot;;</span>
+        }
+
+<span class="nc bnc" id="L539" title="All 2 branches missed.">        if (error.networkResponse != null) {</span>
+<span class="nc" id="L540">            return &quot;HTTP &quot; + error.networkResponse.statusCode;</span>
+        }
+
+<span class="nc bnc" id="L543" title="All 4 branches missed.">        if (error.getMessage() != null &amp;&amp; !error.getMessage().trim().isEmpty()) {</span>
+<span class="nc" id="L544">            return error.getMessage().trim();</span>
+        }
+
+<span class="nc" id="L547">        return error.toString();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>
