@@ -1,10 +1,14 @@
 package com.example.androidexample;
 
+import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.TextView;
+
+import com.android.volley.toolbox.ImageLoader;
+import com.android.volley.toolbox.NetworkImageView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -20,14 +24,15 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         void onDirectMessage(Message message);
         void onEditPermissions(Message message);
         void onEditMessage(Message message);
-
         void onDeleteMessage(Message message);
+        void onEditCaption(Message message);
     }
     public static final int Type_Our_Message = 0;
     public static final int Type_Other_Message = 1;
     public static final int Type_Announcement_Message = 2;
     public static final int Type_Direct_Message = 3;
     public static final int Type_Trainer_Message = 4;
+    public static final int Type_Image_Message = 5;
 
     private final List<Message> messageList;
     private final int currentUserId;
@@ -54,7 +59,10 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         // Priority:
         // announcement > direct > trainer > our normal > other normal
 
-        if ("ANNOUNCEMENT".equalsIgnoreCase(message.getMessageType())) {
+        if ("IMAGE".equalsIgnoreCase(message.getMessageType())) {
+            return Type_Image_Message;
+
+        } else if ("ANNOUNCEMENT".equalsIgnoreCase(message.getMessageType())) {
             return Type_Announcement_Message;
 
         } else if ("DIRECT".equalsIgnoreCase(message.getMessageType())
@@ -101,7 +109,11 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             return new DirectMessageViewHolder(view);
 
         }
-        else  { //trainer
+        else if (viewType == Type_Image_Message) {
+            View view = inflater.inflate(R.layout.image_message_box, parent, false);
+            return new ImageMessageViewHolder(view);
+
+        } else { //trainer
             View view = inflater.inflate(R.layout.trainer_message_box, parent, false);
             return new TrainerMessageViewHolder(view);
         }
@@ -134,6 +146,11 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         } else if (holder instanceof TrainerMessageViewHolder) {
             TrainerMessageViewHolder h = (TrainerMessageViewHolder) holder;
             h.bind(msg);
+            h.btnMessageMenu.setOnClickListener(v -> showMessageMenu(v, msg));
+
+        } else if (holder instanceof ImageMessageViewHolder) {
+            ImageMessageViewHolder h = (ImageMessageViewHolder) holder;
+            h.bind(msg, holder.itemView.getContext());
             h.btnMessageMenu.setOnClickListener(v -> showMessageMenu(v, msg));
         }
     }
@@ -275,6 +292,35 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
         }
     }
+    static class ImageMessageViewHolder extends RecyclerView.ViewHolder {
+        private final TextView tvUsername;
+        private final NetworkImageView ivImageMessage;
+        private final TextView tvCaption;
+        private final TextView tvMessageTime;
+        final ImageButton btnMessageMenu;
+
+        ImageMessageViewHolder(View itemView) {
+            super(itemView);
+            tvUsername = itemView.findViewById(R.id.tvUsername);
+            ivImageMessage = itemView.findViewById(R.id.ivImageMessage);
+            tvCaption = itemView.findViewById(R.id.tvCaption);
+            tvMessageTime = itemView.findViewById(R.id.tvMessageTime);
+            btnMessageMenu = itemView.findViewById(R.id.btnMessageMenu);
+        }
+
+        void bind(Message message, Context context) {
+            tvUsername.setText(message.getUsername());
+            String caption = message.getCaption();
+            tvCaption.setText(caption != null ? caption : "");
+            tvCaption.setVisibility((caption != null && !caption.isEmpty())
+                    ? View.VISIBLE : View.GONE);
+            tvMessageTime.setText(formatTime(message.getCreatedTimestamp()));
+
+            ImageLoader imageLoader = VolleySingleton.getInstance(context).getImageLoader();
+            ivImageMessage.setImageUrl(message.getImageUrl(), imageLoader);
+        }
+    }
+
     private static String formatTime(String rawTimestamp) {
         try {
             java.time.LocalDateTime dt = java.time.LocalDateTime.parse(rawTimestamp);
@@ -304,9 +350,14 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             popupMenu.getMenu().add(0, 2, 1, "Edit Permissions");
         }
 
-        // Edit Message -> only show on your own messages
+        // Edit Message or Caption -> only show on your own messages
         if (isOwnMessage) {
-            popupMenu.getMenu().add(0, 3, 2, "Edit Message");
+            boolean isImage = "IMAGE".equalsIgnoreCase(message.getMessageType());
+            if (isImage) {
+                popupMenu.getMenu().add(0, 3, 2, "Edit Caption");
+            } else {
+                popupMenu.getMenu().add(0, 3, 2, "Edit Message");
+            }
         }
 
         if(isOwnMessage || canManageMembers) {
@@ -328,7 +379,12 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                 return true;
             } else if (itemId == 3) {
                 if (menuActionListener != null) {
-                    menuActionListener.onEditMessage(message);
+                    boolean isImage = "IMAGE".equalsIgnoreCase(message.getMessageType());
+                    if (isImage) {
+                        menuActionListener.onEditCaption(message);
+                    } else {
+                        menuActionListener.onEditMessage(message);
+                    }
                 }
                 return true;
             }

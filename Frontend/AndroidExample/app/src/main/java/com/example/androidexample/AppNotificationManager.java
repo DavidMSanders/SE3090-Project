@@ -30,6 +30,7 @@ public final class AppNotificationManager {
 
     private static final String PREFS_NAME = "app_notifications";
     private static final String KEY_ITEMS_PREFIX = "items_";
+    private static final String KEY_HAS_UNREAD_PREFIX = "has_unread_";
     private static final String LEGACY_KEY_ITEMS = "items";
     private static final String KEY_NEXT_SYSTEM_NOTIFICATION_ID = "next_system_notification_id";
     private static final int MAX_ITEMS = 30;
@@ -60,6 +61,7 @@ public final class AppNotificationManager {
         }
 
         saveNotifications(context, items);
+        setHasUnreadNotifications(context, true);
         showPhoneNotification(context, body);
     }
 
@@ -121,8 +123,13 @@ public final class AppNotificationManager {
     }
 
     public static void replaceNotifications(Context context, List<String> items) {
+        replaceNotifications(context, items, hasUnreadNotifications(context));
+    }
+
+    public static void replaceNotifications(Context context, List<String> items, boolean hasUnread) {
         if (items == null) {
             saveNotifications(context, new ArrayList<>());
+            setHasUnreadNotifications(context, false);
             return;
         }
 
@@ -143,6 +150,21 @@ public final class AppNotificationManager {
         }
 
         saveNotifications(context, cleaned);
+        setHasUnreadNotifications(context, hasUnread && !cleaned.isEmpty());
+    }
+
+    public static boolean hasUnreadNotifications(Context context) {
+        SharedPreferences preferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        return preferences.getBoolean(resolveUnreadKey(context), false);
+    }
+
+    public static void setHasUnreadNotifications(Context context, boolean hasUnread) {
+        SharedPreferences preferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        preferences.edit().putBoolean(resolveUnreadKey(context), hasUnread).apply();
+    }
+
+    public static void markNotificationsRead(Context context) {
+        setHasUnreadNotifications(context, false);
     }
 
     private static void saveNotifications(Context context, List<String> items) {
@@ -249,5 +271,20 @@ public final class AppNotificationManager {
         }
 
         return KEY_ITEMS_PREFIX + "guest";
+    }
+
+    private static String resolveUnreadKey(Context context) {
+        KeepUser keepUser = new KeepUser(context);
+        String userId = keepUser.getUserIdString();
+        if (!userId.isEmpty()) {
+            return KEY_HAS_UNREAD_PREFIX + userId;
+        }
+
+        String legacyUserId = SessionManager.getUserId(context);
+        if (!legacyUserId.isEmpty()) {
+            return KEY_HAS_UNREAD_PREFIX + legacyUserId;
+        }
+
+        return KEY_HAS_UNREAD_PREFIX + "guest";
     }
 }

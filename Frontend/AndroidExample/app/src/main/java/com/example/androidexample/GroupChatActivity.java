@@ -33,11 +33,11 @@ public class GroupChatActivity extends AppCompatActivity {
     private EditText etMessageInput;
     private Button btnSendMessage;
 
-    private Button btnBackFromChat;
-
     private Button btnUpdateGroup;
 
     private Button btnLeaveGroup;
+
+    private Button btnSendImage;
 
 
     private MessageAdapter messageAdapter;
@@ -82,15 +82,15 @@ public class GroupChatActivity extends AppCompatActivity {
         Log.d("TEST_LOG", "App started");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_group_chat);
+        AppTopBarController.setup(this);
         recyclerViewMessages = findViewById(R.id.rvChatMessages);
         etMessageInput = findViewById(R.id.etChatMessage);
         btnSendMessage = findViewById(R.id.btnSendMessage);
-        btnBackFromChat = findViewById(R.id.btnBackFromChat);
 
         btnAnnouncement = findViewById(R.id.btnAnnouncement);
         btnUpdateGroup = findViewById(R.id.btnUpdateGroup);
-
         btnLeaveGroup = findViewById(R.id.btnLeaveGroup);
+        btnSendImage = findViewById(R.id.btnSendImage);
 
 
         KeepUser user = new KeepUser(this);
@@ -107,11 +107,18 @@ public class GroupChatActivity extends AppCompatActivity {
         groupType = getIntent().getStringExtra("groupType");
 
         TextView tvGroupTitle = findViewById(R.id.tvChatGroupTitle);
+        TextView tvGroupId = findViewById(R.id.tvGroupId);
 
         if (groupName != null && !groupName.trim().isEmpty()) {
             tvGroupTitle.setText(groupName);
         } else {
             tvGroupTitle.setText("Group Chat");
+        }
+
+        if (currentGroupId != -1) {
+            tvGroupId.setText("ID: " + currentGroupId);
+        } else {
+            tvGroupId.setVisibility(android.view.View.GONE);
         }
 
         setupRecyclerView();
@@ -121,6 +128,7 @@ public class GroupChatActivity extends AppCompatActivity {
         //setupWebSocket();
         setupSendButton();
         setupAnnouncementButton();
+        setupSendImageButton();
 
         btnUpdateGroup.setOnClickListener(v -> {
             Intent intent = new Intent(GroupChatActivity.this, Activity_Update_Group.class);
@@ -131,10 +139,6 @@ public class GroupChatActivity extends AppCompatActivity {
             intent.putExtra("groupType", groupType);
 
             startActivity(intent);
-        });
-
-        btnBackFromChat.setOnClickListener(v -> {
-            finish();
         });
 
         btnLeaveGroup.setOnClickListener(v -> {
@@ -213,12 +217,19 @@ public class GroupChatActivity extends AppCompatActivity {
                         ).show();
                     }
                     @Override
+                    public void onEditCaption(Message message) {
+                        showEditCaptionDialog(message);
+                    }
+
+                    @Override
                     public void onDeleteMessage(Message message) {
                         new AlertDialog.Builder(GroupChatActivity.this)
                                 .setTitle("Delete Message")
                                 .setMessage("Delete this message?")
                                 .setPositiveButton("Delete", (dialog, which) -> {
-                                    if (chatWebSocketManager != null) {
+                                    if ("IMAGE".equalsIgnoreCase(message.getMessageType())) {
+                                        deleteImageMessage(message);
+                                    } else if (chatWebSocketManager != null) {
                                         chatWebSocketManager.sendDeleteMessage(message.getMessageId());
                                     }
                                 })
@@ -233,41 +244,41 @@ public class GroupChatActivity extends AppCompatActivity {
     }
     private void loadInitialMessages() {
 
-            String url = BASE_URL + "/api/v1/messages/group/" + currentGroupId;
+        String url = BASE_URL + "/api/v1/messages/group/" + currentGroupId;
 
-            JsonArrayRequest request = new JsonArrayRequest(
-                    Request.Method.GET,
-                    url,
-                    null,
-                    response -> {
-                        messageList.clear();
+        JsonArrayRequest request = new JsonArrayRequest(
+                Request.Method.GET,
+                url,
+                null,
+                response -> {
+                    messageList.clear();
 
-                        for (int i = 0; i < response.length(); i++) {
-                            try {
-                                JSONObject obj = response.getJSONObject(i);
-                                Message message = Message.fromJson(obj);
-                                if(canSeeMessage(message)) {
-                                    messageList.add(message);
-                                }
-                            } catch (JSONException e) {
-                                e.printStackTrace();
+                    for (int i = 0; i < response.length(); i++) {
+                        try {
+                            JSONObject obj = response.getJSONObject(i);
+                            Message message = Message.fromJson(obj);
+                            if(canSeeMessage(message)) {
+                                messageList.add(message);
                             }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
                         }
+                    }
 
-                        messageAdapter.notifyDataSetChanged();
+                    messageAdapter.notifyDataSetChanged();
 
-                        if (!messageList.isEmpty()) {
-                            recyclerViewMessages.scrollToPosition(messageAdapter.getItemCount() - 1);
-                        }
-                    },
-                    error -> Toast.makeText(
-                            GroupChatActivity.this,
-                            "Failed to load chat history",
-                            Toast.LENGTH_LONG
-                    ).show()
-            );
+                    if (!messageList.isEmpty()) {
+                        recyclerViewMessages.scrollToPosition(messageAdapter.getItemCount() - 1);
+                    }
+                },
+                error -> Toast.makeText(
+                        GroupChatActivity.this,
+                        "Failed to load chat history",
+                        Toast.LENGTH_LONG
+                ).show()
+        );
 
-            Volley.newRequestQueue(this).add(request);
+        Volley.newRequestQueue(this).add(request);
     }
 
 
@@ -525,6 +536,7 @@ public class GroupChatActivity extends AppCompatActivity {
                     // continue normal flow
                     setupAdapter();
                     loadInitialMessages();
+                    loadGroupImages();
 
                     if (canPostAnnouncements) {
                         btnAnnouncement.setVisibility(View.VISIBLE);
@@ -532,6 +544,7 @@ public class GroupChatActivity extends AppCompatActivity {
                         btnAnnouncement.setVisibility(View.GONE);
                     }
                     btnSendMessage.setEnabled(canSendMessages);
+                    btnSendImage.setEnabled(canSendMessages);
                     if(!canSendMessages){
                         btnSendMessage.setText("MUTED");
                     }
@@ -563,6 +576,7 @@ public class GroupChatActivity extends AppCompatActivity {
 
                     setupAdapter();
                     loadInitialMessages();
+                    loadGroupImages();
 
                     if (canPostAnnouncements) {
                         btnAnnouncement.setVisibility(View.VISIBLE);
@@ -570,6 +584,7 @@ public class GroupChatActivity extends AppCompatActivity {
                         btnAnnouncement.setVisibility(View.GONE);
                     }
                     btnSendMessage.setEnabled(canSendMessages);
+                    btnSendImage.setEnabled(canSendMessages);
                     if(!canSendMessages){
                         btnSendMessage.setText("MUTED");
                     }
@@ -631,7 +646,8 @@ public class GroupChatActivity extends AppCompatActivity {
 
         if (membershipRole != null &&
                 (membershipRole.equalsIgnoreCase("trainer")
-                        || membershipRole.equalsIgnoreCase("group_leader"))) {
+                        || membershipRole.equalsIgnoreCase("group_leader")
+                        || membershipRole.equalsIgnoreCase("admin"))) {
             return "TRAINER";
         }
 
@@ -719,7 +735,7 @@ public class GroupChatActivity extends AppCompatActivity {
 
             // Later send this to backend via ws
 
-             chatWebSocketManager.sendPermissionUpdate(payload);
+            chatWebSocketManager.sendPermissionUpdate(payload);
 
             Toast.makeText(
                     this,
@@ -742,11 +758,211 @@ public class GroupChatActivity extends AppCompatActivity {
         }
 
         btnSendMessage.setEnabled(canSendMessages);
+        btnSendImage.setEnabled(canSendMessages);
 
         if (canSendMessages) {
             btnSendMessage.setText("Send");
         } else {
             btnSendMessage.setText("MUTED");
         }
+    }
+
+    // ── Image handling ──────────────────────────────────────────────────────────
+
+    private void setupSendImageButton() {
+        btnSendImage.setOnClickListener(v -> showSendImageDialog());
+        btnSendImage.setEnabled(canSendMessages);
+    }
+
+    private void showSendImageDialog() {
+        android.widget.LinearLayout layout = new android.widget.LinearLayout(this);
+        layout.setOrientation(android.widget.LinearLayout.VERTICAL);
+        int pad = (int) (16 * getResources().getDisplayMetrics().density);
+        layout.setPadding(pad, pad, pad, 0);
+
+        EditText etUrl = new EditText(this);
+        etUrl.setHint("Image URL");
+        etUrl.setInputType(android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_VARIATION_URI);
+        layout.addView(etUrl);
+
+        EditText etCaption = new EditText(this);
+        etCaption.setHint("Caption (optional)");
+        etCaption.setInputType(android.text.InputType.TYPE_CLASS_TEXT);
+        layout.addView(etCaption);
+
+        new AlertDialog.Builder(this)
+                .setTitle("Send Image")
+                .setView(layout)
+                .setPositiveButton("Send", (dialog, which) -> {
+                    String url = etUrl.getText().toString().trim();
+                    String caption = etCaption.getText().toString().trim();
+                    if (url.isEmpty()) {
+                        Toast.makeText(this, "Image URL is required", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    sendImageMessage(url, caption);
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void sendImageMessage(String imageUrl, String caption) {
+        String url = BASE_URL + "/api/v1/images/send";
+        try {
+            JSONObject body = new JSONObject();
+            body.put("senderId", currentUserId);
+            body.put("groupId", currentGroupId);
+            body.put("imageUrl", imageUrl);
+            body.put("caption", caption);
+
+            JsonObjectRequest request = new JsonObjectRequest(
+                    com.android.volley.Request.Method.POST,
+                    url,
+                    body,
+                    response -> {
+                        Message imageMsg = imageMessageFromResponse(response);
+                        if (imageMsg != null) {
+                            messageList.add(imageMsg);
+                            messageAdapter.notifyItemInserted(messageList.size() - 1);
+                            recyclerViewMessages.scrollToPosition(messageAdapter.getItemCount() - 1);
+                        }
+                    },
+                    error -> Toast.makeText(this, "Failed to send image", Toast.LENGTH_LONG).show()
+            );
+
+            Volley.newRequestQueue(this).add(request);
+        } catch (org.json.JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void loadGroupImages() {
+        String url = BASE_URL + "/api/v1/groups/" + currentGroupId + "/images";
+
+        com.android.volley.toolbox.JsonArrayRequest request = new com.android.volley.toolbox.JsonArrayRequest(
+                com.android.volley.Request.Method.GET,
+                url,
+                null,
+                response -> {
+                    for (int i = 0; i < response.length(); i++) {
+                        try {
+                            JSONObject obj = response.getJSONObject(i);
+                            Message imageMsg = imageMessageFromJson(obj);
+                            if (imageMsg != null) {
+                                messageList.add(imageMsg);
+                            }
+                        } catch (org.json.JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    messageAdapter.notifyDataSetChanged();
+                    if (!messageList.isEmpty()) {
+                        recyclerViewMessages.scrollToPosition(messageAdapter.getItemCount() - 1);
+                    }
+                },
+                error -> {
+                    // Non-fatal: images may simply not exist yet
+                    android.util.Log.w("GroupChatActivity", "loadGroupImages failed: " + error.getMessage());
+                }
+        );
+
+        Volley.newRequestQueue(this).add(request);
+    }
+
+    private void deleteImageMessage(Message message) {
+        String url = BASE_URL + "/api/v1/images/" + message.getImageMessageId();
+
+        com.android.volley.toolbox.StringRequest request = new com.android.volley.toolbox.StringRequest(
+                com.android.volley.Request.Method.DELETE,
+                url,
+                response -> {
+                    messageAdapter.removeMessageById(message.getMessageId());
+                    Toast.makeText(this, "Image deleted", Toast.LENGTH_SHORT).show();
+                },
+                error -> Toast.makeText(this, "Failed to delete image", Toast.LENGTH_LONG).show()
+        );
+
+        Volley.newRequestQueue(this).add(request);
+    }
+
+    private void showEditCaptionDialog(Message message) {
+        android.widget.LinearLayout layout = new android.widget.LinearLayout(this);
+        layout.setOrientation(android.widget.LinearLayout.VERTICAL);
+        int pad = (int) (16 * getResources().getDisplayMetrics().density);
+        layout.setPadding(pad, pad, pad, 0);
+
+        EditText etCaption = new EditText(this);
+        etCaption.setHint("New caption");
+        etCaption.setText(message.getCaption() != null ? message.getCaption() : "");
+        etCaption.setSelection(etCaption.getText().length());
+        layout.addView(etCaption);
+
+        new AlertDialog.Builder(this)
+                .setTitle("Edit Caption")
+                .setView(layout)
+                .setPositiveButton("Save", (dialog, which) -> {
+                    String newCaption = etCaption.getText().toString().trim();
+                    updateImageCaption(message, newCaption);
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void updateImageCaption(Message message, String newCaption) {
+        String url = BASE_URL + "/api/v1/images/" + message.getImageMessageId() + "/caption";
+        try {
+            JSONObject body = new JSONObject();
+            body.put("caption", newCaption);
+
+            JsonObjectRequest request = new JsonObjectRequest(
+                    com.android.volley.Request.Method.PUT,
+                    url,
+                    body,
+                    response -> {
+                        message.setCaption(newCaption);
+                        for (int i = 0; i < messageList.size(); i++) {
+                            if (messageList.get(i).getMessageId() == message.getMessageId()) {
+                                messageList.set(i, message);
+                                messageAdapter.notifyItemChanged(i);
+                                break;
+                            }
+                        }
+                        Toast.makeText(this, "Caption updated", Toast.LENGTH_SHORT).show();
+                    },
+                    error -> Toast.makeText(this, "Failed to update caption", Toast.LENGTH_LONG).show()
+            );
+
+            Volley.newRequestQueue(this).add(request);
+        } catch (org.json.JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /** Convert a backend image API response JSONObject into a Message for display. */
+    private Message imageMessageFromResponse(JSONObject json) {
+        try {
+            return imageMessageFromJson(json);
+        } catch (org.json.JSONException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    private Message imageMessageFromJson(JSONObject json) throws org.json.JSONException {
+        Message msg = new Message();
+        long imgId = json.optLong("id", -1);
+        // Reuse imageMessageId as the unique key; use a negative synthetic messageId
+        // so it doesn't collide with text message IDs
+        msg.setMessageId(-imgId);
+        msg.setImageMessageId(imgId);
+        msg.setOriginatorId(json.optInt("senderId", -1));
+        msg.setGroupId(json.optInt("groupId", currentGroupId));
+        msg.setMessageType("IMAGE");
+        msg.setImageUrl(json.optString("imageUrl", ""));
+        msg.setCaption(json.optString("caption", ""));
+        msg.setCreatedTimestamp(json.optString("sentAt", ""));
+        // username is not in the image response; fall back to "User " + senderId
+        msg.setUsername("User " + msg.getOriginatorId());
+        return msg;
     }
 }

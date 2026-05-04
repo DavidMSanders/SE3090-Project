@@ -47,6 +47,7 @@ public class PersonalBestActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_personal_best);
+        AppTopBarController.setup(this);
 
         keepUser = new KeepUser(this);
         userId = keepUser.getUserId();

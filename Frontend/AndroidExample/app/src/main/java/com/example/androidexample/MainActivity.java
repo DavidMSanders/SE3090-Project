@@ -4,7 +4,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
-import android.widget.TextView;
 
 import android.content.Intent;
 
@@ -18,14 +17,9 @@ public class MainActivity extends AppCompatActivity {
     //private Button btnSend;
     private String method;
 
-    private Button btnGoToDelete;
-
     private Button btnGoToWorkout;
 
     private Button btnGoToWorkoutList;
-
-    private TextView tvCurrentUser;
-    private Button btnLogout;
 
     private Button btnGroupList;
 
@@ -47,30 +41,8 @@ public class MainActivity extends AppCompatActivity {
         //btnSend = findViewById(R.id.sendBtn);
         //spMethod = findViewById(R.id.spMethod);
 
-        //pers. user logic
-        tvCurrentUser = findViewById(R.id.tvCurrentUser);
-        btnLogout = findViewById(R.id.btnLogout);
         KeepUser keepUser = new KeepUser(this);
 
-        if (keepUser.isLoggedIn()) {
-            String username = keepUser.getUsername();
-            tvCurrentUser.setText("Logged in as: " + username);
-        } else {
-            tvCurrentUser.setText("Not logged in");
-        }
-
-        btnLogout.setOnClickListener(v -> {
-            NotificationSyncManager.getInstance(this).stop();
-            keepUser.clearUser();
-            SessionManager.clearSession(this);
-
-            Intent intent = new Intent(MainActivity.this, LandingActivity.class);
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(intent);
-            finish();
-        });
-
-        btnGoToDelete = findViewById(R.id.btnGoToDelete);
         btnGoToWorkout = findViewById(R.id.btnGoToWorkout);
 
         btnGoToWorkoutList = findViewById(R.id.WorkoutList);
@@ -109,11 +81,6 @@ public class MainActivity extends AppCompatActivity {
 
         btnGroupList.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, GroupListActivity.class);
-            startActivity(intent);
-        });
-
-        btnGoToDelete.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, DeleteUserActivity.class);
             startActivity(intent);
         });
 
@@ -214,5 +181,11 @@ public class MainActivity extends AppCompatActivity {
     }
 */
 
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        AppTopBarController.refreshNotificationIndicator(this);
     }
 }

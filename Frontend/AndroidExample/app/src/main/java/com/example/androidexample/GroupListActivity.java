@@ -27,7 +27,6 @@ public class GroupListActivity extends AppCompatActivity {
     private GroupAdapter adapter;
     private List<Group> groupList;
 
-    private Button btnBackFromGroups;
     private Button btnSearchGroups;
 
     private Button btnCreateGroup;
@@ -41,9 +40,9 @@ public class GroupListActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_list_group);
+        AppTopBarController.setup(this);
 
         etSearchGroups = findViewById(R.id.etSearchGroups);
-        btnBackFromGroups = findViewById(R.id.btnBackFromGroups);
         btnSearchGroups = findViewById(R.id.btnSearchGroups);
         recyclerView = findViewById(R.id.rvGroups);
 
@@ -83,9 +82,6 @@ public class GroupListActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
-        btnBackFromGroups.setOnClickListener(v -> {
-            finish();
-        });
     }
 
     private void getGroups(String searchQuery){

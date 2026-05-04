@@ -9,8 +9,6 @@ import android.widget.Toast;
 
 import android.widget.ImageView;
 
-import android.content.Intent;
-import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -64,12 +62,8 @@ public class DeleteUserActivity extends AppCompatActivity {
         dobEditText = findViewById(R.id.delete_dob_edt);
 
         Button deleteButton = findViewById(R.id.delete_user_btn);
-        Button backButton = findViewById(R.id.delete_back_btn);
 
         userIdEditText = findViewById(R.id.delete_userid_edt);
-
-        backButton.setOnClickListener(v ->
-                startActivity(new Intent(DeleteUserActivity.this, MainActivity.class)));
 
         Button deleteByIdButton = findViewById(R.id.delete_userid_btn);
 

@@ -2,26 +2,277 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/app_bg"
     android:orientation="vertical">
 
     <include layout="@layout/view_app_top_bar" />
 
-    <TextView
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:gravity="center"
-        android:text="Profile page placeholder"
-        android:textSize="22sp"
-        android:textStyle="bold" />
+        android:layout_height="0dp"
+        android:layout_weight="1">
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:gravity="center"
-        android:text="Profile details UI will be implemented here."
-        android:textSize="16sp" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- ===== USER PROFILE SECTION ===== -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="My Profile"
+                android:textColor="@color/app_text_primary"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="12dp" />
+
+            <TextView
+                android:id="@+id/tvCurrentUsername"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Username: —"
+                android:textColor="@color/app_text_body"
+                android:textSize="15sp"
+                android:layout_marginBottom="4dp" />
+
+            <TextView
+                android:id="@+id/tvCurrentRole"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Role: —"
+                android:textColor="@color/app_text_body"
+                android:textSize="15sp"
+                android:layout_marginBottom="4dp" />
+
+            <TextView
+                android:id="@+id/tvCurrentBirthDate"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Birth Date: —"
+                android:textColor="@color/app_text_body"
+                android:textSize="15sp"
+                android:layout_marginBottom="16dp" />
+
+            <EditText
+                android:id="@+id/etNewAccountName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:backgroundTint="@color/app_divider"
+                android:hint="New username (optional)"
+                android:textColor="@color/app_text_primary"
+                android:textColorHint="@color/app_text_secondary"
+                android:inputType="text"
+                android:layout_marginBottom="8dp" />
+
+            <EditText
+                android:id="@+id/etNewPassword"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:backgroundTint="@color/app_divider"
+                android:hint="New password (optional)"
+                android:textColor="@color/app_text_primary"
+                android:textColorHint="@color/app_text_secondary"
+                android:inputType="textPassword"
+                android:layout_marginBottom="8dp" />
+
+            <EditText
+                android:id="@+id/etNewBirthDate"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:backgroundTint="@color/app_divider"
+                android:hint="Birth date MM/dd/yyyy (optional)"
+                android:textColor="@color/app_text_primary"
+                android:textColorHint="@color/app_text_secondary"
+                android:inputType="text"
+                android:layout_marginBottom="12dp" />
+
+            <Button
+                android:id="@+id/btnUpdateProfile"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:text="Update My Profile" />
+
+            <Button
+                android:id="@+id/btnGoToDeletePage"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:text="Go to Delete Page" />
+
+            <!-- ===== ADMIN DASHBOARD SECTION ===== -->
+            <LinearLayout
+                android:id="@+id/layoutAdminSection"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone"
+                android:layout_marginTop="24dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Admin Dashboard"
+                    android:textColor="@color/app_text_primary"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="12dp" />
+
+                <!-- App Stats -->
+                <Button
+                    android:id="@+id/btnGetStats"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Get App Statistics" />
+
+                <TextView
+                    android:id="@+id/tvStatsResult"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:textSize="14sp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginBottom="16dp" />
+
+                <!-- Get All Users -->
+                <Button
+                    android:id="@+id/btnGetAllUsers"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Get All Users" />
+
+                <TextView
+                    android:id="@+id/tvAllUsersResult"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:textSize="13sp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginBottom="16dp" />
+
+                <!-- Target User ID input (shared for details / update / suspend / delete) -->
+                <EditText
+                    android:id="@+id/etTargetUserId"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:backgroundTint="@color/app_divider"
+                    android:hint="Target user ID"
+                    android:textColor="@color/app_text_primary"
+                    android:textColorHint="@color/app_text_secondary"
+                    android:inputType="number"
+                    android:layout_marginBottom="8dp" />
+
+                <!-- Get Specific User -->
+                <Button
+                    android:id="@+id/btnGetUser"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Get User Details" />
+
+                <TextView
+                    android:id="@+id/tvUserDetailResult"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:textSize="13sp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginBottom="16dp" />
+
+                <!-- Admin Update User -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Admin Update User Profile"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="6dp" />
+
+                <EditText
+                    android:id="@+id/etAdminNewName"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:backgroundTint="@color/app_divider"
+                    android:hint="New username (optional)"
+                    android:textColor="@color/app_text_primary"
+                    android:textColorHint="@color/app_text_secondary"
+                    android:inputType="text"
+                    android:layout_marginBottom="8dp" />
+
+                <EditText
+                    android:id="@+id/etAdminNewPassword"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:backgroundTint="@color/app_divider"
+                    android:hint="New password (optional)"
+                    android:textColor="@color/app_text_primary"
+                    android:textColorHint="@color/app_text_secondary"
+                    android:inputType="textPassword"
+                    android:layout_marginBottom="8dp" />
+
+                <EditText
+                    android:id="@+id/etAdminNewBirthDate"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:backgroundTint="@color/app_divider"
+                    android:hint="Birth date MM/dd/yyyy (optional)"
+                    android:textColor="@color/app_text_primary"
+                    android:textColorHint="@color/app_text_secondary"
+                    android:inputType="text"
+                    android:layout_marginBottom="8dp" />
+
+                <Button
+                    android:id="@+id/btnAdminUpdateUser"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Admin Update User"
+                    android:layout_marginBottom="16dp" />
+
+                <!-- Suspend / Activate -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Suspend / Activate Account"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="6dp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="16dp">
+
+                    <Button
+                        android:id="@+id/btnActivateUser"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginEnd="4dp"
+                        android:text="Activate" />
+
+                    <Button
+                        android:id="@+id/btnSuspendUser"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="4dp"
+                        android:text="Suspend" />
+
+                </LinearLayout>
+
+                <!-- Delete User -->
+                <Button
+                    android:id="@+id/btnDeleteUser"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Delete User"
+                    android:backgroundTint="#D32F2F"
+                    android:layout_marginBottom="24dp" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+    </ScrollView>
 
     <TextView
         android:id="@+id/tvProfileUserId"
@@ -30,6 +281,7 @@
         android:layout_marginTop="12dp"
         android:gravity="center"
         android:text="User ID:"
+        android:textColor="@color/app_text_primary"
         android:textSize="16sp"
         android:textStyle="bold" />
 

@@ -21,7 +21,6 @@ public class Activity_Update_Group extends AppCompatActivity {
     private TextView tvGroupType;
     private EditText etUpdateGroupName;
     private EditText etUpdateGroupDescription;
-    private Button btnBackFromUpdateGroup;
     private Button btnSaveGroupUpdate;
     private TextView tvUpdateGroupResult;
 
@@ -39,12 +38,12 @@ public class Activity_Update_Group extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_update_group);
+        AppTopBarController.setup(this);
 
         tvCurrentGroupId = findViewById(R.id.tvCurrentGroupId);
         tvGroupType = findViewById(R.id.tvGroupType);
         etUpdateGroupName = findViewById(R.id.etUpdateGroupName);
         etUpdateGroupDescription = findViewById(R.id.etUpdateGroupDescription);
-        btnBackFromUpdateGroup = findViewById(R.id.btnBackFromUpdateGroup);
         btnSaveGroupUpdate = findViewById(R.id.btnSaveGroupUpdate);
         tvUpdateGroupResult = findViewById(R.id.tvUpdateGroupResult);
         btnDeleteGroup = findViewById(R.id.btnDeleteGroup);
@@ -69,8 +68,6 @@ public class Activity_Update_Group extends AppCompatActivity {
         if (groupDescription != null) {
             etUpdateGroupDescription.setText(groupDescription);
         }
-
-        btnBackFromUpdateGroup.setOnClickListener(v -> finish());
 
         btnSaveGroupUpdate.setOnClickListener(v -> saveGroupUpdate());
         btnDeleteGroup.setOnClickListener(v -> deleteGroup());

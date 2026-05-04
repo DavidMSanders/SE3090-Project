@@ -68,7 +68,7 @@ public class DavidSystemTestLess {
 
         pause(1000);
 
-        onView(withId(R.id.tvCurrentUser))
+        onView(withId(R.id.textView))
                 .check(matches(isDisplayed()));
 
         onView(withId(R.id.btnGroupList))

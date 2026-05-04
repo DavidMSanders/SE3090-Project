@@ -2,4 +2,17 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="app_bg">#F4F7FA</color>
+    <color name="app_surface">#FFFFFFFF</color>
+    <color name="app_surface_alt">#F8FAFC</color>
+    <color name="app_text_primary">#102A43</color>
+    <color name="app_text_secondary">#486581</color>
+    <color name="app_text_body">#334E68</color>
+    <color name="app_divider">#BCCCDC</color>
+    <color name="calendar_current_day">#1976D2</color>
+    <color name="calendar_selected_day">#90CAF9</color>
+    <color name="calendar_multi_event">#0D47A1</color>
+    <color name="button_primary">#1565C0</color>
+    <color name="button_on_primary">#FFFFFFFF</color>
+    <color name="top_bar_background">#0E3A53</color>
 </resources>
