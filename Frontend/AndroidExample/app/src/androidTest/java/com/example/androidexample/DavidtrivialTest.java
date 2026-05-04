@@ -2,14 +2,19 @@ package com.example.androidexample;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import android.content.Context;
+import android.view.View;
+import android.widget.FrameLayout;
 
+import androidx.recyclerview.widget.RecyclerView;
 import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
+import androidx.test.platform.app.InstrumentationRegistry;
 
 import org.json.JSONObject;
 import org.junit.Test;
@@ -18,6 +23,7 @@ import org.junit.runner.RunWith;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * TRIVIAL METHOD COVERAGE TESTS
@@ -692,6 +698,693 @@ public class DavidtrivialTest {
 
 
 
+    @Test
+    public void workoutConstructorAndGettersWork() {
+        Workout workout = new Workout(
+                1,
+                37,
+                null,
+                37,
+                "Bench Day",
+                "Chest and triceps",
+                45,
+                "2026-05-04",
+                "planned",
+                "self_created"
+        );
 
+        assertEquals(1, workout.getWorkoutId());
+        assertEquals(37, workout.getUserId());
+        assertNull(workout.getAssignedWorkoutId());
+        assertEquals(37, workout.getCreatedByUserId());
+        assertEquals("Bench Day", workout.getWorkoutName());
+        assertEquals("Chest and triceps", workout.getDescription());
+        assertEquals(Integer.valueOf(45), workout.getDurationMinutes());
+        assertEquals("2026-05-04", workout.getScheduledDate());
+        assertEquals("planned", workout.getStatus());
+        assertEquals("self_created", workout.getSourceType());
+    }
+
+    @Test
+    public void workoutSettersOverwriteValuesCorrectly() {
+        Workout workout = new Workout(
+                1,
+                37,
+                null,
+                37,
+                "Old Name",
+                "Old Description",
+                30,
+                "2026-01-01",
+                "planned",
+                "self_created"
+        );
+
+        workout.setWorkoutId(2);
+        workout.setUserId(99);
+        workout.setAssignedWorkoutId(55);
+        workout.setCreatedByUserId(88);
+        workout.setWorkoutName("New Name");
+        workout.setDescription("New Description");
+        workout.setDurationMinutes(60);
+        workout.setScheduledDate("2026-12-31");
+        workout.setStatus("completed");
+        workout.setSourceType("assigned_from_plan");
+
+        assertEquals(2, workout.getWorkoutId());
+        assertEquals(99, workout.getUserId());
+        assertEquals(Integer.valueOf(55), workout.getAssignedWorkoutId());
+        assertEquals(88, workout.getCreatedByUserId());
+        assertEquals("New Name", workout.getWorkoutName());
+        assertEquals("New Description", workout.getDescription());
+        assertEquals(Integer.valueOf(60), workout.getDurationMinutes());
+        assertEquals("2026-12-31", workout.getScheduledDate());
+        assertEquals("completed", workout.getStatus());
+        assertEquals("assigned_from_plan", workout.getSourceType());
+    }
+
+    @Test
+    public void workoutFromJsonHandlesSelfCreatedWorkout() throws Exception {
+        JSONObject json = new JSONObject();
+
+        json.put("workoutId", 10);
+        json.put("userId", 37);
+        json.put("assignedWorkoutId", JSONObject.NULL);
+        json.put("createdByUserId", 37);
+        json.put("workoutName", "Leg Day");
+        json.put("workoutDescription", "Squats and lunges");
+        json.put("durationMinutes", 50);
+        json.put("scheduledDate", "2026-05-04");
+        json.put("status", "planned");
+        json.put("sourceType", "self_created");
+
+        Workout workout = Workout.fromJson(json);
+
+        assertEquals(10, workout.getWorkoutId());
+        assertEquals(37, workout.getUserId());
+        assertNull(workout.getAssignedWorkoutId());
+        assertEquals(37, workout.getCreatedByUserId());
+        assertEquals("Leg Day", workout.getWorkoutName());
+        assertEquals("Squats and lunges", workout.getDescription());
+        assertEquals(Integer.valueOf(50), workout.getDurationMinutes());
+        assertEquals("2026-05-04", workout.getScheduledDate());
+        assertEquals("planned", workout.getStatus());
+        assertEquals("self_created", workout.getSourceType());
+    }
+
+    @Test
+    public void workoutFromJsonHandlesAssignedWorkoutWithNullDuration() throws Exception {
+        JSONObject json = new JSONObject();
+
+        json.put("workoutId", 20);
+        json.put("userId", 37);
+        json.put("assignedWorkoutId", 99);
+        json.put("createdByUserId", 5);
+        json.put("workoutName", "Trainer Plan");
+        json.put("workoutDescription", "Assigned by trainer");
+        json.put("durationMinutes", JSONObject.NULL);
+        json.put("scheduledDate", "2026-06-01");
+        json.put("status", "accepted");
+        json.put("sourceType", "assigned_from_plan");
+
+        Workout workout = Workout.fromJson(json);
+
+        assertEquals(20, workout.getWorkoutId());
+        assertEquals(37, workout.getUserId());
+        assertEquals(Integer.valueOf(99), workout.getAssignedWorkoutId());
+        assertEquals(5, workout.getCreatedByUserId());
+        assertEquals("Trainer Plan", workout.getWorkoutName());
+        assertEquals("Assigned by trainer", workout.getDescription());
+        assertNull(workout.getDurationMinutes());
+        assertEquals("2026-06-01", workout.getScheduledDate());
+        assertEquals("accepted", workout.getStatus());
+        assertEquals("assigned_from_plan", workout.getSourceType());
+    }
+
+    @Test
+    public void workoutFromJsonUsesEmptyDescriptionWhenMissing() throws Exception {
+        JSONObject json = new JSONObject();
+
+        json.put("workoutId", 30);
+        json.put("userId", 37);
+        json.put("assignedWorkoutId", JSONObject.NULL);
+        json.put("createdByUserId", 37);
+        json.put("workoutName", "No Description Workout");
+        json.put("durationMinutes", 25);
+        json.put("scheduledDate", "2026-07-01");
+        json.put("status", "planned");
+        json.put("sourceType", "self_created");
+
+        Workout workout = Workout.fromJson(json);
+
+        assertEquals("No Description Workout", workout.getWorkoutName());
+        assertEquals("", workout.getDescription());
+    }
+
+    @Test
+    public void workoutToUpdateJsonIncludesExpectedFields() throws Exception {
+        Workout workout = new Workout(
+                1,
+                37,
+                null,
+                37,
+                "Bench Day",
+                "Chest and triceps",
+                45,
+                "2026-05-04",
+                "planned",
+                "self_created"
+        );
+
+        JSONObject json = workout.toUpdateJson();
+
+        assertEquals("Bench Day", json.getString("workoutName"));
+        assertEquals("Chest and triceps", json.getString("workoutDescription"));
+        assertEquals(45, json.getInt("durationMinutes"));
+        assertEquals("2026-05-04", json.getString("scheduledDate"));
+    }
+
+    @Test
+    public void workoutToUpdateJsonHandlesNullDuration() throws Exception {
+        Workout workout = new Workout(
+                1,
+                37,
+                null,
+                37,
+                "Stretch Day",
+                "Mobility work",
+                null,
+                "2026-05-05",
+                "planned",
+                "self_created"
+        );
+
+        JSONObject json = workout.toUpdateJson();
+
+        assertEquals("Stretch Day", json.getString("workoutName"));
+        assertEquals("Mobility work", json.getString("workoutDescription"));
+        assertTrue(json.isNull("durationMinutes"));
+        assertEquals("2026-05-05", json.getString("scheduledDate"));
+    }
+
+    @Test
+    public void workoutSourceTypeHelpersWork() {
+        Workout selfCreated = new Workout(
+                1,
+                37,
+                null,
+                37,
+                "Self Workout",
+                "Made by user",
+                30,
+                "2026-05-04",
+                "planned",
+                "self_created"
+        );
+
+        Workout assigned = new Workout(
+                2,
+                37,
+                100,
+                5,
+                "Assigned Workout",
+                "Made by trainer",
+                null,
+                "2026-05-05",
+                "accepted",
+                "assigned_from_plan"
+        );
+
+        assertTrue(selfCreated.isSelfCreated());
+        assertFalse(selfCreated.isAssignedFromPlan());
+
+        assertFalse(assigned.isSelfCreated());
+        assertTrue(assigned.isAssignedFromPlan());
+    }
+
+    @Test
+    public void workoutSourceTypeHelpersAreCaseInsensitive() {
+        Workout workout = new Workout(
+                1,
+                37,
+                null,
+                37,
+                "Mixed Case",
+                "Testing case insensitive source type",
+                30,
+                "2026-05-04",
+                "planned",
+                "SELF_CREATED"
+        );
+
+        assertTrue(workout.isSelfCreated());
+        assertFalse(workout.isAssignedFromPlan());
+
+        workout.setSourceType("ASSIGNED_FROM_PLAN");
+
+        assertFalse(workout.isSelfCreated());
+        assertTrue(workout.isAssignedFromPlan());
+    }
+
+    @Test
+    public void workoutSourceTypeHelpersReturnFalseForUnknownType() {
+        Workout workout = new Workout(
+                1,
+                37,
+                null,
+                37,
+                "Unknown Type",
+                "Testing unknown source type",
+                30,
+                "2026-05-04",
+                "planned",
+                "other"
+        );
+
+        assertFalse(workout.isSelfCreated());
+        assertFalse(workout.isAssignedFromPlan());
+    }
+
+//workout adapter
+
+    @Test
+    public void workoutAdapterItemCountAndViewTypesWork() {
+        Context context = ApplicationProvider.getApplicationContext();
+
+        ArrayList<Workout> workouts = new ArrayList<>();
+        workouts.add(makeSelfWorkout(1));
+        workouts.add(makeAssignedWorkout(2, "assigned", 100));
+
+        WorkoutAdapter adapter = new WorkoutAdapter(context, workouts);
+
+        assertEquals(2, adapter.getItemCount());
+
+        int selfType = adapter.getItemViewType(0);
+        int assignedType = adapter.getItemViewType(1);
+
+        assertNotEquals(selfType, assignedType);
+    }
+
+    @Test
+    public void workoutAdapterCreatesAndBindsSelfWorkoutHolder() {
+        Context context = ApplicationProvider.getApplicationContext();
+
+        ArrayList<Workout> workouts = new ArrayList<>();
+        workouts.add(makeSelfWorkout(1));
+
+        WorkoutAdapter adapter = new WorkoutAdapter(context, workouts);
+
+        AtomicReference<RecyclerView.ViewHolder> holderRef = new AtomicReference<>();
+
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
+            FrameLayout parent = new FrameLayout(context);
+
+            RecyclerView.ViewHolder holder =
+                    adapter.onCreateViewHolder(parent, adapter.getItemViewType(0));
+
+            adapter.onBindViewHolder(holder, 0);
+
+            holderRef.set(holder);
+        });
+
+        assertTrue(holderRef.get() instanceof WorkoutAdapter.SelfWorkoutViewHolder);
+
+        WorkoutAdapter.SelfWorkoutViewHolder holder =
+                (WorkoutAdapter.SelfWorkoutViewHolder) holderRef.get();
+
+        assertEquals("Workout 1", holder.editName.getText().toString());
+        assertEquals("2026-05-04", holder.editDate.getText().toString());
+        assertEquals("Description 1", holder.editDescription.getText().toString());
+        assertEquals("45", holder.txtDuration.getText().toString());
+        assertEquals("Created by you", holder.txtSourceType.getText().toString());
+        assertEquals("Status: planned", holder.txtStatus.getText().toString());
+    }
+
+    @Test
+    public void workoutAdapterSelfWorkoutDurationButtonsWork() {
+        Context context = ApplicationProvider.getApplicationContext();
+
+        ArrayList<Workout> workouts = new ArrayList<>();
+        Workout workout = makeSelfWorkout(1);
+        workout.setDurationMinutes(1);
+        workouts.add(workout);
+
+        WorkoutAdapter adapter = new WorkoutAdapter(context, workouts);
+
+        AtomicReference<WorkoutAdapter.SelfWorkoutViewHolder> holderRef = new AtomicReference<>();
+
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
+            FrameLayout parent = new FrameLayout(context);
+
+            RecyclerView.ViewHolder holder =
+                    adapter.onCreateViewHolder(parent, adapter.getItemViewType(0));
+
+            adapter.onBindViewHolder(holder, 0);
+
+            holderRef.set((WorkoutAdapter.SelfWorkoutViewHolder) holder);
+
+            holderRef.get().btnDurationPlus.performClick();
+            holderRef.get().btnDurationMinus.performClick();
+            holderRef.get().btnDurationMinus.performClick();
+            holderRef.get().btnDurationMinus.performClick();
+        });
+
+        assertEquals(Integer.valueOf(0), workout.getDurationMinutes());
+        assertEquals("0", holderRef.get().txtDuration.getText().toString());
+    }
+
+    @Test
+    public void workoutAdapterSelfWorkoutNullDurationShowsZeroAndPlusWorks() {
+        Context context = ApplicationProvider.getApplicationContext();
+
+        ArrayList<Workout> workouts = new ArrayList<>();
+        Workout workout = makeSelfWorkout(1);
+        workout.setDurationMinutes(null);
+        workouts.add(workout);
+
+        WorkoutAdapter adapter = new WorkoutAdapter(context, workouts);
+
+        AtomicReference<WorkoutAdapter.SelfWorkoutViewHolder> holderRef = new AtomicReference<>();
+
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
+            FrameLayout parent = new FrameLayout(context);
+
+            RecyclerView.ViewHolder holder =
+                    adapter.onCreateViewHolder(parent, adapter.getItemViewType(0));
+
+            adapter.onBindViewHolder(holder, 0);
+
+            holderRef.set((WorkoutAdapter.SelfWorkoutViewHolder) holder);
+
+            assertEquals("0", holderRef.get().txtDuration.getText().toString());
+
+            holderRef.get().btnDurationPlus.performClick();
+        });
+
+        assertEquals(Integer.valueOf(1), workout.getDurationMinutes());
+        assertEquals("1", holderRef.get().txtDuration.getText().toString());
+    }
+
+    @Test
+    public void workoutAdapterSelfWorkoutSaveEmptyFieldsDoesNotUpdateWorkout() {
+        Context context = ApplicationProvider.getApplicationContext();
+
+        ArrayList<Workout> workouts = new ArrayList<>();
+        Workout workout = makeSelfWorkout(1);
+        workouts.add(workout);
+
+        WorkoutAdapter adapter = new WorkoutAdapter(context, workouts);
+
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
+            FrameLayout parent = new FrameLayout(context);
+
+            RecyclerView.ViewHolder holder =
+                    adapter.onCreateViewHolder(parent, adapter.getItemViewType(0));
+
+            adapter.onBindViewHolder(holder, 0);
+
+            WorkoutAdapter.SelfWorkoutViewHolder selfHolder =
+                    (WorkoutAdapter.SelfWorkoutViewHolder) holder;
+
+            selfHolder.editName.setText("");
+            selfHolder.btnSave.performClick();
+        });
+
+        assertEquals("Workout 1", workout.getWorkoutName());
+    }
+
+    @Test
+    public void workoutAdapterSelfWorkoutSaveValidFieldsUpdatesLocalWorkout() {
+        Context context = ApplicationProvider.getApplicationContext();
+
+        ArrayList<Workout> workouts = new ArrayList<>();
+        Workout workout = makeSelfWorkout(1);
+        workouts.add(workout);
+
+        WorkoutAdapter adapter = new WorkoutAdapter(context, workouts);
+
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
+            FrameLayout parent = new FrameLayout(context);
+
+            RecyclerView.ViewHolder holder =
+                    adapter.onCreateViewHolder(parent, adapter.getItemViewType(0));
+
+            adapter.onBindViewHolder(holder, 0);
+
+            WorkoutAdapter.SelfWorkoutViewHolder selfHolder =
+                    (WorkoutAdapter.SelfWorkoutViewHolder) holder;
+
+            selfHolder.editName.setText("Updated Workout");
+            selfHolder.editDate.setText("2026-06-01");
+            selfHolder.editDescription.setText("Updated Description");
+
+            selfHolder.btnSave.performClick();
+        });
+
+        assertEquals("Updated Workout", workout.getWorkoutName());
+        assertEquals("2026-06-01", workout.getScheduledDate());
+        assertEquals("Updated Description", workout.getDescription());
+    }
+
+    @Test
+    public void workoutAdapterSelfWorkoutDeleteClickDetachedDoesNotRemoveList() {
+        Context context = ApplicationProvider.getApplicationContext();
+
+        ArrayList<Workout> workouts = new ArrayList<>();
+        workouts.add(makeSelfWorkout(1));
+
+        WorkoutAdapter adapter = new WorkoutAdapter(context, workouts);
+
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
+            FrameLayout parent = new FrameLayout(context);
+
+            RecyclerView.ViewHolder holder =
+                    adapter.onCreateViewHolder(parent, adapter.getItemViewType(0));
+
+            adapter.onBindViewHolder(holder, 0);
+
+            WorkoutAdapter.SelfWorkoutViewHolder selfHolder =
+                    (WorkoutAdapter.SelfWorkoutViewHolder) holder;
+
+            selfHolder.btnDelete.performClick();
+        });
+
+        assertEquals(1, workouts.size());
+    }
+
+    @Test
+    public void workoutAdapterCreatesAndBindsAssignedWorkoutHolderAssignedStatus() {
+        Context context = ApplicationProvider.getApplicationContext();
+
+        ArrayList<Workout> workouts = new ArrayList<>();
+        workouts.add(makeAssignedWorkout(1, "assigned", 100));
+
+        WorkoutAdapter adapter = new WorkoutAdapter(context, workouts);
+
+        AtomicReference<WorkoutAdapter.AssignedWorkoutViewHolder> holderRef =
+                new AtomicReference<>();
+
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
+            FrameLayout parent = new FrameLayout(context);
+
+            RecyclerView.ViewHolder holder =
+                    adapter.onCreateViewHolder(parent, adapter.getItemViewType(0));
+
+            adapter.onBindViewHolder(holder, 0);
+
+            holderRef.set((WorkoutAdapter.AssignedWorkoutViewHolder) holder);
+        });
+
+        WorkoutAdapter.AssignedWorkoutViewHolder holder = holderRef.get();
+
+        assertEquals("Assigned Workout 1", holder.txtName.getText().toString());
+        assertEquals("2026-05-05", holder.txtDate.getText().toString());
+        assertEquals("Assigned Description 1", holder.txtDescription.getText().toString());
+        assertEquals("Assigned by trainer", holder.txtSourceType.getText().toString());
+        assertEquals("Status: assigned", holder.txtStatus.getText().toString());
+
+        assertEquals(View.VISIBLE, holder.btnAccept.getVisibility());
+        assertEquals(View.VISIBLE, holder.btnReject.getVisibility());
+        assertEquals(View.GONE, holder.btnComplete.getVisibility());
+    }
+
+    @Test
+    public void workoutAdapterAssignedWorkoutAcceptedStatusShowsCompleteButton() {
+        Context context = ApplicationProvider.getApplicationContext();
+
+        ArrayList<Workout> workouts = new ArrayList<>();
+        workouts.add(makeAssignedWorkout(1, "accepted", 100));
+
+        WorkoutAdapter adapter = new WorkoutAdapter(context, workouts);
+
+        AtomicReference<WorkoutAdapter.AssignedWorkoutViewHolder> holderRef =
+                new AtomicReference<>();
+
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
+            FrameLayout parent = new FrameLayout(context);
+
+            RecyclerView.ViewHolder holder =
+                    adapter.onCreateViewHolder(parent, adapter.getItemViewType(0));
+
+            adapter.onBindViewHolder(holder, 0);
+
+            holderRef.set((WorkoutAdapter.AssignedWorkoutViewHolder) holder);
+        });
+
+        WorkoutAdapter.AssignedWorkoutViewHolder holder = holderRef.get();
+
+        assertEquals(View.GONE, holder.btnAccept.getVisibility());
+        assertEquals(View.GONE, holder.btnReject.getVisibility());
+        assertEquals(View.VISIBLE, holder.btnComplete.getVisibility());
+    }
+
+    @Test
+    public void workoutAdapterAssignedWorkoutInProgressStatusShowsCompleteButton() {
+        Context context = ApplicationProvider.getApplicationContext();
+
+        ArrayList<Workout> workouts = new ArrayList<>();
+        workouts.add(makeAssignedWorkout(1, "in_progress", 100));
+
+        WorkoutAdapter adapter = new WorkoutAdapter(context, workouts);
+
+        AtomicReference<WorkoutAdapter.AssignedWorkoutViewHolder> holderRef =
+                new AtomicReference<>();
+
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
+            FrameLayout parent = new FrameLayout(context);
+
+            RecyclerView.ViewHolder holder =
+                    adapter.onCreateViewHolder(parent, adapter.getItemViewType(0));
+
+            adapter.onBindViewHolder(holder, 0);
+
+            holderRef.set((WorkoutAdapter.AssignedWorkoutViewHolder) holder);
+        });
+
+        WorkoutAdapter.AssignedWorkoutViewHolder holder = holderRef.get();
+
+        assertEquals(View.GONE, holder.btnAccept.getVisibility());
+        assertEquals(View.GONE, holder.btnReject.getVisibility());
+        assertEquals(View.VISIBLE, holder.btnComplete.getVisibility());
+    }
+
+    @Test
+    public void workoutAdapterAssignedWorkoutCompletedStatusHidesAllButtons() {
+        Context context = ApplicationProvider.getApplicationContext();
+
+        ArrayList<Workout> workouts = new ArrayList<>();
+        workouts.add(makeAssignedWorkout(1, "completed", 100));
+
+        WorkoutAdapter adapter = new WorkoutAdapter(context, workouts);
+
+        AtomicReference<WorkoutAdapter.AssignedWorkoutViewHolder> holderRef =
+                new AtomicReference<>();
+
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
+            FrameLayout parent = new FrameLayout(context);
+
+            RecyclerView.ViewHolder holder =
+                    adapter.onCreateViewHolder(parent, adapter.getItemViewType(0));
+
+            adapter.onBindViewHolder(holder, 0);
+
+            holderRef.set((WorkoutAdapter.AssignedWorkoutViewHolder) holder);
+        });
+
+        WorkoutAdapter.AssignedWorkoutViewHolder holder = holderRef.get();
+
+        assertEquals(View.GONE, holder.btnAccept.getVisibility());
+        assertEquals(View.GONE, holder.btnReject.getVisibility());
+        assertEquals(View.GONE, holder.btnComplete.getVisibility());
+    }
+
+    @Test
+    public void workoutAdapterAssignedWorkoutNullStatusHidesAllButtons() {
+        Context context = ApplicationProvider.getApplicationContext();
+
+        ArrayList<Workout> workouts = new ArrayList<>();
+        Workout workout = makeAssignedWorkout(1, null, 100);
+        workouts.add(workout);
+
+        WorkoutAdapter adapter = new WorkoutAdapter(context, workouts);
+
+        AtomicReference<WorkoutAdapter.AssignedWorkoutViewHolder> holderRef =
+                new AtomicReference<>();
+
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
+            FrameLayout parent = new FrameLayout(context);
+
+            RecyclerView.ViewHolder holder =
+                    adapter.onCreateViewHolder(parent, adapter.getItemViewType(0));
+
+            adapter.onBindViewHolder(holder, 0);
+
+            holderRef.set((WorkoutAdapter.AssignedWorkoutViewHolder) holder);
+        });
+
+        WorkoutAdapter.AssignedWorkoutViewHolder holder = holderRef.get();
+
+        assertEquals(View.GONE, holder.btnAccept.getVisibility());
+        assertEquals(View.GONE, holder.btnReject.getVisibility());
+        assertEquals(View.GONE, holder.btnComplete.getVisibility());
+    }
+
+    @Test
+    public void workoutAdapterAssignedWorkoutStatusButtonsDetachedDoNotCrash() {
+        Context context = ApplicationProvider.getApplicationContext();
+
+        ArrayList<Workout> workouts = new ArrayList<>();
+        workouts.add(makeAssignedWorkout(1, "assigned", 100));
+
+        WorkoutAdapter adapter = new WorkoutAdapter(context, workouts);
+
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
+            FrameLayout parent = new FrameLayout(context);
+
+            RecyclerView.ViewHolder holder =
+                    adapter.onCreateViewHolder(parent, adapter.getItemViewType(0));
+
+            adapter.onBindViewHolder(holder, 0);
+
+            WorkoutAdapter.AssignedWorkoutViewHolder assignedHolder =
+                    (WorkoutAdapter.AssignedWorkoutViewHolder) holder;
+
+            assignedHolder.btnAccept.performClick();
+            assignedHolder.btnReject.performClick();
+            assignedHolder.btnComplete.performClick();
+        });
+
+        assertEquals(1, workouts.size());
+    }
+
+    private Workout makeSelfWorkout(int id) {
+        return new Workout(
+                id,
+                37,
+                null,
+                37,
+                "Workout " + id,
+                "Description " + id,
+                45,
+                "2026-05-04",
+                "planned",
+                "self_created"
+        );
+    }
+
+    private Workout makeAssignedWorkout(int id, String status, Integer assignedWorkoutId) {
+        return new Workout(
+                id,
+                37,
+                assignedWorkoutId,
+                5,
+                "Assigned Workout " + id,
+                "Assigned Description " + id,
+                null,
+                "2026-05-05",
+                status,
+                "assigned_from_plan"
+        );
+    }
 
 }
