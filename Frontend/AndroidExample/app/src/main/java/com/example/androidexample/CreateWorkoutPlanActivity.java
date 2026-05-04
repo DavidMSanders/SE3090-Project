@@ -22,6 +22,7 @@ public class CreateWorkoutPlanActivity extends AppCompatActivity {
 
     private int trainerId;
 
+    private Button btnBackCreateWorkoutPlan;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -30,6 +31,9 @@ public class CreateWorkoutPlanActivity extends AppCompatActivity {
         etWorkoutPlanName = findViewById(R.id.etWorkoutPlanName);
         etWorkoutPlanDescription = findViewById(R.id.etWorkoutPlanDescription);
         btnSubmitWorkoutPlan = findViewById(R.id.btnSubmitWorkoutPlan);
+
+        btnBackCreateWorkoutPlan = findViewById(R.id.btnBackCreateWorkoutPlan);
+        btnBackCreateWorkoutPlan.setOnClickListener(v -> finish());
 
         KeepUser keepUser = new KeepUser(this);
         trainerId = keepUser.getUserId();

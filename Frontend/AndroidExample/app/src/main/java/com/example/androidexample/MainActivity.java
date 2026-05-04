@@ -89,6 +89,14 @@ public class MainActivity extends AppCompatActivity {
             btnWorkoutPlans.setVisibility(View.GONE);
 
 
+
+        Button btnPersonalBests = findViewById(R.id.btnPersonalBests);
+
+        btnPersonalBests.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, PersonalBestActivity.class);
+            startActivity(intent);
+        });
+
         btnWorkoutPlans.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, WorkoutPlanListActivity.class);
             startActivity(intent);

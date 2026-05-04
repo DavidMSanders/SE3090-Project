@@ -35,6 +35,10 @@ public class WorkoutPlanListActivity extends AppCompatActivity {
 
     private int trainerId;
 
+    private Button btnOpenWorkoutPlanSummaryPage;
+
+    private Button btnBackWorkoutPlanList;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,6 +49,16 @@ public class WorkoutPlanListActivity extends AppCompatActivity {
         btnCreateWorkoutPlan = findViewById(R.id.btnCreateWorkoutPlan);
 
         btnOpenAssignWorkoutPage = findViewById(R.id.btnOpenAssignWorkoutPage);
+
+        btnOpenWorkoutPlanSummaryPage = findViewById(R.id.btnOpenWorkoutPlanSummaryPage);
+
+        btnOpenWorkoutPlanSummaryPage.setOnClickListener(v -> {
+            Intent intent = new Intent(WorkoutPlanListActivity.this, WorkoutPlanSummaryActivity.class);
+            startActivity(intent);
+        });
+
+        btnBackWorkoutPlanList = findViewById(R.id.btnBackWorkoutPlanList);
+        btnBackWorkoutPlanList.setOnClickListener(v -> finish());
 
         KeepUser keepUser = new KeepUser(this);
         trainerId = keepUser.getUserId();

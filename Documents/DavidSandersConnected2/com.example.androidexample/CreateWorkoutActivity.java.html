@@ -1,0 +1,306 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CreateWorkoutActivity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample</a> &gt; <span class="el_source">CreateWorkoutActivity.java</span></div><h1>CreateWorkoutActivity.java</h1><pre class="source lang-java linenums">package com.example.androidexample;
+
+import androidx.appcompat.app.AppCompatActivity;
+import android.os.Bundle;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
+
+import com.android.volley.Request;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+<span class="nc" id="L16">public class CreateWorkoutActivity extends AppCompatActivity {</span>
+    private EditText editName, editDate, editDuration, editDescription, editWorkoutID, getWorkoutJson;
+    //currently on mock server
+    private static final String BASE_URL = &quot;http://coms-3090-035.class.las.iastate.edu:8080&quot;;
+    private static final String WORKOUTS_URL = BASE_URL + &quot;/api/v1/workouts&quot;;
+
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+<span class="nc" id="L25">        super.onCreate(savedInstanceState);</span>
+<span class="nc" id="L26">        setContentView(R.layout.activity_create_workout);</span>
+<span class="nc" id="L27">        AppTopBarController.setup(this);</span>
+
+<span class="nc" id="L29">        editName = findViewById(R.id.WorkoutName);</span>
+<span class="nc" id="L30">        editDate = findViewById(R.id.WorkoutDate);</span>
+<span class="nc" id="L31">        editDuration = findViewById(R.id.WorkoutDuration);</span>
+<span class="nc" id="L32">        editDescription = findViewById(R.id.WorkoutDescription);</span>
+<span class="nc" id="L33">        editWorkoutID = findViewById(R.id.workoutID);</span>
+
+<span class="nc" id="L35">        getWorkoutJson = findViewById(R.id.getWorkoutJson);</span>
+
+
+
+<span class="nc" id="L39">        Button SaveButton = findViewById(R.id.btnSaveWorkout);</span>
+<span class="nc" id="L40">        Button CancelButton = findViewById(R.id.btnCancelWorkout);</span>
+
+<span class="nc" id="L42">        Button UpdateButton = findViewById(R.id.btnUpdateWorkout);</span>
+<span class="nc" id="L43">        Button DeleteButton = findViewById(R.id.btnDeleteWorkout);</span>
+
+<span class="nc" id="L45">        Button getButton = findViewById(R.id.btnGetWorkout);</span>
+
+
+<span class="nc" id="L48">        CancelButton.setOnClickListener( v -&gt; finish());</span>
+/*
+        SaveButton.setOnClickListener(v -&gt; {
+
+            if(!validInputs()){
+                return;
+            }
+            String name = editName.getText().toString();
+            String date = editDate.getText().toString();
+            int duration = Integer.parseInt(editDuration.getText().toString());
+            String description = editDescription.getText().toString();
+
+            Toast.makeText(this, &quot;Saved workout:\n&quot;
+            + name + &quot;\n&quot;
+            + date + &quot;\n&quot;
+            + duration + &quot;\n&quot;
+            + description, Toast.LENGTH_LONG).show();
+
+            finish();
+
+
+        });
+*/
+        // CREATE (POST)
+<span class="nc" id="L72">        SaveButton.setOnClickListener(v -&gt; {</span>
+<span class="nc bnc" id="L73" title="All 2 branches missed.">            if (!validInputs()) return;</span>
+
+<span class="nc" id="L75">            JSONObject body = buildWorkoutJsonOrToast();</span>
+<span class="nc bnc" id="L76" title="All 2 branches missed.">            if (body == null) return;</span>
+
+<span class="nc" id="L78">            createWorkout(body);</span>
+<span class="nc" id="L79">        });</span>
+
+        // UPDATE (PUT) by ID
+<span class="nc" id="L82">        UpdateButton.setOnClickListener(v -&gt; {</span>
+<span class="nc" id="L83">            Integer id = parseWorkoutIdOrError();</span>
+<span class="nc bnc" id="L84" title="All 2 branches missed.">            if (id == null) return;</span>
+
+<span class="nc bnc" id="L86" title="All 2 branches missed.">            if (!validInputs()) return;</span>
+
+<span class="nc" id="L88">            JSONObject body = buildWorkoutJsonWithIDOrToast(id);</span>
+<span class="nc bnc" id="L89" title="All 2 branches missed.">            if (body == null) return;</span>
+
+<span class="nc" id="L91">            updateWorkout(id, body);</span>
+<span class="nc" id="L92">        });</span>
+
+        // DELETE (DELETE) by ID
+<span class="nc" id="L95">        DeleteButton.setOnClickListener(v -&gt; {</span>
+<span class="nc" id="L96">            Integer id = parseWorkoutIdOrError();</span>
+<span class="nc bnc" id="L97" title="All 2 branches missed.">            if (id == null) return;</span>
+
+<span class="nc" id="L99">            deleteWorkout(id);</span>
+<span class="nc" id="L100">        });</span>
+
+        // GET (GET) by ID
+<span class="nc" id="L103">        getButton.setOnClickListener(v -&gt; {</span>
+<span class="nc" id="L104">            Integer id = parseWorkoutIdOrError(); // you already have this helper</span>
+<span class="nc bnc" id="L105" title="All 2 branches missed.">            if (id == null) return;</span>
+
+<span class="nc" id="L107">            getWorkoutById(id);</span>
+<span class="nc" id="L108">        });</span>
+
+
+<span class="nc" id="L111">    }// end of onCreate()</span>
+
+
+    private boolean validInputs(){
+<span class="nc" id="L115">        String name = editName.getText().toString().trim();</span>
+<span class="nc" id="L116">        String date = editDate.getText().toString().trim();</span>
+<span class="nc" id="L117">        String durationStr = editDuration.getText().toString().trim();</span>
+<span class="nc" id="L118">        String desc = editDescription.getText().toString().trim();</span>
+
+<span class="nc bnc" id="L120" title="All 2 branches missed.">        if (name.isEmpty()) {</span>
+<span class="nc" id="L121">            editName.setError(&quot;Workout name required&quot;);</span>
+<span class="nc" id="L122">            return false;</span>
+        }
+<span class="nc bnc" id="L124" title="All 4 branches missed.">        if (date.isEmpty() || !date.matches(&quot;\\d{2}/\\d{2}/\\d{4}&quot;)) {</span>
+<span class="nc" id="L125">            editDate.setError(&quot;Workout date required&quot;);</span>
+<span class="nc" id="L126">            return false;</span>
+        }
+<span class="nc bnc" id="L128" title="All 2 branches missed.">        if (desc.isEmpty()) {</span>
+<span class="nc" id="L129">            editDescription.setError(&quot;Workout description required&quot;);</span>
+<span class="nc" id="L130">            return false;</span>
+        }
+        int duration;
+        try {
+<span class="nc" id="L134">            duration = Integer.parseInt(durationStr);</span>
+<span class="nc" id="L135">        } catch (NumberFormatException e) {</span>
+<span class="nc" id="L136">            editDuration.setError(&quot;Workout duration must be a number&quot;);</span>
+<span class="nc" id="L137">            return false;</span>
+<span class="nc" id="L138">        }</span>
+<span class="nc bnc" id="L139" title="All 2 branches missed.">        if (duration &lt;= 0) {</span>
+<span class="nc" id="L140">            editDuration.setError(&quot;Workout duration must be greater than 0&quot;);</span>
+<span class="nc" id="L141">            return false;</span>
+        }
+<span class="nc" id="L143">        return true;</span>
+    } //end of validInputs()
+
+    private JSONObject buildWorkoutJsonOrToast() {
+<span class="nc" id="L147">        String name = editName.getText().toString().trim();</span>
+<span class="nc" id="L148">        String date = editDate.getText().toString().trim();</span>
+<span class="nc" id="L149">        int duration = Integer.parseInt(editDuration.getText().toString());</span>
+<span class="nc" id="L150">        String desc = editDescription.getText().toString().trim();</span>
+
+        try {
+<span class="nc" id="L153">            JSONObject body = new JSONObject();</span>
+
+<span class="nc" id="L155">            body.put(&quot;name&quot;, name);</span>
+<span class="nc" id="L156">            body.put(&quot;date&quot;, date);</span>
+<span class="nc" id="L157">            body.put(&quot;durationMinutes&quot;, duration);</span>
+<span class="nc" id="L158">            body.put(&quot;description&quot;, desc);</span>
+
+<span class="nc" id="L160">            return body;</span>
+<span class="nc" id="L161">        } catch (JSONException e) {</span>
+<span class="nc" id="L162">            Toast.makeText(this, &quot;JSON error: &quot; + e.getMessage(), Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L163">            return null;</span>
+        }
+
+
+    } //end of buildWorkoutJsonOrToast()
+
+    private JSONObject buildWorkoutJsonWithIDOrToast(int id) {
+<span class="nc" id="L170">        String name = editName.getText().toString().trim();</span>
+<span class="nc" id="L171">        String date = editDate.getText().toString().trim();</span>
+<span class="nc" id="L172">        int duration = Integer.parseInt(editDuration.getText().toString());</span>
+<span class="nc" id="L173">        String desc = editDescription.getText().toString().trim();</span>
+
+        try {
+<span class="nc" id="L176">            JSONObject body = new JSONObject();</span>
+<span class="nc" id="L177">            body.put(&quot;id&quot;, id);</span>
+<span class="nc" id="L178">            body.put(&quot;name&quot;, name);</span>
+<span class="nc" id="L179">            body.put(&quot;date&quot;, date);</span>
+<span class="nc" id="L180">            body.put(&quot;durationMinutes&quot;, duration);</span>
+<span class="nc" id="L181">            body.put(&quot;description&quot;, desc);</span>
+
+<span class="nc" id="L183">            return body;</span>
+<span class="nc" id="L184">        } catch (JSONException e) {</span>
+<span class="nc" id="L185">            Toast.makeText(this, &quot;JSON error: &quot; + e.getMessage(), Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L186">            return null;</span>
+        }
+
+
+    } //end of buildWorkoutJsonOrToast()
+    private Integer parseWorkoutIdOrError() {
+<span class="nc" id="L192">        String IDString = editWorkoutID.getText().toString().trim();</span>
+<span class="nc bnc" id="L193" title="All 2 branches missed.">        if (IDString.isEmpty()) {</span>
+<span class="nc" id="L194">            editWorkoutID.setError(&quot;Workout ID required&quot;);</span>
+<span class="nc" id="L195">            return null;</span>
+        }
+        try{
+<span class="nc" id="L198">            int id = Integer.parseInt(IDString);</span>
+<span class="nc bnc" id="L199" title="All 2 branches missed.">            if(id &lt;= 0){</span>
+<span class="nc" id="L200">                editWorkoutID.setError(&quot;Workout ID must be greater than 0&quot;);</span>
+<span class="nc" id="L201">                return null;</span>
+            }
+<span class="nc" id="L203">            return id;</span>
+<span class="nc" id="L204">        } catch (NumberFormatException e) {</span>
+<span class="nc" id="L205">            editWorkoutID.setError(&quot;Workout ID must be a number&quot;);</span>
+<span class="nc" id="L206">            return null;</span>
+        }
+    } // end of parseWorkoutIdOrError()
+
+    //crud requests
+
+    private void createWorkout(JSONObject body) {
+<span class="nc" id="L213">        JsonObjectRequest request = new JsonObjectRequest(</span>
+                Request.Method.POST,
+                WORKOUTS_URL,
+                body,
+                response -&gt; {
+<span class="nc" id="L218">                    Toast.makeText(getApplicationContext(),</span>
+<span class="nc" id="L219">                            &quot;Created: &quot; + response.toString(),</span>
+<span class="nc" id="L220">                            Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L221">                            finish();</span>
+<span class="nc" id="L222">                },</span>
+<span class="nc" id="L223">                error -&gt; showVolleyError(&quot;Workout create failed&quot;, error))</span>
+<span class="nc" id="L224">        {</span>
+            @Override
+            public String getBodyContentType() {
+<span class="nc" id="L227">                return &quot;application/json; charset=utf-8&quot;;</span>
+            }
+        };
+<span class="nc" id="L230">        VolleySingleton.getInstance(this).addToRequestQueue(request);</span>
+
+<span class="nc" id="L232">    } //end of POST workout</span>
+
+    private void updateWorkout(int id, JSONObject body) {
+
+<span class="nc" id="L236">        String url = WORKOUTS_URL + &quot;/&quot; + id;</span>
+<span class="nc" id="L237">        JsonObjectRequest req = new JsonObjectRequest(</span>
+                Request.Method.PUT,
+                url,
+                body,
+                response -&gt; {
+<span class="nc" id="L242">                    Toast.makeText(this, &quot;Workout updated!&quot;, Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L243">                    finish();</span>
+<span class="nc" id="L244">                },</span>
+<span class="nc" id="L245">                error -&gt; showVolleyError(&quot;Update failed&quot;, error)</span>
+<span class="nc" id="L246">        ) {</span>
+            @Override
+            public String getBodyContentType() {
+<span class="nc" id="L249">                return &quot;application/json; charset=utf-8&quot;;</span>
+            }
+        };
+
+<span class="nc" id="L253">        VolleySingleton.getInstance(this).addToRequestQueue(req);</span>
+<span class="nc" id="L254">    } //end of PUT workout</span>
+
+    private void deleteWorkout(int id) {
+<span class="nc" id="L257">        String url = WORKOUTS_URL + &quot;/&quot; + id;</span>
+
+<span class="nc" id="L259">        JsonObjectRequest req = new JsonObjectRequest(</span>
+                Request.Method.DELETE,
+                url,
+                null,
+                response -&gt; {
+<span class="nc" id="L264">                    Toast.makeText(this, &quot;Workout deleted!&quot;, Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L265">                    finish();</span>
+<span class="nc" id="L266">                },</span>
+<span class="nc" id="L267">                error -&gt; showVolleyError(&quot;Delete failed&quot;, error)</span>
+        );
+
+<span class="nc" id="L270">        VolleySingleton.getInstance(this).addToRequestQueue(req);</span>
+<span class="nc" id="L271">    }</span>
+
+    private void getWorkoutById(int id) {
+<span class="nc" id="L274">        String url = WORKOUTS_URL + &quot;/&quot; + id;</span>
+<span class="nc" id="L275">        JsonObjectRequest req = new JsonObjectRequest(</span>
+                Request.Method.GET,
+                url,
+                null,
+                response -&gt; {
+                    try{
+<span class="nc" id="L281">                        Workout workout = Workout.fromJson(response);</span>
+<span class="nc" id="L282">                        getWorkoutJson.setText(workout.toString());</span>
+<span class="nc" id="L283">                    } catch (JSONException e) {</span>
+<span class="nc" id="L284">                        getWorkoutJson.setText(&quot;Error parsing workout&quot;);</span>
+<span class="nc" id="L285">                    }</span>
+<span class="nc" id="L286">                },</span>
+                error -&gt; {
+<span class="nc" id="L288">                    getWorkoutJson.setText(&quot;&quot;);</span>
+<span class="nc" id="L289">                    showVolleyError(&quot;Get failed&quot;, error);</span>
+<span class="nc" id="L290">                }</span>
+        );
+<span class="nc" id="L292">        VolleySingleton.getInstance(this).addToRequestQueue(req);</span>
+<span class="nc" id="L293">    }</span>
+
+    private void showVolleyError(String prefix, VolleyError error) {
+<span class="nc bnc" id="L296" title="All 2 branches missed.">        int code = (error.networkResponse != null) ? error.networkResponse.statusCode : -1;</span>
+<span class="nc" id="L297">        Toast.makeText(this, prefix + &quot; (HTTP &quot; + code + &quot;)&quot;, Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L298">    }</span>
+
+
+
+
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

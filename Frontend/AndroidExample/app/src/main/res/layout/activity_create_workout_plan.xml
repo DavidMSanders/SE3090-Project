@@ -9,6 +9,15 @@
         android:orientation="vertical"
         android:padding="16dp">
 
+        <!-- Back button -->
+        <Button
+            android:id="@+id/btnBackCreateWorkoutPlan"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:backgroundTint="#0031FD"
+            android:text="Back" />
+
         <EditText
             android:id="@+id/etWorkoutPlanName"
             android:layout_width="match_parent"
@@ -30,6 +39,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
+            android:backgroundTint="#01AF05"
             android:text="Create Workout Plan" />
 
     </LinearLayout>

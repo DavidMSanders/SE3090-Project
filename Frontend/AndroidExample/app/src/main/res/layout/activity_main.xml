@@ -58,50 +58,65 @@
                 android:id="@+id/btnWorkoutPlans"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Workout Plans"
-                android:layout_marginBottom="8dp"/>
+                android:layout_marginBottom="8dp"
+                android:backgroundTint="#3F51B5"
+                android:text="Workout Plans" />
 
             <Button
                 android:id="@+id/btnTestingPage"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Testing Page"
-                android:layout_marginBottom="8dp"/>
+                android:layout_marginBottom="8dp"
+                android:backgroundTint="#3F51B5"
+                android:text="Testing Page" />
 
             <Button
                 android:id="@+id/btnGroupList"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Group List"
-                android:layout_marginBottom="8dp"/>
+                android:layout_marginBottom="8dp"
+                android:backgroundTint="#3F51B5"
+                android:text="Group List" />
 
             <Button
                 android:id="@+id/WorkoutList"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Workout List"
-                android:layout_marginBottom="8dp"/>
+                android:layout_marginBottom="8dp"
+                android:backgroundTint="#3F51B5"
+                android:text="Workout List" />
+
+            <Button
+                android:id="@+id/btnPersonalBests"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:backgroundTint="#3F51B5"
+                android:text="Personal Bests" />
 
             <Button
                 android:id="@+id/btnGoToCalendar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Go to Calendar"
-                android:layout_marginBottom="8dp"/>
+                android:layout_marginBottom="8dp"
+                android:backgroundTint="#3F51B5"
+                android:text="Go to Calendar" />
 
             <Button
                 android:id="@+id/btnGoToWorkout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Go to Workout Page"
-                android:layout_marginBottom="8dp"/>
+                android:layout_marginBottom="8dp"
+                android:backgroundTint="#3F51B5"
+                android:text="Go to Workout Page" />
 
             <Button
                 android:id="@+id/btnGoToDelete"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Go to Delete Page"
-                android:layout_marginBottom="16dp"/>
+                android:layout_marginBottom="16dp"
+                android:backgroundTint="#3F51B5"
+                android:text="Go to Delete Page" />
 
         </LinearLayout>
     </ScrollView>

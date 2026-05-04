@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>WorkoutPlanSummaryAdapter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample</a> &gt; <span class="el_source">WorkoutPlanSummaryAdapter.java</span></div><h1>WorkoutPlanSummaryAdapter.java</h1><pre class="source lang-java linenums">package com.example.androidexample;
+
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
+
+import java.util.List;
+
+public class WorkoutPlanSummaryAdapter extends RecyclerView.Adapter&lt;WorkoutPlanSummaryAdapter.SummaryViewHolder&gt; {
+
+    private final List&lt;WorkoutPlanSummary&gt; summaryList;
+
+<span class="fc" id="L17">    public WorkoutPlanSummaryAdapter(List&lt;WorkoutPlanSummary&gt; summaryList) {</span>
+<span class="fc" id="L18">        this.summaryList = summaryList;</span>
+<span class="fc" id="L19">    }</span>
+
+    @NonNull
+    @Override
+    public SummaryViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+<span class="nc" id="L24">        View view = LayoutInflater.from(parent.getContext())</span>
+<span class="nc" id="L25">                .inflate(R.layout.workout_plan_summary_box, parent, false);</span>
+<span class="nc" id="L26">        return new SummaryViewHolder(view);</span>
+    }
+
+    @Override
+    public void onBindViewHolder(@NonNull SummaryViewHolder holder, int position) {
+<span class="nc" id="L31">        WorkoutPlanSummary summary = summaryList.get(position);</span>
+
+<span class="nc" id="L33">        holder.txtPlanName.setText(summary.getPlanName());</span>
+<span class="nc" id="L34">        holder.txtPlanId.setText(&quot;Plan ID: &quot; + summary.getPlanId());</span>
+
+<span class="nc" id="L36">        holder.txtCounts.setText(</span>
+<span class="nc" id="L37">                &quot;Accepted: &quot; + summary.getAcceptedCount()</span>
+<span class="nc" id="L38">                        + &quot; | Rejected: &quot; + summary.getRejectedCount()</span>
+<span class="nc" id="L39">                        + &quot; | Completed: &quot; + summary.getCompletedCount()</span>
+<span class="nc" id="L40">                        + &quot; | Pending: &quot; + summary.getPendingCount()</span>
+        );
+
+<span class="nc" id="L43">        holder.txtAcceptedUsers.setText(&quot;Accepted: &quot; + formatUsers(summary.getAcceptedUsers()));</span>
+<span class="nc" id="L44">        holder.txtRejectedUsers.setText(&quot;Rejected: &quot; + formatUsers(summary.getRejectedUsers()));</span>
+<span class="nc" id="L45">        holder.txtCompletedUsers.setText(&quot;Completed: &quot; + formatUsers(summary.getCompletedUsers()));</span>
+<span class="nc" id="L46">        holder.txtPendingUsers.setText(&quot;Pending: &quot; + formatUsers(summary.getPendingUsers()));</span>
+<span class="nc" id="L47">    }</span>
+
+    @Override
+    public int getItemCount() {
+<span class="fc" id="L51">        return summaryList.size();</span>
+    }
+
+    private String formatUsers(List&lt;String&gt; users) {
+<span class="nc bnc" id="L55" title="All 4 branches missed.">        if (users == null || users.isEmpty()) {</span>
+<span class="nc" id="L56">            return &quot;none&quot;;</span>
+        }
+
+<span class="nc" id="L59">        StringBuilder builder = new StringBuilder();</span>
+
+<span class="nc bnc" id="L61" title="All 2 branches missed.">        for (int i = 0; i &lt; users.size(); i++) {</span>
+<span class="nc" id="L62">            builder.append(users.get(i));</span>
+
+<span class="nc bnc" id="L64" title="All 2 branches missed.">            if (i &lt; users.size() - 1) {</span>
+<span class="nc" id="L65">                builder.append(&quot;, &quot;);</span>
+            }
+        }
+
+<span class="nc" id="L69">        return builder.toString();</span>
+    }
+
+    public static class SummaryViewHolder extends RecyclerView.ViewHolder {
+
+        TextView txtPlanName;
+        TextView txtPlanId;
+        TextView txtCounts;
+        TextView txtAcceptedUsers;
+        TextView txtRejectedUsers;
+        TextView txtCompletedUsers;
+        TextView txtPendingUsers;
+
+        public SummaryViewHolder(@NonNull View itemView) {
+<span class="nc" id="L83">            super(itemView);</span>
+
+<span class="nc" id="L85">            txtPlanName = itemView.findViewById(R.id.txtPlanName);</span>
+<span class="nc" id="L86">            txtPlanId = itemView.findViewById(R.id.txtPlanId);</span>
+<span class="nc" id="L87">            txtCounts = itemView.findViewById(R.id.txtCounts);</span>
+<span class="nc" id="L88">            txtAcceptedUsers = itemView.findViewById(R.id.txtAcceptedUsers);</span>
+<span class="nc" id="L89">            txtRejectedUsers = itemView.findViewById(R.id.txtRejectedUsers);</span>
+<span class="nc" id="L90">            txtCompletedUsers = itemView.findViewById(R.id.txtCompletedUsers);</span>
+<span class="nc" id="L91">            txtPendingUsers = itemView.findViewById(R.id.txtPendingUsers);</span>
+<span class="nc" id="L92">        }</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

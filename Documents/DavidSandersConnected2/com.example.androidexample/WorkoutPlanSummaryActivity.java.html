@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>WorkoutPlanSummaryActivity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample</a> &gt; <span class="el_source">WorkoutPlanSummaryActivity.java</span></div><h1>WorkoutPlanSummaryActivity.java</h1><pre class="source lang-java linenums">package com.example.androidexample;
+
+import android.os.Bundle;
+import android.widget.Button;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.android.volley.Request;
+import com.android.volley.toolbox.JsonArrayRequest;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.List;
+
+<span class="fc" id="L20">public class WorkoutPlanSummaryActivity extends AppCompatActivity {</span>
+
+    private RecyclerView recyclerWorkoutPlanSummaries;
+
+<span class="fc" id="L24">    private final List&lt;WorkoutPlanSummary&gt; summaryList = new ArrayList&lt;&gt;();</span>
+    private WorkoutPlanSummaryAdapter adapter;
+
+    private static final String BASE_URL = &quot;http://coms-3090-035.class.las.iastate.edu:8080/api/v1&quot;;
+    //http://coms-3090-035.class.las.iastate.edu:8080/api/v1
+    private int trainerId;
+
+    private Button btnBackWorkoutPlanSummary;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+<span class="fc" id="L35">        super.onCreate(savedInstanceState);</span>
+<span class="fc" id="L36">        setContentView(R.layout.activity_workout_plan_summary);</span>
+
+<span class="fc" id="L38">        recyclerWorkoutPlanSummaries = findViewById(R.id.recyclerWorkoutPlanSummaries);</span>
+
+
+<span class="fc" id="L41">        btnBackWorkoutPlanSummary = findViewById(R.id.btnBackWorkoutPlanSummary);</span>
+<span class="fc" id="L42">        btnBackWorkoutPlanSummary.setOnClickListener(v -&gt; finish());</span>
+
+<span class="fc" id="L44">        KeepUser keepUser = new KeepUser(this);</span>
+<span class="fc" id="L45">        trainerId = keepUser.getUserId();</span>
+
+<span class="fc" id="L47">        recyclerWorkoutPlanSummaries.setLayoutManager(new LinearLayoutManager(this));</span>
+<span class="fc" id="L48">        adapter = new WorkoutPlanSummaryAdapter(summaryList);</span>
+<span class="fc" id="L49">        recyclerWorkoutPlanSummaries.setAdapter(adapter);</span>
+
+<span class="fc" id="L51">        loadWorkoutPlanSummaries();</span>
+<span class="fc" id="L52">    }</span>
+
+    private void loadWorkoutPlanSummaries() {
+<span class="fc" id="L55">        String url = BASE_URL + &quot;/assigned-workouts/trainer/&quot;+ trainerId+ &quot;/plan-summaries&quot;;</span>
+<span class="fc" id="L56">        Toast.makeText(this, url, Toast.LENGTH_LONG).show();</span>
+
+
+<span class="fc" id="L59">        Toast.makeText(this, &quot;Calling summary endpoint&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="fc" id="L60">        android.util.Log.d(&quot;PLAN_SUMMARY&quot;, &quot;URL = &quot; + url);</span>
+
+<span class="fc" id="L62">        JsonArrayRequest request = new JsonArrayRequest(</span>
+                Request.Method.GET,
+                url,
+                null,
+                response -&gt; {
+<span class="fc" id="L67">                    android.util.Log.d(&quot;PLAN_SUMMARY&quot;, &quot;SUCCESS response = &quot; + response.toString());</span>
+<span class="fc" id="L68">                    Toast.makeText(this, &quot;Loaded workout plan summaries&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="fc" id="L69">                    parseWorkoutPlanSummaries(response);</span>
+<span class="fc" id="L70">                },</span>
+                error -&gt; {
+<span class="nc" id="L72">                    android.util.Log.e(&quot;PLAN_SUMMARY&quot;, &quot;FAILED URL = &quot; + url);</span>
+<span class="nc" id="L73">                    android.util.Log.e(&quot;PLAN_SUMMARY&quot;, &quot;Volley error = &quot; + error.toString());</span>
+
+<span class="nc bnc" id="L75" title="All 2 branches missed.">                    if (error.networkResponse != null) {</span>
+<span class="nc" id="L76">                        android.util.Log.e(&quot;PLAN_SUMMARY&quot;, &quot;Status code = &quot; + error.networkResponse.statusCode);</span>
+
+                        try {
+<span class="nc" id="L79">                            String body = new String(error.networkResponse.data, &quot;UTF-8&quot;);</span>
+<span class="nc" id="L80">                            android.util.Log.e(&quot;PLAN_SUMMARY&quot;, &quot;Error body = &quot; + body);</span>
+<span class="nc" id="L81">                        } catch (Exception e) {</span>
+<span class="nc" id="L82">                            android.util.Log.e(&quot;PLAN_SUMMARY&quot;, &quot;Could not read error body&quot;);</span>
+<span class="nc" id="L83">                        }</span>
+                    } else {
+<span class="nc" id="L85">                        android.util.Log.e(&quot;PLAN_SUMMARY&quot;, &quot;No networkResponse&quot;);</span>
+                    }
+
+<span class="nc" id="L88">                    Toast.makeText(this, &quot;Failed to load workout plan summaries&quot;, Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L89">                }</span>
+        );
+
+<span class="fc" id="L92">        VolleySingleton.getInstance(this).addToRequestQueue(request);</span>
+<span class="fc" id="L93">    }</span>
+
+    private void parseWorkoutPlanSummaries(JSONArray response) {
+<span class="fc" id="L96">        summaryList.clear();</span>
+
+        try {
+<span class="pc bpc" id="L99" title="1 of 2 branches missed.">            for (int i = 0; i &lt; response.length(); i++) {</span>
+<span class="nc" id="L100">                JSONObject obj = response.getJSONObject(i);</span>
+
+<span class="nc" id="L102">                WorkoutPlanSummary summary = new WorkoutPlanSummary();</span>
+
+<span class="nc" id="L104">                summary.setPlanId(obj.optInt(&quot;planId&quot;));</span>
+<span class="nc" id="L105">                summary.setPlanName(obj.optString(&quot;planName&quot;));</span>
+
+<span class="nc" id="L107">                summary.setAcceptedCount(obj.optInt(&quot;acceptedCount&quot;));</span>
+<span class="nc" id="L108">                summary.setRejectedCount(obj.optInt(&quot;rejectedCount&quot;));</span>
+<span class="nc" id="L109">                summary.setCompletedCount(obj.optInt(&quot;completedCount&quot;));</span>
+<span class="nc" id="L110">                summary.setPendingCount(obj.optInt(&quot;pendingCount&quot;));</span>
+
+<span class="nc" id="L112">                JSONObject usersObj = obj.optJSONObject(&quot;users&quot;);</span>
+
+<span class="nc bnc" id="L114" title="All 2 branches missed.">                if (usersObj != null) {</span>
+<span class="nc" id="L115">                    summary.setAcceptedUsers(parseStringArray(usersObj.optJSONArray(&quot;accepted&quot;)));</span>
+<span class="nc" id="L116">                    summary.setRejectedUsers(parseStringArray(usersObj.optJSONArray(&quot;rejected&quot;)));</span>
+<span class="nc" id="L117">                    summary.setCompletedUsers(parseStringArray(usersObj.optJSONArray(&quot;completed&quot;)));</span>
+<span class="nc" id="L118">                    summary.setPendingUsers(parseStringArray(usersObj.optJSONArray(&quot;pending&quot;)));</span>
+                }
+
+<span class="nc" id="L121">                summaryList.add(summary);</span>
+            }
+
+<span class="fc" id="L124">            adapter.notifyDataSetChanged();</span>
+
+<span class="nc" id="L126">        } catch (Exception e) {</span>
+<span class="nc" id="L127">            Toast.makeText(this, &quot;Error parsing workout plan summaries&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="fc" id="L128">        }</span>
+<span class="fc" id="L129">    }</span>
+
+    private List&lt;String&gt; parseStringArray(JSONArray array) {
+<span class="nc" id="L132">        List&lt;String&gt; users = new ArrayList&lt;&gt;();</span>
+
+<span class="nc bnc" id="L134" title="All 2 branches missed.">        if (array == null) {</span>
+<span class="nc" id="L135">            return users;</span>
+        }
+
+<span class="nc bnc" id="L138" title="All 2 branches missed.">        for (int i = 0; i &lt; array.length(); i++) {</span>
+<span class="nc" id="L139">            users.add(array.optString(i));</span>
+        }
+
+<span class="nc" id="L142">        return users;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

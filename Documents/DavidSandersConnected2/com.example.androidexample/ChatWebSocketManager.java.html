@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ChatWebSocketManager.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample</a> &gt; <span class="el_source">ChatWebSocketManager.java</span></div><h1>ChatWebSocketManager.java</h1><pre class="source lang-java linenums">
+package com.example.androidexample;
+
+import android.util.Log;
+
+import org.json.JSONObject;
+
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+import okhttp3.WebSocket;
+import okhttp3.WebSocketListener;
+
+<span class="nc" id="L14">public class ChatWebSocketManager {</span>
+
+    private WebSocket webSocket;
+<span class="nc" id="L17">    private final OkHttpClient client = new OkHttpClient();</span>
+
+    private GroupEventListener eventListener;
+<span class="nc" id="L20">    private Integer activeGroupId = null;</span>
+
+    public interface SocketConnectListener {
+        void onConnected();
+        void onError(String errorMessage);
+    }
+
+    public interface GroupEventListener {
+        void onEventReceived(ChatSocketEvent event);
+    }
+
+    public void connect(int userId, SocketConnectListener listener) {
+        //confirmed uses userId not username
+<span class="nc" id="L33">        String url = &quot;ws://coms-3090-035.class.las.iastate.edu:8080/chat/&quot;</span>
+                + userId;
+<span class="nc" id="L35">        Log.d(&quot;CHAT_TRACE&quot;, &quot;connect() called. url=&quot; + url);</span>
+
+<span class="nc" id="L37">        Request request = new Request.Builder().url(url).build();</span>
+
+<span class="nc" id="L39">        webSocket = client.newWebSocket(request, new WebSocketListener() {</span>
+
+            @Override
+            public void onOpen(WebSocket webSocket, Response response) {
+<span class="nc" id="L43">                Log.d(&quot;CHAT_TRACE&quot;, &quot;WebSocket onOpen()&quot;);</span>
+<span class="nc" id="L44">                listener.onConnected();</span>
+<span class="nc" id="L45">            }</span>
+
+            @Override
+            public void onMessage(WebSocket webSocket, String text) {
+<span class="nc" id="L49">                Log.d(&quot;WS_IN&quot;, &quot;RAW: &quot; + text);</span>
+                try {
+<span class="nc" id="L51">                    JSONObject json = new JSONObject(text);</span>
+<span class="nc" id="L52">                    ChatSocketEvent event = ChatSocketEvent.fromJson(json);</span>
+
+<span class="nc bnc" id="L54" title="All 2 branches missed.">                    if (eventListener != null) {</span>
+<span class="nc" id="L55">                        boolean isGlobalEvent =</span>
+<span class="nc bnc" id="L56" title="All 2 branches missed.">                                &quot;CONNECTED&quot;.equals(event.getEventType()) ||</span>
+<span class="nc bnc" id="L57" title="All 2 branches missed.">                                        &quot;ERROR&quot;.equals(event.getEventType());</span>
+
+<span class="nc bnc" id="L59" title="All 2 branches missed.">                        boolean passesFilter =</span>
+                                isGlobalEvent ||
+<span class="nc bnc" id="L61" title="All 2 branches missed.">                                        event.getGroupId() == null ||</span>
+<span class="nc bnc" id="L62" title="All 2 branches missed.">                                        activeGroupId == null ||</span>
+<span class="nc bnc" id="L63" title="All 2 branches missed.">                                        event.getGroupId().equals(activeGroupId);</span>
+
+<span class="nc" id="L65">                        Log.d(&quot;CHAT_TRACE&quot;, &quot;eventListener != null, passesFilter=&quot; + passesFilter);</span>
+
+<span class="nc bnc" id="L67" title="All 2 branches missed.">                        if (passesFilter) {</span>
+<span class="nc" id="L68">                            eventListener.onEventReceived(event);</span>
+                        }
+<span class="nc" id="L70">                    } else {</span>
+<span class="nc" id="L71">                        Log.d(&quot;CHAT_TRACE&quot;, &quot;eventListener is null when message arrived&quot;);</span>
+                    }
+<span class="nc" id="L73">                } catch (Exception e) {</span>
+                    //logged &quot;Invalid JSON&quot; for all errors
+                    // logs the actual error message now for debugging
+<span class="nc" id="L76">                    Log.e(&quot;CHAT_TRACE&quot;, &quot;Error parsing socket message: &quot; + text, e);</span>
+<span class="nc" id="L77">                    Log.e(&quot;WS&quot;, &quot;Error parsing event: &quot; + text +</span>
+<span class="nc" id="L78">                            &quot; — &quot; + e.getMessage());</span>
+<span class="nc" id="L79">                }</span>
+<span class="nc" id="L80">            }</span>
+
+            @Override
+            public void onFailure(WebSocket webSocket, Throwable t,
+                                  Response response) {
+<span class="nc" id="L85">                Log.e(&quot;CHAT_TRACE&quot;, &quot;WebSocket onFailure()&quot;, t);</span>
+<span class="nc" id="L86">                listener.onError(t.getMessage());</span>
+<span class="nc" id="L87">            }</span>
+        });
+<span class="nc" id="L89">    }</span>
+
+    public void setGroupEventListener(int groupId,
+                                      GroupEventListener listener) {
+<span class="nc" id="L93">        this.activeGroupId = groupId;</span>
+<span class="nc" id="L94">        this.eventListener = listener;</span>
+<span class="nc" id="L95">        Log.d(&quot;CHAT_TRACE&quot;, &quot;setGroupEventListener(): activeGroupId=&quot; + activeGroupId);</span>
+<span class="nc" id="L96">    }</span>
+
+    public void sendGroupMessage(SendMessageRequest request) {
+<span class="nc bnc" id="L99" title="All 2 branches missed.">        if (webSocket != null) {</span>
+            //log what is being sent for debugging
+<span class="nc" id="L101">            String json = request.toJson().toString();</span>
+<span class="nc" id="L102">            Log.d(&quot;WS&quot;, &quot;Sending: &quot; + json);</span>
+<span class="nc" id="L103">            webSocket.send(json);</span>
+<span class="nc" id="L104">        } else {</span>
+            //log if webSocket is null
+<span class="nc" id="L106">            Log.e(&quot;WS&quot;, &quot;Cannot send — webSocket is null&quot;);</span>
+        }
+<span class="nc" id="L108">    }</span>
+
+    public void sendPermissionUpdate(JSONObject payload) {
+<span class="nc bnc" id="L111" title="All 2 branches missed.">        if (webSocket != null) {</span>
+<span class="nc" id="L112">            String json = payload.toString();</span>
+<span class="nc" id="L113">            Log.d(&quot;WS&quot;, &quot;Sending permission update: &quot; + json);</span>
+<span class="nc" id="L114">            webSocket.send(json);</span>
+<span class="nc" id="L115">        } else {</span>
+<span class="nc" id="L116">            Log.e(&quot;WS&quot;, &quot;Cannot send permission update — webSocket is null&quot;);</span>
+        }
+<span class="nc" id="L118">    }</span>
+
+    public void sendEditMessage(long messageId, String newText) {
+<span class="nc bnc" id="L121" title="All 2 branches missed.">        if (webSocket != null) {</span>
+            try {
+<span class="nc" id="L123">                JSONObject payload = new JSONObject();</span>
+<span class="nc" id="L124">                payload.put(&quot;eventType&quot;, &quot;EDIT&quot;);</span>
+<span class="nc" id="L125">                payload.put(&quot;messageId&quot;, messageId);</span>
+<span class="nc" id="L126">                payload.put(&quot;textBody&quot;, newText);</span>
+
+<span class="nc" id="L128">                String json = payload.toString();</span>
+<span class="nc" id="L129">                Log.d(&quot;WS&quot;, &quot;Sending edit: &quot; + json);</span>
+<span class="nc" id="L130">                webSocket.send(json);</span>
+<span class="nc" id="L131">            } catch (Exception e) {</span>
+<span class="nc" id="L132">                Log.e(&quot;WS&quot;, &quot;Failed to build edit payload&quot;, e);</span>
+<span class="nc" id="L133">            }</span>
+        } else {
+<span class="nc" id="L135">            Log.e(&quot;WS&quot;, &quot;Cannot send edit — webSocket is null&quot;);</span>
+        }
+<span class="nc" id="L137">    }</span>
+    public void sendDeleteMessage(long messageId) {
+<span class="nc bnc" id="L139" title="All 2 branches missed.">        if (webSocket != null) {</span>
+            try {
+<span class="nc" id="L141">                JSONObject payload = new JSONObject();</span>
+<span class="nc" id="L142">                payload.put(&quot;eventType&quot;, &quot;DELETE&quot;);</span>
+<span class="nc" id="L143">                payload.put(&quot;messageId&quot;, messageId);</span>
+
+<span class="nc" id="L145">                String json = payload.toString();</span>
+<span class="nc" id="L146">                Log.d(&quot;WS&quot;, &quot;Sending delete: &quot; + json);</span>
+<span class="nc" id="L147">                webSocket.send(json);</span>
+<span class="nc" id="L148">            } catch (Exception e) {</span>
+<span class="nc" id="L149">                Log.e(&quot;WS&quot;, &quot;Failed to build delete payload&quot;, e);</span>
+<span class="nc" id="L150">            }</span>
+        } else {
+<span class="nc" id="L152">            Log.e(&quot;WS&quot;, &quot;Cannot send delete — webSocket is null&quot;);</span>
+        }
+<span class="nc" id="L154">    }</span>
+
+    public void sendLeaveGroup(int groupId) {
+<span class="nc bnc" id="L157" title="All 2 branches missed.">        if (webSocket != null) {</span>
+            try {
+<span class="nc" id="L159">                JSONObject payload = new JSONObject();</span>
+<span class="nc" id="L160">                payload.put(&quot;eventType&quot;, &quot;LEAVE&quot;);</span>
+<span class="nc" id="L161">                payload.put(&quot;groupId&quot;, groupId);</span>
+
+<span class="nc" id="L163">                String json = payload.toString();</span>
+<span class="nc" id="L164">                Log.d(&quot;WS&quot;, &quot;Sending leave group: &quot; + json);</span>
+<span class="nc" id="L165">                webSocket.send(json);</span>
+
+<span class="nc" id="L167">            } catch (Exception e) {</span>
+<span class="nc" id="L168">                Log.e(&quot;WS&quot;, &quot;Failed to build leave payload&quot;, e);</span>
+<span class="nc" id="L169">            }</span>
+        } else {
+<span class="nc" id="L171">            Log.e(&quot;WS&quot;, &quot;Cannot send leave group — webSocket is null&quot;);</span>
+        }
+<span class="nc" id="L173">    }</span>
+
+    public void disconnect() {
+<span class="nc bnc" id="L176" title="All 2 branches missed.">        if (webSocket != null) {</span>
+<span class="nc" id="L177">            webSocket.close(1000, &quot;Closed&quot;);</span>
+            // clear after disconnect
+<span class="nc" id="L179">            webSocket = null;</span>
+        }
+<span class="nc" id="L181">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

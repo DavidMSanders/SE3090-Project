@@ -39,6 +39,7 @@
             android:id="@+id/btnGoToMain1"
             android:layout_width="159dp"
             android:layout_height="66dp"
+            android:backgroundTint="#3F51B5"
             android:text="Main Page"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"

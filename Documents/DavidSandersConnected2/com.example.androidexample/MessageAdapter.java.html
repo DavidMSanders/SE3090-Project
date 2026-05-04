@@ -1,0 +1,349 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MessageAdapter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample</a> &gt; <span class="el_source">MessageAdapter.java</span></div><h1>MessageAdapter.java</h1><pre class="source lang-java linenums">package com.example.androidexample;
+
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageButton;
+import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
+
+import java.util.List;
+
+import androidx.appcompat.widget.PopupMenu;
+
+
+public class MessageAdapter extends RecyclerView.Adapter&lt;RecyclerView.ViewHolder&gt; {
+
+    public interface OnMessageMenuActionListener {
+        void onDirectMessage(Message message);
+        void onEditPermissions(Message message);
+        void onEditMessage(Message message);
+
+        void onDeleteMessage(Message message);
+    }
+    public static final int Type_Our_Message = 0;
+    public static final int Type_Other_Message = 1;
+    public static final int Type_Announcement_Message = 2;
+    public static final int Type_Direct_Message = 3;
+    public static final int Type_Trainer_Message = 4;
+
+    private final List&lt;Message&gt; messageList;
+    private final int currentUserId;
+
+    //dir+perms edits
+    private final boolean canManageMembers;
+    private final OnMessageMenuActionListener menuActionListener;
+
+    public MessageAdapter(List&lt;Message&gt; messageList,
+                          int currentUserId,
+                          boolean canManageMembers,
+<span class="fc" id="L42">                          OnMessageMenuActionListener menuActionListener) {</span>
+<span class="fc" id="L43">        this.messageList = messageList;</span>
+<span class="fc" id="L44">        this.currentUserId = currentUserId;</span>
+<span class="fc" id="L45">        this.canManageMembers = canManageMembers;</span>
+<span class="fc" id="L46">        this.menuActionListener = menuActionListener;</span>
+<span class="fc" id="L47">    }</span>
+
+
+    @Override
+    public int getItemViewType(int position) {
+<span class="fc" id="L52">        Message message = messageList.get(position);</span>
+
+        // Priority:
+        // announcement &gt; direct &gt; trainer &gt; our normal &gt; other normal
+
+<span class="fc bfc" id="L57" title="All 2 branches covered.">        if (&quot;ANNOUNCEMENT&quot;.equalsIgnoreCase(message.getMessageType())) {</span>
+<span class="fc" id="L58">            return Type_Announcement_Message;</span>
+
+<span class="fc bfc" id="L60" title="All 2 branches covered.">        } else if (&quot;DIRECT&quot;.equalsIgnoreCase(message.getMessageType())</span>
+<span class="pc bpc" id="L61" title="1 of 2 branches missed.">                &amp;&amp; (message.getOriginatorId() == currentUserId</span>
+<span class="pc bpc" id="L62" title="1 of 2 branches missed.">                || (message.getTargetUserId() != null</span>
+<span class="pc bpc" id="L63" title="1 of 2 branches missed.">                &amp;&amp; message.getTargetUserId() == currentUserId))) {</span>
+<span class="fc" id="L64">            return Type_Direct_Message;</span>
+
+<span class="fc bfc" id="L66" title="All 2 branches covered.">        } else if (&quot;TRAINER&quot;.equalsIgnoreCase(message.getMessageType())) {</span>
+<span class="fc" id="L67">            return Type_Trainer_Message;</span>
+
+<span class="fc bfc" id="L69" title="All 2 branches covered.">        } else if (message.getOriginatorId() == currentUserId) {</span>
+<span class="fc" id="L70">            return Type_Our_Message;</span>
+
+        } else {
+<span class="fc" id="L73">            return Type_Other_Message;</span>
+        }
+    }
+
+    @Override
+    public int getItemCount() {
+<span class="fc" id="L79">        return messageList.size();</span>
+    }
+
+    @NonNull
+    @Override
+    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+<span class="nc" id="L85">        LayoutInflater inflater = LayoutInflater.from(parent.getContext());</span>
+
+<span class="nc bnc" id="L87" title="All 2 branches missed.">        if(viewType == Type_Our_Message) {</span>
+<span class="nc" id="L88">            View view = inflater.inflate(R.layout.our_message_box, parent, false);</span>
+<span class="nc" id="L89">            return new OurMessageViewHolder(view);</span>
+
+<span class="nc bnc" id="L91" title="All 2 branches missed.">        } else if(viewType == Type_Other_Message) {</span>
+<span class="nc" id="L92">            View view = inflater.inflate(R.layout.other_user_message_box, parent, false);</span>
+<span class="nc" id="L93">            return new OtherMessageViewHolder(view);</span>
+
+<span class="nc bnc" id="L95" title="All 2 branches missed.">        } else if(viewType == Type_Announcement_Message) {</span>
+<span class="nc" id="L96">            View view = inflater.inflate(R.layout.announcement_message_box, parent, false);</span>
+<span class="nc" id="L97">            return new AnnouncementMessageViewHolder(view);</span>
+        }
+<span class="nc bnc" id="L99" title="All 2 branches missed.">        else if (viewType == Type_Direct_Message) {</span>
+<span class="nc" id="L100">            View view = inflater.inflate(R.layout.direct_message_box, parent, false);</span>
+<span class="nc" id="L101">            return new DirectMessageViewHolder(view);</span>
+
+        }
+        else  { //trainer
+<span class="nc" id="L105">            View view = inflater.inflate(R.layout.trainer_message_box, parent, false);</span>
+<span class="nc" id="L106">            return new TrainerMessageViewHolder(view);</span>
+        }
+    }
+
+    @Override
+    public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+<span class="nc" id="L112">        Message msg = messageList.get(position);</span>
+
+<span class="nc bnc" id="L114" title="All 2 branches missed.">        if (holder instanceof OurMessageViewHolder) {</span>
+<span class="nc" id="L115">            OurMessageViewHolder h = (OurMessageViewHolder) holder;</span>
+<span class="nc" id="L116">            h.bind(msg);</span>
+<span class="nc" id="L117">            h.btnMessageMenu.setOnClickListener(v -&gt; showMessageMenu(v, msg));</span>
+
+<span class="nc bnc" id="L119" title="All 2 branches missed.">        } else if (holder instanceof OtherMessageViewHolder) {</span>
+<span class="nc" id="L120">            OtherMessageViewHolder h = (OtherMessageViewHolder) holder;</span>
+<span class="nc" id="L121">            h.bind(msg);</span>
+<span class="nc" id="L122">            h.btnMessageMenu.setOnClickListener(v -&gt; showMessageMenu(v, msg));</span>
+
+<span class="nc bnc" id="L124" title="All 2 branches missed.">        } else if (holder instanceof AnnouncementMessageViewHolder) {</span>
+<span class="nc" id="L125">            AnnouncementMessageViewHolder h = (AnnouncementMessageViewHolder) holder;</span>
+<span class="nc" id="L126">            h.bind(msg);</span>
+<span class="nc" id="L127">            h.btnMessageMenu.setOnClickListener(v -&gt; showMessageMenu(v, msg));</span>
+
+<span class="nc bnc" id="L129" title="All 2 branches missed.">        } else if (holder instanceof DirectMessageViewHolder) {</span>
+<span class="nc" id="L130">            DirectMessageViewHolder h = (DirectMessageViewHolder) holder;</span>
+<span class="nc" id="L131">            h.bind(msg);</span>
+<span class="nc" id="L132">            h.btnMessageMenu.setOnClickListener(v -&gt; showMessageMenu(v, msg));</span>
+
+<span class="nc bnc" id="L134" title="All 2 branches missed.">        } else if (holder instanceof TrainerMessageViewHolder) {</span>
+<span class="nc" id="L135">            TrainerMessageViewHolder h = (TrainerMessageViewHolder) holder;</span>
+<span class="nc" id="L136">            h.bind(msg);</span>
+<span class="nc" id="L137">            h.btnMessageMenu.setOnClickListener(v -&gt; showMessageMenu(v, msg));</span>
+        }
+<span class="nc" id="L139">    }</span>
+
+    public void addMessage(Message message) {
+<span class="fc" id="L142">        messageList.add(message);</span>
+<span class="fc" id="L143">        notifyItemInserted(messageList.size() - 1);</span>
+<span class="fc" id="L144">    }</span>
+
+    public void updateMessage(Message messageUpdated) {
+<span class="pc bpc" id="L147" title="1 of 2 branches missed.">        for (int i = 0; i &lt; messageList.size(); i++) {</span>
+<span class="pc bpc" id="L148" title="1 of 2 branches missed.">            if (messageList.get(i).getMessageId() == messageUpdated.getMessageId()) {</span>
+<span class="fc" id="L149">                messageList.set(i, messageUpdated);</span>
+<span class="fc" id="L150">                notifyItemChanged(i);</span>
+<span class="fc" id="L151">                return;</span>
+            }
+        }
+<span class="nc" id="L154">    }</span>
+
+    public void removeMessageById(long messageId) {
+<span class="pc bfc" id="L157" title="All 2 branches covered.">        for (int i = 0; i &lt; messageList.size(); i++) {</span>
+<span class="pc bpc" id="L158" title="1 of 2 branches missed.">            if (messageList.get(i).getMessageId() == messageId) {</span>
+<span class="fc" id="L159">                messageList.remove(i);</span>
+<span class="fc" id="L160">                notifyItemRemoved(i);</span>
+<span class="fc" id="L161">                return;</span>
+            }
+        }
+<span class="fc" id="L164">    }</span>
+
+    static class OurMessageViewHolder extends RecyclerView.ViewHolder {
+        private final TextView tvUsername;
+        private final TextView tvMessageText;
+        private final TextView tvMessageTime;
+
+        private final ImageButton btnMessageMenu;
+
+
+        OurMessageViewHolder(View itemView) {
+<span class="nc" id="L175">            super(itemView);</span>
+<span class="nc" id="L176">            tvUsername = itemView.findViewById(R.id.tvUsername);</span>
+<span class="nc" id="L177">            tvMessageText = itemView.findViewById(R.id.tvMessageText);</span>
+<span class="nc" id="L178">            tvMessageTime = itemView.findViewById(R.id.tvMessageTime);</span>
+<span class="nc" id="L179">            btnMessageMenu = itemView.findViewById(R.id.btnMessageMenu);</span>
+<span class="nc" id="L180">        }</span>
+        void bind(Message message) {
+<span class="nc" id="L182">            tvUsername.setText(message.getUsername());</span>
+<span class="nc" id="L183">            tvMessageText.setText(message.getTextBody());</span>
+<span class="nc" id="L184">            tvMessageTime.setText(formatTime(message.getCreatedTimestamp()));</span>
+
+<span class="nc" id="L186">        }</span>
+    }
+
+    static class OtherMessageViewHolder extends RecyclerView.ViewHolder {
+        private final TextView tvUsername;
+        private final TextView tvMessageText;
+        private final TextView tvMessageTime;
+
+        private final ImageButton btnMessageMenu;
+
+        OtherMessageViewHolder(View itemView) {
+<span class="nc" id="L197">            super(itemView);</span>
+<span class="nc" id="L198">            tvUsername = itemView.findViewById(R.id.tvUsername);</span>
+<span class="nc" id="L199">            tvMessageText = itemView.findViewById(R.id.tvMessageText);</span>
+<span class="nc" id="L200">            tvMessageTime = itemView.findViewById(R.id.tvMessageTime);</span>
+<span class="nc" id="L201">            btnMessageMenu = itemView.findViewById(R.id.btnMessageMenu);</span>
+<span class="nc" id="L202">        }</span>
+
+        void bind(Message message) {
+<span class="nc" id="L205">            tvUsername.setText(message.getUsername());</span>
+<span class="nc" id="L206">            tvMessageText.setText(message.getTextBody());</span>
+<span class="nc" id="L207">            tvMessageTime.setText(formatTime(message.getCreatedTimestamp()));</span>
+
+<span class="nc" id="L209">        }</span>
+    }
+    static class AnnouncementMessageViewHolder extends RecyclerView.ViewHolder {
+        private final TextView tvAnnouncementHeader;
+        private final TextView tvMessageText;
+        private final TextView tvMessageTime;
+        private final ImageButton btnMessageMenu;
+
+        AnnouncementMessageViewHolder(View itemView) {
+<span class="nc" id="L218">            super(itemView);</span>
+<span class="nc" id="L219">            tvAnnouncementHeader = itemView.findViewById(R.id.tvAnnouncementHeader);</span>
+<span class="nc" id="L220">            tvMessageText = itemView.findViewById(R.id.tvMessageText);</span>
+<span class="nc" id="L221">            tvMessageTime = itemView.findViewById(R.id.tvMessageTime);</span>
+<span class="nc" id="L222">            btnMessageMenu = itemView.findViewById(R.id.btnMessageMenu);</span>
+<span class="nc" id="L223">        }</span>
+
+        void bind(Message message) {
+<span class="nc" id="L226">            String username = message.getUsername();</span>
+<span class="nc" id="L227">            tvAnnouncementHeader.setText(&quot;ANNOUNCEMENT - &quot; + username);</span>
+<span class="nc" id="L228">            tvMessageText.setText(message.getTextBody());</span>
+<span class="nc" id="L229">            tvMessageTime.setText(formatTime(message.getCreatedTimestamp()));</span>
+
+<span class="nc" id="L231">        }</span>
+    }
+
+    static class DirectMessageViewHolder extends RecyclerView.ViewHolder {
+        private final TextView tvUsername;
+        private final TextView tvMessageText;
+        private final TextView tvMessageTime;
+        private final ImageButton btnMessageMenu;
+
+        DirectMessageViewHolder(View itemView) {
+<span class="nc" id="L241">            super(itemView);</span>
+<span class="nc" id="L242">            tvUsername = itemView.findViewById(R.id.tvUsername);</span>
+<span class="nc" id="L243">            tvMessageText = itemView.findViewById(R.id.tvMessageText);</span>
+<span class="nc" id="L244">            tvMessageTime = itemView.findViewById(R.id.tvMessageTime);</span>
+
+<span class="nc" id="L246">            btnMessageMenu = itemView.findViewById(R.id.btnMessageMenu);</span>
+<span class="nc" id="L247">        }</span>
+
+        void bind(Message message) {
+<span class="nc" id="L250">            tvUsername.setText(message.getUsername());</span>
+<span class="nc" id="L251">            tvMessageText.setText(message.getTextBody());</span>
+<span class="nc" id="L252">            tvMessageTime.setText(formatTime(message.getCreatedTimestamp()));</span>
+
+<span class="nc" id="L254">        }</span>
+    }
+    static class TrainerMessageViewHolder extends RecyclerView.ViewHolder {
+        private final TextView tvUsername;
+        private final TextView tvMessageText;
+        private final TextView tvMessageTime;
+
+        private final ImageButton btnMessageMenu;
+
+        TrainerMessageViewHolder(View itemView) {
+<span class="nc" id="L264">            super(itemView);</span>
+<span class="nc" id="L265">            tvUsername = itemView.findViewById(R.id.tvUsername);</span>
+<span class="nc" id="L266">            tvMessageText = itemView.findViewById(R.id.tvMessageText);</span>
+<span class="nc" id="L267">            tvMessageTime = itemView.findViewById(R.id.tvMessageTime);</span>
+<span class="nc" id="L268">            btnMessageMenu = itemView.findViewById(R.id.btnMessageMenu);</span>
+<span class="nc" id="L269">        }</span>
+
+        void bind(Message message) {
+<span class="nc" id="L272">            tvUsername.setText(message.getUsername());</span>
+<span class="nc" id="L273">            tvMessageText.setText(message.getTextBody());</span>
+<span class="nc" id="L274">            tvMessageTime.setText(formatTime(message.getCreatedTimestamp()));</span>
+
+<span class="nc" id="L276">        }</span>
+    }
+    private static String formatTime(String rawTimestamp) {
+        try {
+<span class="nc" id="L280">            java.time.LocalDateTime dt = java.time.LocalDateTime.parse(rawTimestamp);</span>
+<span class="nc" id="L281">            java.time.format.DateTimeFormatter formatter =</span>
+<span class="nc" id="L282">                    java.time.format.DateTimeFormatter.ofPattern(&quot;h:mm a&quot;);</span>
+<span class="nc" id="L283">            return dt.format(formatter);</span>
+<span class="nc" id="L284">        } catch (Exception e) {</span>
+<span class="nc bnc" id="L285" title="All 2 branches missed.">            return rawTimestamp == null ? &quot;&quot; : rawTimestamp;</span>
+        }
+    }
+
+
+    //popup menu helper:
+    private void showMessageMenu(View anchor, Message message) {
+<span class="nc" id="L292">        PopupMenu popupMenu = new PopupMenu(anchor.getContext(), anchor);</span>
+
+<span class="nc bnc" id="L294" title="All 2 branches missed.">        boolean isOwnMessage = message.getOriginatorId() == currentUserId;</span>
+
+        // Direct Message -&gt; only show on other people's messages
+<span class="nc bnc" id="L297" title="All 2 branches missed.">        if (!isOwnMessage) {</span>
+<span class="nc" id="L298">            popupMenu.getMenu().add(0, 1, 0, &quot;Direct Message&quot;);</span>
+        }
+
+        // Edit Permissions -&gt; only show if current user can manage members
+        // and only on other people's messages
+<span class="nc bnc" id="L303" title="All 4 branches missed.">        if (!isOwnMessage &amp;&amp; canManageMembers) {</span>
+<span class="nc" id="L304">            popupMenu.getMenu().add(0, 2, 1, &quot;Edit Permissions&quot;);</span>
+        }
+
+        // Edit Message -&gt; only show on your own messages
+<span class="nc bnc" id="L308" title="All 2 branches missed.">        if (isOwnMessage) {</span>
+<span class="nc" id="L309">            popupMenu.getMenu().add(0, 3, 2, &quot;Edit Message&quot;);</span>
+        }
+
+<span class="nc bnc" id="L312" title="All 4 branches missed.">        if(isOwnMessage || canManageMembers) {</span>
+<span class="nc" id="L313">            popupMenu.getMenu().add(0, 4, 3, &quot;Delete Message&quot;);</span>
+        }
+
+<span class="nc" id="L316">        popupMenu.setOnMenuItemClickListener(item -&gt; {</span>
+<span class="nc" id="L317">            int itemId = item.getItemId();</span>
+
+<span class="nc bnc" id="L319" title="All 2 branches missed.">            if (itemId == 1) {</span>
+<span class="nc bnc" id="L320" title="All 2 branches missed.">                if (menuActionListener != null) {</span>
+<span class="nc" id="L321">                    menuActionListener.onDirectMessage(message);</span>
+                }
+<span class="nc" id="L323">                return true;</span>
+<span class="nc bnc" id="L324" title="All 2 branches missed.">            } else if (itemId == 2) {</span>
+<span class="nc bnc" id="L325" title="All 2 branches missed.">                if (menuActionListener != null) {</span>
+<span class="nc" id="L326">                    menuActionListener.onEditPermissions(message);</span>
+                }
+<span class="nc" id="L328">                return true;</span>
+<span class="nc bnc" id="L329" title="All 2 branches missed.">            } else if (itemId == 3) {</span>
+<span class="nc bnc" id="L330" title="All 2 branches missed.">                if (menuActionListener != null) {</span>
+<span class="nc" id="L331">                    menuActionListener.onEditMessage(message);</span>
+                }
+<span class="nc" id="L333">                return true;</span>
+            }
+<span class="nc bnc" id="L335" title="All 2 branches missed.">            if (itemId == 4) {</span>
+<span class="nc bnc" id="L336" title="All 2 branches missed.">                if (menuActionListener != null) {</span>
+<span class="nc" id="L337">                    menuActionListener.onDeleteMessage(message);</span>
+                }
+<span class="nc" id="L339">                return true;</span>
+            }
+
+<span class="nc" id="L342">            return false;</span>
+        });
+
+<span class="nc" id="L345">        popupMenu.show();</span>
+<span class="nc" id="L346">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

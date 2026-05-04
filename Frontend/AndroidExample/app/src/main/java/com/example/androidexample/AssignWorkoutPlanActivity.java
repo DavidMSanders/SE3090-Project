@@ -43,6 +43,8 @@ public class AssignWorkoutPlanActivity extends AppCompatActivity {
     private ArrayAdapter<UserOption> clientAdapter;
     private ArrayAdapter<WorkoutPlanOption> workoutPlanAdapter;
 
+    private Button btnBackAssignWorkoutPlan;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -53,6 +55,9 @@ public class AssignWorkoutPlanActivity extends AppCompatActivity {
         spinnerWorkoutPlans = findViewById(R.id.spinnerWorkoutPlans);
         etScheduledDate = findViewById(R.id.etScheduledDate);
         btnAssignWorkoutPlan = findViewById(R.id.btnAssignWorkoutPlan);
+
+        btnBackAssignWorkoutPlan = findViewById(R.id.btnBackAssignWorkoutPlan);
+        btnBackAssignWorkoutPlan.setOnClickListener(v -> finish());
 
         KeepUser keepUser = new KeepUser(this);
         trainerId = keepUser.getUserId();
