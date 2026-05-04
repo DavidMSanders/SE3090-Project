@@ -2,6 +2,7 @@ package com.example.androidexample;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
@@ -15,20 +16,17 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * TRIVIAL METHOD COVERAGE TESTS
- *
- * These are not system tests.
- * These directly exercise getters, setters, JSON parsers, adapter helpers,
- * and simple model methods to improve method coverage.
  */
 @RunWith(AndroidJUnit4.class)
-public class DavidMethodCoverageTest {
+public class DavidtrivialTest {
 
-    // ============================================================
+
     // WorkoutPlan coverage
-    // ============================================================
 
     @Test
     public void workoutPlanGettersAndSettersWork() {
@@ -91,9 +89,9 @@ public class DavidMethodCoverageTest {
         assertEquals(1, adapter.getItemCount());
     }
 
-    // ============================================================
+
     // Group coverage
-    // ============================================================
+
 
     @Test
     public void groupGettersSettersAndIsMemberWork() {
@@ -122,9 +120,7 @@ public class DavidMethodCoverageTest {
         assertTrue(group.isMember());
     }
 
-    // ============================================================
     // SendMessageRequest coverage
-    // ============================================================
 
     @Test
     public void sendMessageRequestNormalJsonWorks() throws Exception {
@@ -180,9 +176,8 @@ public class DavidMethodCoverageTest {
         assertEquals("", json.getString("textBody"));
     }
 
-    // ============================================================
     // Message coverage
-    // ============================================================
+
 
     @Test
     public void messageConstructorAndGettersWork() {
@@ -261,9 +256,7 @@ public class DavidMethodCoverageTest {
         assertEquals("2026-05-01T12:00:00", message.getCreatedTimestamp());
     }
 
-    // ============================================================
-    // ChatSocketEvent coverage
-    // ============================================================
+    //ChatSocketEvent coverage
 
     @Test
     public void chatSocketEventSettersAndGettersWork() {
@@ -388,9 +381,9 @@ public class DavidMethodCoverageTest {
         assertEquals("created message", event.getMessage().getTextBody());
     }
 
-    // ============================================================
+
     // KeepUser coverage
-    // ============================================================
+
 
     @Test
     public void keepUserSaveGetAndClearWork() {
@@ -526,4 +519,179 @@ public class DavidMethodCoverageTest {
         adapter.removeMessageById(999);
         assertEquals(0, adapter.getItemCount());
     }
+    //workoutPlan coverage
+    @Test
+    public void workoutPlanConstructorValuesCorrect() {
+        WorkoutPlan plan = new WorkoutPlan();
+
+        plan.setWorkoutPlanId(12);
+        plan.setTrainerId(5);
+        plan.setpName("Leg Day");
+        plan.setpDescription("Squats and lunges");
+        plan.setCreatedAt("2026-05-04");
+
+        assertEquals(12, plan.getWorkoutPlanId());
+        assertEquals(5, plan.getTrainerId());
+        assertEquals("Leg Day", plan.getpName());
+        assertEquals("Squats and lunges", plan.getpDescription());
+        assertEquals("2026-05-04", plan.getCreatedAt());
+    }
+
+    @Test
+    public void workoutPlanSetsValuesCorrectly() {
+        WorkoutPlan plan = new WorkoutPlan(
+                7,
+                22,
+                "Push Day",
+                "Bench press and shoulders",
+                "2026-05-04"
+        );
+
+        assertEquals(7, plan.getWorkoutPlanId());
+        assertEquals(22, plan.getTrainerId());
+        assertEquals("Push Day", plan.getpName());
+        assertEquals("Bench press and shoulders", plan.getpDescription());
+        assertEquals("2026-05-04", plan.getCreatedAt());
+    }
+
+    @Test
+    public void workoutPlanOverwriteOldValues() {
+        WorkoutPlan plan = new WorkoutPlan();
+
+        plan.setWorkoutPlanId(1);
+        plan.setTrainerId(2);
+        plan.setpName("Old Name");
+        plan.setpDescription("Old Description");
+        plan.setCreatedAt("2026-01-01");
+
+        plan.setWorkoutPlanId(10);
+        plan.setTrainerId(20);
+        plan.setpName("New Name");
+        plan.setpDescription("New Description");
+        plan.setCreatedAt("2026-12-31");
+
+        assertEquals(10, plan.getWorkoutPlanId());
+        assertEquals(20, plan.getTrainerId());
+        assertEquals("New Name", plan.getpName());
+        assertEquals("New Description", plan.getpDescription());
+        assertEquals("2026-12-31", plan.getCreatedAt());
+    }
+
+    //workoutplan summary
+    @Test
+    public void workoutPlanSummary_defaultListsAreNotNull() {
+        WorkoutPlanSummary summary = new WorkoutPlanSummary();
+
+        assertNotNull(summary.getAcceptedUsers());
+        assertNotNull(summary.getRejectedUsers());
+        assertNotNull(summary.getCompletedUsers());
+        assertNotNull(summary.getPendingUsers());
+
+        assertEquals(0, summary.getAcceptedUsers().size());
+        assertEquals(0, summary.getRejectedUsers().size());
+        assertEquals(0, summary.getCompletedUsers().size());
+        assertEquals(0, summary.getPendingUsers().size());
+    }
+
+    @Test
+    public void workoutPlanSummary_setsAndGetsCountsCorrectly() {
+        WorkoutPlanSummary summary = new WorkoutPlanSummary();
+
+        summary.setPlanId(3);
+        summary.setPlanName("Chest Plan");
+        summary.setAcceptedCount(4);
+        summary.setRejectedCount(1);
+        summary.setCompletedCount(2);
+        summary.setPendingCount(5);
+
+        assertEquals(3, summary.getPlanId());
+        assertEquals("Chest Plan", summary.getPlanName());
+        assertEquals(4, summary.getAcceptedCount());
+        assertEquals(1, summary.getRejectedCount());
+        assertEquals(2, summary.getCompletedCount());
+        assertEquals(5, summary.getPendingCount());
+    }
+
+    @Test
+    public void workoutPlanSummary_setsAndGetsUserListsCorrectly() {
+        WorkoutPlanSummary summary = new WorkoutPlanSummary();
+
+        List<String> accepted = Arrays.asList("David", "Chris");
+        List<String> rejected = Arrays.asList("Alex");
+        List<String> completed = Arrays.asList("Sam", "Jordan");
+        List<String> pending = Arrays.asList("Taylor");
+
+        summary.setAcceptedUsers(accepted);
+        summary.setRejectedUsers(rejected);
+        summary.setCompletedUsers(completed);
+        summary.setPendingUsers(pending);
+
+        assertEquals(accepted, summary.getAcceptedUsers());
+        assertEquals(rejected, summary.getRejectedUsers());
+        assertEquals(completed, summary.getCompletedUsers());
+        assertEquals(pending, summary.getPendingUsers());
+    }
+
+    @Test
+    public void workoutPlanSummary_valuesCanBeOverwritten() {
+        WorkoutPlanSummary summary = new WorkoutPlanSummary();
+
+        summary.setPlanId(1);
+        summary.setPlanName("Old Plan");
+        summary.setAcceptedCount(1);
+
+        summary.setPlanId(99);
+        summary.setPlanName("Updated Plan");
+        summary.setAcceptedCount(10);
+
+        assertEquals(99, summary.getPlanId());
+        assertEquals("Updated Plan", summary.getPlanName());
+        assertEquals(10, summary.getAcceptedCount());
+    }
+
+    //personalBest coverage
+
+    @Test
+    public void personalBest_setsAndGetsValuesCorrectly() {
+        PersonalBest personalBest = new PersonalBest();
+
+        personalBest.setId(1);
+        personalBest.setUserId(37);
+        personalBest.setExerciseName("Bench Press");
+        personalBest.setBestValue(225.0);
+        personalBest.setUnit("lbs");
+        personalBest.setRecordDate("2026-05-04");
+
+        assertEquals(1, personalBest.getId());
+        assertEquals(37, personalBest.getUserId());
+        assertEquals("Bench Press", personalBest.getExerciseName());
+        assertEquals(225.0, personalBest.getBestValue(), 0.001);
+        assertEquals("lbs", personalBest.getUnit());
+        assertEquals("2026-05-04", personalBest.getRecordDate());
+    }
+
+    @Test
+    public void personalBest_valuesCanBeOverwritten() {
+        PersonalBest personalBest = new PersonalBest();
+
+        personalBest.setExerciseName("Old Exercise");
+        personalBest.setBestValue(100.0);
+        personalBest.setUnit("lbs");
+        personalBest.setRecordDate("2026-01-01");
+
+        personalBest.setExerciseName("Squat");
+        personalBest.setBestValue(315.0);
+        personalBest.setUnit("lbs");
+        personalBest.setRecordDate("2026-06-01");
+
+        assertEquals("Squat", personalBest.getExerciseName());
+        assertEquals(315.0, personalBest.getBestValue(), 0.001);
+        assertEquals("lbs", personalBest.getUnit());
+        assertEquals("2026-06-01", personalBest.getRecordDate());
+    }
+
+
+
+
+
 }

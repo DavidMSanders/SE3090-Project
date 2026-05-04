@@ -9,6 +9,7 @@
         android:id="@+id/btnBackFromUpdateGroup"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:backgroundTint="#3F51B5"
         android:text="Back"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -115,6 +116,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
+        android:backgroundTint="#0ABD03"
         android:text="Save Group Changes"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -125,6 +127,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
+        android:backgroundTint="#FF0000"
         android:text="Delete Group"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

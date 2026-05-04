@@ -20,6 +20,12 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 
+import java.util.Calendar;
+import java.util.Locale;
+
+import android.app.DatePickerDialog;
+
+
 public class PersonalBestActivity extends AppCompatActivity {
 
 
@@ -49,6 +55,35 @@ public class PersonalBestActivity extends AppCompatActivity {
         etBestValue = findViewById(R.id.etBestValue);
         etUnit = findViewById(R.id.etUnit);
         etDate = findViewById(R.id.etDate);
+
+        etDate.setOnClickListener(v -> {
+            Calendar calendar = Calendar.getInstance();
+
+            int year = calendar.get(Calendar.YEAR);
+            int month = calendar.get(Calendar.MONTH);
+            int day = calendar.get(Calendar.DAY_OF_MONTH);
+
+            DatePickerDialog datePickerDialog = new DatePickerDialog(
+                    PersonalBestActivity.this,
+                    (view, selectedYear, selectedMonth, selectedDay) -> {
+                        String formattedDate = String.format(
+                                Locale.US,
+                                "%04d-%02d-%02d",
+                                selectedYear,
+                                selectedMonth + 1,
+                                selectedDay
+                        );
+
+                        etDate.setText(formattedDate);
+                    },
+                    year,
+                    month,
+                    day
+            );
+
+            datePickerDialog.show();
+        });
+
         btnAdd = findViewById(R.id.btnAdd);
         rvPersonalBests = findViewById(R.id.rvPersonalBests);
 
