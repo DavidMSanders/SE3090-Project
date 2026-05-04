@@ -46,9 +46,6 @@ public class DavidSystemTest {
     private static final String TEST_PASSWORD = "password12345";
     private static final int TEST_USER_ID = 37;
 
-    // ============================================================
-    // Basic landing/login/signup smoke tests
-    // ============================================================
 
     @Test
     public void landingPageOpensLoginPage() {
