@@ -217,11 +217,12 @@ public class ChatWebSocket {
                 return;
             }
 
-            // CHANGED:
-            // Trainer chat messages should only be allowed for TRAINER members
-            // who also have canSendMessages/chatEnabled.
+
+            String membershipRole = foundMembership.getAccessLevel();
             if ("TRAINER".equals(msgType)
-                    && !GroupMembership.ROLE_TRAINER.equals(foundMembership.getAccessLevel())) {
+                    && !(GroupMembership.ROLE_TRAINER.equals(membershipRole)
+                    || membershipRole.equalsIgnoreCase("group_leader")
+                    || membershipRole.equalsIgnoreCase("admin"))) {
                 sendError(originatorSession, "You do not have permission to send trainer messages");
                 return;
             }
@@ -273,15 +274,14 @@ public class ChatWebSocket {
             );
 
             Map<String, Object> outgoingEvent = new LinkedHashMap<>();
-            outgoingEvent.put("eventType", "IMAGE_CREATED");
-            outgoingEvent.put("id", savedImage.getMsgKey());
-            outgoingEvent.put("senderId", savedImage.getAuthorId());
+            outgoingEvent.put("id", savedImage.getId());
+            outgoingEvent.put("senderId", savedImage.getSenderId());
             outgoingEvent.put("username", originatorName);
-            outgoingEvent.put("groupId", savedImage.getChannelId());
-            outgoingEvent.put("imageUrl", savedImage.getMediaPath());
-            outgoingEvent.put("caption", savedImage.getMsgCaption());
-            outgoingEvent.put("sentAt", savedImage.getDispatchTime() != null
-                    ? savedImage.getDispatchTime().toString() : null);
+            outgoingEvent.put("groupId", savedImage.getGroupId());
+            outgoingEvent.put("imageUrl", savedImage.getImageUrl());
+            outgoingEvent.put("caption", savedImage.getCaption());
+            outgoingEvent.put("sentAt", savedImage.getSentAt() != null
+                    ? savedImage.getSentAt().toString() : null);
 
             distributeToGroup(groupRef, outgoingEvent, null);
 
@@ -357,8 +357,7 @@ public class ChatWebSocket {
             boolean isOwner = Objects.equals(locatedMsg.getOriginatorId(), originatorId);
             boolean canManageOthers = actorMembership.isManageEnabled();
 
-            // CHANGED:
-            // Managers/admin-type users can delete others' messages.
+
             if (!isOwner && !canManageOthers) {
                 sendError(originatorSession, "You can only delete your own messages");
                 return;

@@ -73,34 +73,74 @@
       <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
       <version>2.5.0</version>
     </dependency>
-<<<<<<< HEAD
-=======
-    -->
     <!-- Spring Boot Test -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-test</artifactId>
       <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.hamcrest</groupId>
+          <artifactId>hamcrest</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
-    <!-- REST-assured -->
+    <!--
+      FIX: Pin hamcrest 2.2 explicitly so REST-Assured 5.x,
+      JUnit 4, and JUnit 5 all share the exact same version.
+      This is what resolves the "cannot find symbol" import errors.
+    -->
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest</artifactId>
+      <version>2.2</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!--
+      FIX: REST-Assured 5.x bundles its own old hamcrest variants.
+      Exclude all three of them so only our pinned 2.2 above is used.
+    -->
     <dependency>
       <groupId>io.rest-assured</groupId>
       <artifactId>rest-assured</artifactId>
       <version>5.3.2</version>
       <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.hamcrest</groupId>
+          <artifactId>hamcrest-core</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.hamcrest</groupId>
+          <artifactId>hamcrest-library</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.hamcrest</groupId>
+          <artifactId>hamcrest</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
-
+    <!--
+      FIX: JUnit 4 also bundles hamcrest-core internally.
+      Exclude it here so it does not override our pinned 2.2.
+      Kept for CI/CD pipeline compatibility (springboot_tag runner).
+    -->
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>4.13.2</version>
       <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.hamcrest</groupId>
+          <artifactId>hamcrest-core</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
-
->>>>>>> Demo04MainFeature#2
 
   </dependencies>
 
