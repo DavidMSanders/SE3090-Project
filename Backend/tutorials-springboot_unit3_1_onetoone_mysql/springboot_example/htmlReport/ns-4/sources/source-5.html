@@ -1,0 +1,112 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > MessageRepository</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">onetoone.Chat_Messages</a>
+</div>
+
+<h1>Coverage Summary for Class: MessageRepository (onetoone.Chat_Messages)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+</tr>
+<tr>
+  <td class="name">MessageRepository</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package onetoone.Chat_Messages;
+&nbsp;
+&nbsp;import org.springframework.data.jpa.repository.JpaRepository;
+&nbsp;import org.springframework.data.jpa.repository.Query;
+&nbsp;import org.springframework.data.repository.query.Param;
+&nbsp;import java.util.List;
+&nbsp;
+&nbsp;/*
+&nbsp;@author Chris Lopez
+&nbsp; */
+&nbsp;public interface MessageRepository extends JpaRepository&lt;Message, Long&gt;{
+&nbsp;@Query(&quot;SELECT m FROM Message m WHERE &quot; + &quot;((m.originatorId = :firstPerson AND m.targetUserId = :secondPerson) OR &quot; +
+&nbsp;&quot;(m.originatorId = :secondPerson AND m.targetUserId = :firstPerson)) &quot; + &quot;AND m.activeFlag = true &quot; +
+&nbsp;        &quot;ORDER BY m.createdTimestamp ASC&quot;)
+&nbsp;
+&nbsp;    List&lt;Message&gt; fetchConversation(@Param(&quot;firstPerson&quot;) Integer firstPerson, @Param(&quot;secondPerson&quot;) Integer secondPerson);
+&nbsp;    List &lt;Message&gt; findByOriginatorIdAndActiveFlagTrueOrderByCreatedTimestampDesc(Integer originatorId);
+&nbsp;    List &lt;Message&gt; findByTargetUserIdAndActiveFlagTrueOrderByCreatedTimestampDesc(Integer targetUserId);
+&nbsp;
+&nbsp;    List&lt;Message&gt; findByGroupRefOrderByCreatedTimestampAsc(Integer groupRef);
+&nbsp;    List&lt;Message&gt; findByGroupRef(Integer groupRef);
+&nbsp;
+&nbsp;
+&nbsp;    @Query(&quot;SELECT m FROM Message m WHERE &quot; + &quot;(m.originatorId = :personId OR m.targetUserId = :personId) &quot; +
+&nbsp;            &quot;AND m.activeFlag = true &quot; + &quot;ORDER BY m.createdTimestamp DESC&quot;)
+&nbsp;
+&nbsp;
+&nbsp;    List &lt;Message&gt; retrieveAllMessagesForUser(@Param(&quot;personId&quot;) Integer personId);
+&nbsp;
+&nbsp;
+&nbsp;    @Query(&quot;SELECT m FROM Message m WHERE &quot; + &quot;m.targetUserId = :personId &quot; + &quot;AND m.readFlag = false &quot; +
+&nbsp;            &quot;AND m.activeFlag = true &quot; + &quot;ORDER BY m.createdTimestamp DESC&quot;)
+&nbsp;    List&lt;Message&gt; fetchUnreadMessages(@Param(&quot;personId&quot;) Integer personId);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT m FROM Message m WHERE &quot; + &quot;(m.originatorId = :personId OR m.targetUserId = :personId) &quot; +
+&nbsp;            &quot;AND m.textBody LIKE %:queryText% &quot; + &quot;AND m.activeFlag = true &quot; +
+&nbsp;      &quot;ORDER BY m.createdTimestamp DESC&quot;)
+&nbsp;    List &lt;Message&gt; searchMessageText(@Param(&quot;personId&quot;) Integer personId, @Param(&quot;queryText&quot;) String queryText);
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-05-03 10:21</div>
+</div>
+</body>
+</html>

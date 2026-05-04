@@ -1,0 +1,207 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > PersonalBest</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">onetoone.PersonalBest</a>
+</div>
+
+<h1>Coverage Summary for Class: PersonalBest (onetoone.PersonalBest)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">PersonalBest</td>
+<td class="coverageStat">
+  <span class="percent">
+    6.7%
+  </span>
+  <span class="absValue">
+    (1/15)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    5%
+  </span>
+  <span class="absValue">
+    (1/20)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">PersonalBest$HibernateInstantiator$mEBrSwoj</td>
+  </tr>
+  <tr>
+    <td class="name">PersonalBest$HibernateProxy$zwjLUofU</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    6.7%
+  </span>
+  <span class="absValue">
+    (1/15)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    5%
+  </span>
+  <span class="absValue">
+    (1/20)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package onetoone.PersonalBest;
+&nbsp;
+&nbsp;import jakarta.persistence.*;
+&nbsp;import java.time.LocalDate;
+&nbsp;
+&nbsp;/**
+&nbsp; * Stores personal best performance metrics for each user
+&nbsp; * Each entry is private and specific to each user
+&nbsp; */
+&nbsp;
+&nbsp;@Entity
+&nbsp;@Table(name = &quot;personal_bests&quot;)
+&nbsp;public class PersonalBest {
+&nbsp;
+&nbsp;    @Id
+&nbsp;    @GeneratedValue(strategy = GenerationType.IDENTITY)
+&nbsp;    private Long entryId;
+&nbsp;
+&nbsp;    @Column(name = &quot;owner_id&quot;, nullable = false)
+&nbsp;    private Long ownerId;
+&nbsp;
+&nbsp;    @Column(name = &quot;activity_label&quot;, nullable = false)
+&nbsp;    private String activityLabel;
+&nbsp;
+&nbsp;    @Column(name = &quot;peak_score&quot;, nullable = false)
+&nbsp;    private Double peakScore;
+&nbsp;
+&nbsp;    @Column(name = &quot;measure_unit&quot;)
+&nbsp;    private String measureUnit;
+&nbsp;
+&nbsp;    @Column(name = &quot;achieved_date&quot;)
+&nbsp;    private LocalDate achievedDate;
+&nbsp;
+<b class="fc">&nbsp;    public PersonalBest() {}</b>
+&nbsp;
+&nbsp;    public PersonalBest(Long ownerId, String activityLabel,
+&nbsp;                        Double peakScore, String measureUnit,
+<b class="nc">&nbsp;                        LocalDate achievedDate) {</b>
+<b class="nc">&nbsp;        this.ownerId = ownerId;</b>
+<b class="nc">&nbsp;        this.activityLabel = activityLabel;</b>
+<b class="nc">&nbsp;        this.peakScore = peakScore;</b>
+<b class="nc">&nbsp;        this.measureUnit = measureUnit;</b>
+<b class="nc">&nbsp;        this.achievedDate = achievedDate;</b>
+&nbsp;    }
+&nbsp;
+<b class="nc">&nbsp;    public Long getEntryId() { return entryId; }</b>
+&nbsp;    public void setEntryId(Long entryId) {
+<b class="nc">&nbsp;        this.entryId = entryId;</b>
+&nbsp;    }
+&nbsp;
+<b class="nc">&nbsp;    public Long getOwnerId() { return ownerId; }</b>
+&nbsp;    public void setOwnerId(Long ownerId) {
+<b class="nc">&nbsp;        this.ownerId = ownerId;</b>
+&nbsp;    }
+&nbsp;
+<b class="nc">&nbsp;    public String getActivityLabel() { return activityLabel; }</b>
+&nbsp;    public void setActivityLabel(String activityLabel) {
+<b class="nc">&nbsp;        this.activityLabel = activityLabel;</b>
+&nbsp;    }
+&nbsp;
+<b class="nc">&nbsp;    public Double getPeakScore() { return peakScore; }</b>
+&nbsp;    public void setPeakScore(Double peakScore) {
+<b class="nc">&nbsp;        this.peakScore = peakScore;</b>
+&nbsp;    }
+&nbsp;
+<b class="nc">&nbsp;    public String getMeasureUnit() { return measureUnit; }</b>
+&nbsp;    public void setMeasureUnit(String measureUnit) {
+<b class="nc">&nbsp;        this.measureUnit = measureUnit;</b>
+&nbsp;    }
+&nbsp;
+<b class="nc">&nbsp;    public LocalDate getAchievedDate() { return achievedDate; }</b>
+&nbsp;    public void setAchievedDate(LocalDate achievedDate) {
+<b class="nc">&nbsp;        this.achievedDate = achievedDate;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public String toString() {
+<b class="nc">&nbsp;        return &quot;PersonalBest{&quot; +</b>
+&nbsp;                &quot;entryId=&quot; + entryId +
+&nbsp;                &quot;, ownerId=&quot; + ownerId +
+&nbsp;                &quot;, activityLabel=&#39;&quot; + activityLabel + &#39;\&#39;&#39; +
+&nbsp;                &quot;, peakScore=&quot; + peakScore +
+&nbsp;                &quot;, measureUnit=&#39;&quot; + measureUnit + &#39;\&#39;&#39; +
+&nbsp;                &quot;, achievedDate=&quot; + achievedDate +
+&nbsp;                &#39;}&#39;;
+&nbsp;    }
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-05-03 10:21</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,190 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > Group</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">onetoone.Groups</a>
+</div>
+
+<h1>Coverage Summary for Class: Group (onetoone.Groups)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">Group</td>
+<td class="coverageStat">
+  <span class="percent">
+    9.1%
+  </span>
+  <span class="absValue">
+    (1/11)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    7.1%
+  </span>
+  <span class="absValue">
+    (1/14)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">Group$HibernateInstantiator$uuwHMNQr</td>
+  </tr>
+  <tr>
+    <td class="name">Group$HibernateProxy$DWV6yjzo</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    9.1%
+  </span>
+  <span class="absValue">
+    (1/11)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    7.1%
+  </span>
+  <span class="absValue">
+    (1/14)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package onetoone.Groups;
+&nbsp;import jakarta.persistence.*;
+&nbsp;
+&nbsp;
+&nbsp;/**
+&nbsp; * Group Entity
+&nbsp; * @author Chris Lopez
+&nbsp; */
+&nbsp;
+&nbsp;@Entity
+&nbsp;@Table(name = &quot;groups_table&quot;)
+&nbsp;public class Group {
+&nbsp;    @Id
+&nbsp;    @GeneratedValue(strategy = GenerationType.IDENTITY)
+&nbsp;    private int groupId;
+&nbsp;
+&nbsp;    @Column(name = &quot;group_type&quot;, nullable = false)
+&nbsp;    private String groupType;
+&nbsp;
+&nbsp;    @Column(name = &quot;group_title&quot;, nullable = false)
+&nbsp;    private String groupTitle;
+&nbsp;
+&nbsp;    @Column(name = &quot;group_details&quot;)
+&nbsp;    private String groupDetails;
+&nbsp;
+<b class="fc">&nbsp;    public Group() {</b>
+&nbsp;    }
+&nbsp;
+<b class="nc">&nbsp;    public Group(String groupTitle, String groupType, String groupDetails) {</b>
+<b class="nc">&nbsp;        this.groupDetails = groupDetails;</b>
+<b class="nc">&nbsp;        this.groupTitle = groupTitle;</b>
+<b class="nc">&nbsp;        this.groupType = groupType;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public int getGroupId() {
+<b class="nc">&nbsp;        return groupId;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setGroupId(int groupId) {
+<b class="nc">&nbsp;        this.groupId = groupId;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;
+&nbsp;    public String getGroupType() {
+<b class="nc">&nbsp;        return groupType;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;
+&nbsp;
+<b class="nc">&nbsp;    public void setGroupType(String groupType) { this.groupType = groupType; }</b>
+&nbsp;
+&nbsp;
+&nbsp;    public void setGroupTitle(String groupTitle) {
+<b class="nc">&nbsp;        this.groupTitle = groupTitle;</b>
+&nbsp;    }
+&nbsp;
+<b class="nc">&nbsp;    public String getGroupTitle() { return groupTitle; }</b>
+&nbsp;
+&nbsp;
+<b class="nc">&nbsp;    public String getGroupDetails() { return groupDetails; }</b>
+&nbsp;
+<b class="nc">&nbsp;    public void setGroupDetails(String groupDetails) { this.groupDetails = groupDetails; }</b>
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public String toString() {
+<b class="nc">&nbsp;        return &quot;Group{&quot; + &quot;groupId=&quot; + groupId + &quot;, groupType=&#39;&quot; + groupType + &#39;\&#39;&#39; + groupId + &quot;, groupType=&#39;&quot; + &#39;\&#39;&#39; +</b>
+&nbsp;                &quot;, groupTitle=&#39;&quot; + groupTitle + &#39;\&#39;&#39; + &quot;, groupDetails=&#39;&quot; + groupDetails + &#39;\&#39;&#39; + &#39;}&#39;;
+&nbsp;
+&nbsp;
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-05-03 10:21</div>
+</div>
+</body>
+</html>
