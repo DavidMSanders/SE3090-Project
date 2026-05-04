@@ -413,9 +413,9 @@ public class DavidtrivialTest {
         assertFalse(keepUser.isLoggedIn());
     }
 
-    // ============================================================
+    
     // MessageAdapter coverage
-    // ============================================================
+    
 
     @Test
     public void messageAdapterItemTypesWork() {

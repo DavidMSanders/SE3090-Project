@@ -38,11 +38,6 @@ import java.util.Locale;
 
 /**
  * Stable UI/system coverage tests.
- *
- * IMPORTANT:
- * Most tests direct-launch the Activity being tested instead of logging in through
- * the real backend. The backend login was timing out, so relying on
- * loginFromLandingPage() made coverage runs flaky.
  */
 @RunWith(AndroidJUnit4.class)
 public class DavidSystemTest {
@@ -205,9 +200,9 @@ public class DavidSystemTest {
 
 
 
-    // ============================================================
+
     // MainActivity direct tests
-    // ============================================================
+
 
 
 
@@ -239,9 +234,9 @@ public class DavidSystemTest {
                 .check(matches(isDisplayed()));
     }
 
-    // ============================================================
+
     // Group page direct tests
-    // ============================================================
+
 
     @Test
     public void groupListPageLoadsDirectly() {
@@ -257,9 +252,9 @@ public class DavidSystemTest {
                 .check(matches(isDisplayed()));
     }
 
-    // ============================================================
+
     // Workout list/create-workout tests
-    // ============================================================
+ 
 
     @Test
     public void workoutListPageShowsCreateForm() {
@@ -406,9 +401,9 @@ public class DavidSystemTest {
                 .check(matches(isDisplayed()));
     }
 
-    // ============================================================
+
     // Personal Best tests
-    // ============================================================
+
 
     @Test
     public void personalBestPageOpensAndShowsViews() {
@@ -499,9 +494,9 @@ public class DavidSystemTest {
         pause(500);
     }
 
-    // ============================================================
+
     // Delete user tests
-    // ============================================================
+
 
     @Test
     public void deleteUserPageShowsViews() {
@@ -603,9 +598,9 @@ public class DavidSystemTest {
         pause(500);
     }
 
-    // ============================================================
+
     // Workout plan tests
-    // ============================================================
+
 
     @Test
     public void workoutPlanListPageShowsViews() {
@@ -1275,9 +1270,10 @@ public class DavidSystemTest {
                 .check(matches(isDisplayed()));
     }
 
-    // ============================================================
+    
     // Direct launch helpers
-    // ============================================================
+    //helps to launch activities, keeps me organized
+    
 
 
 
@@ -1355,9 +1351,9 @@ public class DavidSystemTest {
         pause(1000);
     }
 
-    // ============================================================
-    // Utility helpers
-    // ============================================================
+    
+    // Utility helpers , mostly help to prevent dumb crashes
+    
 
     private void allowNotificationPermissionIfShown() {
         try {
