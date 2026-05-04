@@ -1,0 +1,481 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > CalendarController</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">onetoone.Calendar</a>
+</div>
+
+<h1>Coverage Summary for Class: CalendarController (onetoone.Calendar)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">CalendarController</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    88.9%
+  </span>
+  <span class="absValue">
+    (16/18)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    55%
+  </span>
+  <span class="absValue">
+    (33/60)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    75.1%
+  </span>
+  <span class="absValue">
+    (151/201)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package onetoone.Calendar;
+&nbsp;
+&nbsp;import onetoone.Users.User;
+&nbsp;import onetoone.Users.UserRepository;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.http.HttpStatus;
+&nbsp;import org.springframework.http.ResponseEntity;
+&nbsp;import org.springframework.web.bind.annotation.*;
+&nbsp;
+&nbsp;import java.time.DayOfWeek;
+&nbsp;import java.time.LocalDate;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.HashMap;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.Optional;
+&nbsp;
+&nbsp;/**
+&nbsp; * Handles all Calendar and recurring events endpoints
+&nbsp; */
+&nbsp;
+&nbsp;@RestController
+&nbsp;@RequestMapping(&quot;/api/v1&quot;)
+<b class="fc">&nbsp;public class CalendarController {</b>
+&nbsp;    @Autowired
+&nbsp;    private CalendarEventRepository eventRepo;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private RecurrenceRuleRepository ruleRepo;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private EventParticipantRepository participantRepo;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private UserRepository userRepo;
+&nbsp;
+&nbsp;    @PostMapping(&quot;/events&quot;)
+&nbsp;    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; createEvent(@RequestBody Map&lt;String, Object&gt; body){
+<b class="fc">&nbsp;        Map&lt;String, Object&gt; result = new HashMap&lt;&gt;();</b>
+&nbsp;        try {
+<b class="fc">&nbsp;            Long creatorId = Long.valueOf(body.get(&quot;userId&quot;).toString());</b>
+<b class="fc">&nbsp;            if (!userRepo.existsById(creatorId.intValue())) {</b>
+<b class="fc">&nbsp;                result.put(&quot;message&quot;, &quot;User not found&quot;);</b>
+<b class="fc">&nbsp;                return ResponseEntity.status(</b>
+<b class="fc">&nbsp;                        HttpStatus.NOT_FOUND).body(result);</b>
+&nbsp;            }
+<b class="fc">&nbsp;            String eventLabel = body.get(&quot;title&quot;).toString();</b>
+<b class="fc">&nbsp;            LocalDate scheduleDate = LocalDate.parse(body.get(&quot;date&quot;).toString());</b>
+<b class="pc">&nbsp;            String eventNotes = body.containsKey(&quot;notes&quot;) ? body.get(&quot;notes&quot;).toString() : null;</b>
+&nbsp;
+<b class="fc">&nbsp;            CalendarEvent newEvent = new CalendarEvent(creatorId, eventLabel, scheduleDate, eventNotes);</b>
+&nbsp;
+<b class="pc">&nbsp;            if(body.containsKey(&quot;startTime&quot;) &amp;&amp; body.get(&quot;startTime&quot;) != null){</b>
+<b class="fc">&nbsp;                newEvent.setOpenTime(java.time.LocalTime.parse(body.get(&quot;startTime&quot;).toString()));</b>
+&nbsp;            }
+&nbsp;
+<b class="fc">&nbsp;            newEvent = eventRepo.save(newEvent);</b>
+<b class="fc">&nbsp;            result.put(&quot;id&quot;, newEvent.getEventKey());</b>
+<b class="fc">&nbsp;            result.put(&quot;userId&quot;, newEvent.getCreatorId());</b>
+<b class="fc">&nbsp;            result.put(&quot;title&quot;, newEvent.getEventLabel());</b>
+<b class="fc">&nbsp;            result.put(&quot;date&quot;, newEvent.getScheduledDate().toString());</b>
+<b class="fc">&nbsp;            result.put(&quot;notes&quot;, newEvent.getEventNotes());</b>
+<b class="fc">&nbsp;            result.put(&quot;message&quot;, &quot;Event created successfully&quot;);</b>
+<b class="fc">&nbsp;            return ResponseEntity.ok(result);</b>
+&nbsp;        } catch (Exception e){
+<b class="nc">&nbsp;            result.put(&quot;message&quot;, &quot;Error creating event: &quot; + e.getMessage());</b>
+<b class="nc">&nbsp;            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @GetMapping(&quot;/users/{userId}/events&quot;)
+&nbsp;    public ResponseEntity&lt;List&lt;Map&lt;String, Object&gt;&gt;&gt; getAllEvents(@PathVariable Long userId){
+<b class="fc">&nbsp;        List&lt;CalendarEvent&gt; eventList = eventRepo.findByCreatorId(userId);</b>
+<b class="fc">&nbsp;        return ResponseEntity.ok(buildEventList(eventList));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @GetMapping(&quot;/users/{userId}/events/upcoming&quot;)
+&nbsp;    public ResponseEntity&lt;List&lt;Map&lt;String, Object&gt;&gt;&gt; getupcomingEvents(@PathVariable Long userId){
+<b class="fc">&nbsp;        List&lt;CalendarEvent&gt; eventList = eventRepo.findByCreatorIdAndScheduledDateGreaterThanEqual(userId, LocalDate.now());</b>
+<b class="fc">&nbsp;        return ResponseEntity.ok(buildEventList(eventList));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @GetMapping(&quot;/users/{userId}/events/month&quot;)
+&nbsp;    public ResponseEntity&lt;List&lt;Map&lt;String, Object&gt;&gt;&gt; getEventsByMonth(@PathVariable Long userId, @RequestParam int year, @RequestParam int month){
+&nbsp;
+<b class="fc">&nbsp;        LocalDate periodStart = LocalDate.of(year, month, 1);</b>
+<b class="fc">&nbsp;        LocalDate periodEnd = periodStart.withDayOfMonth(periodStart.lengthOfMonth());</b>
+<b class="fc">&nbsp;        List&lt;CalendarEvent&gt; eventList = eventRepo.findByCreatorIdAndScheduledDateBetween(userId, periodStart, periodEnd);</b>
+<b class="fc">&nbsp;        return ResponseEntity.ok(buildEventList(eventList));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @GetMapping(&quot;/users/{userId}/events/day&quot;)
+&nbsp;    public ResponseEntity&lt;List&lt;Map&lt;String, Object&gt;&gt;&gt; getEventsByDay(@PathVariable Long userId, @RequestParam int year, @RequestParam int month, @RequestParam int day){
+<b class="fc">&nbsp;        LocalDate date = LocalDate.of(year, month, day);</b>
+<b class="fc">&nbsp;        List&lt;CalendarEvent&gt; events = eventRepo.findByCreatorIdAndScheduledDate(userId, date);</b>
+<b class="fc">&nbsp;        return ResponseEntity.ok(buildEventList(events));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @GetMapping(&quot;/events/{eventId}&quot;)
+&nbsp;    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; getEventById(@PathVariable Long eventId){
+<b class="fc">&nbsp;    Map&lt;String, Object&gt; result = new HashMap&lt;&gt;();</b>
+<b class="fc">&nbsp;    CalendarEvent event = eventRepo.findById(eventId).orElse(null);</b>
+<b class="fc">&nbsp;    if(event == null){</b>
+<b class="fc">&nbsp;        result.put(&quot;message&quot;, &quot;Event not found&quot;);</b>
+<b class="fc">&nbsp;        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);</b>
+&nbsp;    }
+<b class="fc">&nbsp;    return ResponseEntity.ok(buildEventMap(event));</b>
+&nbsp;}
+&nbsp;
+&nbsp;    @PutMapping(&quot;/events/{eventId}&quot;)
+&nbsp;    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; updateEvent(@PathVariable Long eventId, @RequestBody Map&lt;String, Object&gt; body){
+<b class="fc">&nbsp;    Map&lt;String, Object&gt; result = new HashMap&lt;&gt;();</b>
+<b class="fc">&nbsp;    CalendarEvent foundEvent = eventRepo.findById(eventId).orElse(null);</b>
+<b class="pc">&nbsp;    if (foundEvent == null){</b>
+<b class="nc">&nbsp;        result.put(&quot;message&quot;, &quot;Event not found&quot;);</b>
+<b class="nc">&nbsp;        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);</b>
+&nbsp;    }
+&nbsp;
+<b class="pc">&nbsp;    if(body.containsKey(&quot;title&quot;)){</b>
+<b class="fc">&nbsp;        foundEvent.setEventLabel(body.get(&quot;title&quot;).toString());</b>
+&nbsp;    }
+<b class="pc">&nbsp;    if(body.containsKey(&quot;date&quot;)){</b>
+<b class="nc">&nbsp;        foundEvent.setScheduledDate(LocalDate.parse(body.get(&quot;date&quot;).toString()));</b>
+&nbsp;    }
+<b class="pc">&nbsp;    if (body.containsKey(&quot;notes&quot;)){</b>
+<b class="fc">&nbsp;        foundEvent.setEventNotes(body.get(&quot;notes&quot;).toString());</b>
+&nbsp;    }
+&nbsp;
+<b class="fc">&nbsp;    foundEvent = eventRepo.save(foundEvent);</b>
+<b class="fc">&nbsp;    result.put(&quot;message&quot;, &quot;Event updated sucessfully&quot;);</b>
+<b class="fc">&nbsp;    result.putAll(buildEventMap(foundEvent));</b>
+<b class="fc">&nbsp;    return ResponseEntity.ok(result);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @DeleteMapping(&quot;/events/{eventId}&quot;)
+&nbsp;    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; deleteEvent(@PathVariable Long eventId) {
+<b class="fc">&nbsp;        Map&lt;String, Object&gt; result = new HashMap&lt;&gt;();</b>
+<b class="fc">&nbsp;        CalendarEvent event = eventRepo.findById(eventId).orElse(null);</b>
+<b class="fc">&nbsp;        if (event == null) {</b>
+<b class="fc">&nbsp;            result.put(&quot;message&quot;, &quot;Event not found&quot;);</b>
+<b class="fc">&nbsp;            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);</b>
+&nbsp;        }
+<b class="fc">&nbsp;        participantRepo.deleteByEventRef(eventId);</b>
+<b class="fc">&nbsp;        eventRepo.delete(event);</b>
+<b class="fc">&nbsp;        result.put(&quot;message&quot;, &quot;Event deleted sucessfully&quot;);</b>
+<b class="fc">&nbsp;        result.put(&quot;eventId&quot;, eventId);</b>
+<b class="fc">&nbsp;        return ResponseEntity.ok(result);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @PostMapping(&quot;/events/recurring&quot;)
+&nbsp;    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; createRecurringEvent(@RequestBody Map&lt;String, Object&gt; body) {
+<b class="fc">&nbsp;        Map&lt;String, Object&gt; result = new HashMap&lt;&gt;();</b>
+&nbsp;        try {
+<b class="fc">&nbsp;            Long creatorId = Long.valueOf(body.get(&quot;userId&quot;).toString());</b>
+&nbsp;
+<b class="pc">&nbsp;            if (!userRepo.existsById(creatorId.intValue())) {</b>
+<b class="nc">&nbsp;                result.put(&quot;message&quot;, &quot;User not found&quot;);</b>
+<b class="nc">&nbsp;                return ResponseEntity.status(</b>
+<b class="nc">&nbsp;                        HttpStatus.NOT_FOUND).body(result);</b>
+&nbsp;            }
+&nbsp;
+<b class="fc">&nbsp;            String ruleLabel = body.get(&quot;title&quot;).toString();</b>
+<b class="pc">&nbsp;            String ruleNotes = body.containsKey(&quot;notes&quot;) ? body.get(&quot;notes&quot;).toString(): null;</b>
+<b class="fc">&nbsp;            String repeatDay = body.get(&quot;dayOfWeek&quot;).toString().toUpperCase();</b>
+&nbsp;
+<b class="fc">&nbsp;            RecurrenceRule newRule = new RecurrenceRule();</b>
+<b class="fc">&nbsp;            newRule.setOwnerId(creatorId);</b>
+<b class="fc">&nbsp;            newRule.setRuleLabel(ruleLabel);</b>
+<b class="fc">&nbsp;            newRule.setRuleNotes(ruleNotes);</b>
+<b class="fc">&nbsp;            newRule.setRepeatDay(repeatDay);</b>
+<b class="fc">&nbsp;            newRule = ruleRepo.save(newRule);</b>
+&nbsp;
+<b class="fc">&nbsp;            DayOfWeek targetDay = DayOfWeek.valueOf(repeatDay);</b>
+<b class="fc">&nbsp;            LocalDate currentDate = LocalDate.now();</b>
+<b class="pc">&nbsp;            while (currentDate.getDayOfWeek() != targetDay) {</b>
+<b class="nc">&nbsp;                currentDate = currentDate.plusDays(1);</b>
+&nbsp;            }
+&nbsp;
+&nbsp;
+<b class="fc">&nbsp;            int createdCount = 0;</b>
+<b class="fc">&nbsp;            for (int weekNum = 0;</b>
+<b class="fc">&nbsp;                 weekNum &lt; 12;</b>
+<b class="fc">&nbsp;                 weekNum++) {</b>
+<b class="fc">&nbsp;                CalendarEvent newEvent = new CalendarEvent(creatorId, ruleLabel, currentDate, ruleNotes);</b>
+<b class="fc">&nbsp;                newEvent.setRuleRef(newRule.getRuleKey());</b>
+<b class="fc">&nbsp;                eventRepo.save(newEvent);</b>
+<b class="fc">&nbsp;                currentDate = currentDate.plusWeeks(1);</b>
+<b class="fc">&nbsp;                createdCount++;</b>
+&nbsp;            }
+&nbsp;
+<b class="fc">&nbsp;            result.put(&quot;reccurrenceId&quot;, newRule.getRuleKey());</b>
+<b class="fc">&nbsp;            result.put(&quot;recurrenceId&quot;, newRule.getRuleKey());</b>
+<b class="fc">&nbsp;            result.put(&quot;userId&quot;, creatorId);</b>
+<b class="fc">&nbsp;            result.put(&quot;daysOfWeek&quot;, repeatDay);</b>
+<b class="fc">&nbsp;            result.put(&quot;dayOfWeek&quot;, repeatDay);</b>
+<b class="fc">&nbsp;            result.put(&quot;createdCount&quot;, createdCount);</b>
+<b class="fc">&nbsp;            result.put(&quot;message&quot;, &quot;Recurrence events created sucessfully&quot;);</b>
+<b class="fc">&nbsp;            return ResponseEntity.ok(result);</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            result.put(&quot;message&quot;, &quot;Error creating recurring event: &quot; + e.getMessage());</b>
+<b class="nc">&nbsp;            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);</b>
+&nbsp;
+&nbsp;
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @GetMapping(&quot;/users/{userId}/events/recurring&quot;)
+&nbsp;    public ResponseEntity&lt;List&lt;Map&lt;String, Object&gt;&gt;&gt; getRecurringEvents(@PathVariable Long userId) {
+<b class="fc">&nbsp;        List&lt;RecurrenceRule&gt; ruleList = ruleRepo.findByOwnerId(userId);</b>
+<b class="fc">&nbsp;        List&lt;Map&lt;String, Object&gt;&gt; result = new ArrayList&lt;&gt;();</b>
+<b class="fc">&nbsp;        for (RecurrenceRule rule : ruleList) {</b>
+<b class="fc">&nbsp;            Map&lt;String, Object&gt; ruleMap = new HashMap&lt;&gt;();</b>
+<b class="fc">&nbsp;            ruleMap.put(&quot;recurrenceId&quot;, rule.getRuleKey());</b>
+<b class="fc">&nbsp;            ruleMap.put(&quot;userId&quot;, rule.getOwnerId());</b>
+<b class="fc">&nbsp;            ruleMap.put(&quot;title&quot;, rule.getRuleLabel());</b>
+<b class="fc">&nbsp;            ruleMap.put(&quot;notes&quot;, rule.getRuleNotes());</b>
+<b class="fc">&nbsp;            ruleMap.put(&quot;dayOfWeek&quot;, rule.getRepeatDay());</b>
+<b class="fc">&nbsp;            result.add(ruleMap);</b>
+&nbsp;        }
+<b class="fc">&nbsp;        return ResponseEntity.ok(result);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;        @DeleteMapping(&quot;/events/recurring/{recurrenceId}&quot;)
+&nbsp;        public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; deleteRecurringEvent (@PathVariable Long recurrenceId) {
+<b class="nc">&nbsp;            Map&lt;String, Object&gt; result = new HashMap&lt;&gt;();</b>
+&nbsp;
+<b class="nc">&nbsp;            if (!ruleRepo.existsById(recurrenceId)) {</b>
+<b class="nc">&nbsp;                result.put(&quot;message&quot;, &quot;Recurring rule not found&quot;);</b>
+<b class="nc">&nbsp;                return ResponseEntity.status(</b>
+<b class="nc">&nbsp;                        HttpStatus.NOT_FOUND).body(result);</b>
+&nbsp;            }
+&nbsp;
+&nbsp;
+<b class="nc">&nbsp;            List&lt;CalendarEvent&gt; linkedEvents = eventRepo.findByRuleRef(recurrenceId);</b>
+<b class="nc">&nbsp;            int deletedCount = linkedEvents.size();</b>
+<b class="nc">&nbsp;            for (CalendarEvent evt : linkedEvents) {</b>
+<b class="nc">&nbsp;                participantRepo.deleteByEventRef(evt.getEventKey());</b>
+<b class="nc">&nbsp;                eventRepo.delete(evt);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            ruleRepo.deleteById(recurrenceId);</b>
+<b class="nc">&nbsp;            result.put(&quot;message&quot;, &quot;Recurring events deleted successfully&quot;);</b>
+<b class="nc">&nbsp;            result.put(&quot;recurrenceId&quot;, recurrenceId);</b>
+<b class="nc">&nbsp;            result.put(&quot;deletedCount&quot;, deletedCount);</b>
+<b class="nc">&nbsp;            return ResponseEntity.ok(result);</b>
+&nbsp;
+&nbsp;        }
+&nbsp;
+&nbsp;        @PostMapping(&quot;/events/{eventId}/participants&quot;)
+&nbsp;        public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; addParticipant (@PathVariable Long
+&nbsp;        eventId, @RequestBody Map &lt; String, Object &gt; body){
+<b class="fc">&nbsp;            Map&lt;String, Object&gt; result = new HashMap&lt;&gt;();</b>
+<b class="fc">&nbsp;            CalendarEvent foundEvent = eventRepo.findById(eventId).orElse(null);</b>
+<b class="pc">&nbsp;            if (foundEvent == null) {</b>
+<b class="nc">&nbsp;                result.put(&quot;message&quot;, &quot;Event not found&quot;);</b>
+<b class="nc">&nbsp;                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);</b>
+&nbsp;            }
+&nbsp;
+<b class="fc">&nbsp;            Long attendeeId = Long.valueOf(body.get(&quot;userId&quot;).toString());</b>
+&nbsp;
+<b class="pc">&nbsp;            if (!userRepo.existsById(attendeeId.intValue())) {</b>
+<b class="nc">&nbsp;                result.put(&quot;message&quot;, &quot;User not found&quot;);</b>
+<b class="nc">&nbsp;                return ResponseEntity.status(</b>
+<b class="nc">&nbsp;                        HttpStatus.NOT_FOUND).body(result);</b>
+&nbsp;            }
+&nbsp;
+<b class="pc">&nbsp;            if (participantRepo.existsByEventRefAndAttendeeId (eventId, attendeeId)){</b>
+<b class="nc">&nbsp;                result.put(&quot;message&quot;, &quot;User is already a participant&quot;);</b>
+<b class="nc">&nbsp;                return ResponseEntity.status(HttpStatus.CONFLICT).body(result);</b>
+&nbsp;            }
+&nbsp;
+<b class="fc">&nbsp;            EventParticipant newParticipant = new EventParticipant(eventId, attendeeId);</b>
+<b class="fc">&nbsp;            newParticipant = participantRepo.save(newParticipant);</b>
+<b class="fc">&nbsp;            Optional&lt;User&gt; accountLookup = userRepo.findById(attendeeId.intValue());</b>
+<b class="fc">&nbsp;            result.put(&quot;participantId&quot;, newParticipant.getParticipantKey());</b>
+<b class="fc">&nbsp;            result.put(&quot;eventId&quot;, eventId);</b>
+<b class="fc">&nbsp;            result.put(&quot;userId&quot;, attendeeId);</b>
+<b class="fc">&nbsp;            result.put(&quot;username&quot;, accountLookup.map(User::getAccountName).orElse(&quot;Unknown&quot;));</b>
+&nbsp;
+<b class="fc">&nbsp;            result.put(&quot;status&quot;, newParticipant.getInviteStatus());</b>
+<b class="fc">&nbsp;            result.put(&quot;message&quot;, &quot;Participant added successfully&quot;);</b>
+<b class="fc">&nbsp;            return ResponseEntity.ok(result);</b>
+&nbsp;
+&nbsp;
+&nbsp;        }
+&nbsp;
+&nbsp;        @GetMapping(&quot;/events/{eventId}/participants&quot;)
+&nbsp;        public ResponseEntity&lt;List&lt;Map&lt;String, Object&gt;&gt;&gt; getParticipants (@PathVariable Long eventId){
+<b class="fc">&nbsp;            List&lt;EventParticipant&gt; attendeeList = participantRepo.findByEventRef(eventId);</b>
+<b class="fc">&nbsp;            List&lt;Map&lt;String, Object&gt;&gt; result = new ArrayList&lt;&gt;();</b>
+<b class="fc">&nbsp;            for (EventParticipant attendee : attendeeList) {</b>
+<b class="fc">&nbsp;                Map&lt;String, Object&gt; attendeeMap = new HashMap&lt;&gt;();</b>
+<b class="fc">&nbsp;                attendeeMap.put(&quot;participantId&quot;, attendee.getParticipantKey());</b>
+<b class="fc">&nbsp;                attendeeMap.put(&quot;eventId&quot;, attendee.getEventRef());</b>
+<b class="fc">&nbsp;                attendeeMap.put(&quot;userId&quot;, attendee.getAttendeeId());</b>
+<b class="fc">&nbsp;                attendeeMap.put(&quot;status&quot;, attendee.getInviteStatus());</b>
+<b class="fc">&nbsp;                Optional&lt;User&gt; accountLookup = userRepo.findById(attendee.getAttendeeId().intValue());</b>
+<b class="fc">&nbsp;                attendeeMap.put(&quot;username&quot;, accountLookup.map(User::getAccountName).orElse(&quot;Unknown&quot;));</b>
+<b class="fc">&nbsp;                result.add(attendeeMap);</b>
+&nbsp;
+&nbsp;            }
+&nbsp;
+<b class="fc">&nbsp;            return ResponseEntity.ok(result);</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        @DeleteMapping(&quot;/events/{eventId}/participants/{userId}&quot;)
+&nbsp;        public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; removeParticipant (@PathVariable Long eventId, @PathVariable Long
+&nbsp;        userId){
+<b class="nc">&nbsp;            Map&lt;String, Object&gt; result = new HashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;            List&lt;EventParticipant&gt; attendeeList = participantRepo.findByEventRef(eventId);</b>
+<b class="nc">&nbsp;            EventParticipant foundAttendee = null;</b>
+<b class="nc">&nbsp;            for (EventParticipant attendee : attendeeList){</b>
+<b class="nc">&nbsp;                if (attendee.getAttendeeId().equals(userId)) {</b>
+<b class="nc">&nbsp;                    foundAttendee = attendee;</b>
+&nbsp;                    break;
+&nbsp;                }
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            if (foundAttendee == null) {</b>
+<b class="nc">&nbsp;                result.put(&quot;message&quot;, &quot;Participant not found&quot;);</b>
+<b class="nc">&nbsp;                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            participantRepo.delete(foundAttendee);</b>
+<b class="nc">&nbsp;            result.put(&quot;message&quot;, &quot;Participant removed successfully&quot;);</b>
+<b class="nc">&nbsp;            result.put(&quot;eventId&quot;, eventId);</b>
+<b class="nc">&nbsp;            result.put(&quot;userId&quot;, userId);</b>
+<b class="nc">&nbsp;            return ResponseEntity.ok(result);</b>
+&nbsp;
+&nbsp;        }
+&nbsp;
+&nbsp;        @GetMapping(&quot;/users/{userId}/events/invited&quot;)
+&nbsp;        public ResponseEntity&lt;List&lt;Map&lt;String, Object&gt;&gt;&gt; getInviteEvent (@PathVariable Long userId){
+<b class="fc">&nbsp;            List&lt;EventParticipant&gt; attendanceList = participantRepo.findByAttendeeId(userId);</b>
+<b class="fc">&nbsp;            List&lt;Map&lt;String, Object&gt;&gt; result = new ArrayList&lt;&gt;();</b>
+<b class="fc">&nbsp;            for (EventParticipant attendance : attendanceList) {</b>
+<b class="fc">&nbsp;                CalendarEvent foundEvent = eventRepo.findById(attendance.getEventRef()).orElse(null);</b>
+<b class="pc">&nbsp;                if (foundEvent != null &amp;&amp; !foundEvent.getCreatorId().equals(userId)) {</b>
+<b class="nc">&nbsp;                    Map&lt;String, Object&gt; eventMap = buildEventMap(foundEvent);</b>
+<b class="nc">&nbsp;                    eventMap.put(&quot;status&quot;, attendance.getInviteStatus());</b>
+<b class="nc">&nbsp;                    result.add(eventMap);</b>
+&nbsp;                }
+&nbsp;            }
+<b class="fc">&nbsp;            return ResponseEntity.ok(result);</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        private Map&lt;String, Object&gt; buildEventMap (CalendarEvent evt){
+<b class="fc">&nbsp;            Map&lt;String, Object&gt; map = new HashMap&lt;&gt;();</b>
+<b class="fc">&nbsp;            map.put(&quot;id&quot;, evt.getEventKey());</b>
+<b class="fc">&nbsp;            map.put(&quot;userId&quot;, evt.getCreatorId());</b>
+<b class="fc">&nbsp;            map.put(&quot;title&quot;, evt.getEventLabel());</b>
+<b class="fc">&nbsp;            map.put(&quot;date&quot;, evt.getScheduledDate().toString());</b>
+<b class="fc">&nbsp;            map.put(&quot;notes&quot;, evt.getEventNotes());</b>
+<b class="pc">&nbsp;            map.put(&quot;startTime&quot;, evt.getOpenTime() != null ? evt.getOpenTime().toString() : null);</b>
+<b class="pc">&nbsp;            map.put(&quot;endTime&quot;, evt.getCloseTime() != null ? evt.getCloseTime().toString() : null);</b>
+<b class="fc">&nbsp;            map.put(&quot;recurrenceId&quot;, evt.getRuleRef());</b>
+<b class="fc">&nbsp;            return map;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        private List&lt;Map&lt;String, Object&gt;&gt; buildEventList (List &lt; CalendarEvent &gt; eventList) {
+<b class="fc">&nbsp;            List&lt;Map&lt;String, Object&gt;&gt; result = new ArrayList&lt;&gt;();</b>
+<b class="fc">&nbsp;            for (CalendarEvent evt : eventList) {</b>
+<b class="fc">&nbsp;                result.add(buildEventMap(evt));</b>
+&nbsp;            }
+<b class="fc">&nbsp;            return result;</b>
+&nbsp;        }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-05-04 17:14</div>
+</div>
+</body>
+</html>

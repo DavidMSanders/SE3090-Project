@@ -56,26 +56,26 @@ Current scope:     <a href="../../index.html">all classes</a>
 </td>
 <td class="coverageStat">
   <span class="percent">
-    37.5%
+    100%
   </span>
   <span class="absValue">
-    (3/8)
+    (8/8)
   </span>
 </td>
 <td class="coverageStat">
   <span class="percent">
-    4.5%
+    81.8%
   </span>
   <span class="absValue">
-    (1/22)
+    (18/22)
   </span>
 </td>
 <td class="coverageStat">
   <span class="percent">
-    13.6%
+    96.8%
   </span>
   <span class="absValue">
-    (9/66)
+    (60/62)
   </span>
 </td>
 </tr>
@@ -121,33 +121,29 @@ Current scope:     <a href="../../index.html">all classes</a>
 &nbsp;    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; sendImage(@RequestBody Map&lt;String, Object&gt; body) {
 <b class="fc">&nbsp;        Map&lt;String, Object&gt; result = new HashMap&lt;&gt;();</b>
 &nbsp;        try {
-<b class="fc">&nbsp;            Long authorId = Long.valueOf(body.get(&quot;senderId&quot;).toString());</b>
+<b class="fc">&nbsp;            Long senderId = Long.valueOf(body.get(&quot;senderId&quot;).toString());</b>
 &nbsp;
-<b class="pc">&nbsp;            if (!userRepo.existsById(authorId.intValue())) {</b>
+<b class="fc">&nbsp;            if (!userRepo.existsById(senderId.intValue())) {</b>
 <b class="fc">&nbsp;                result.put(&quot;message&quot;, &quot;Sender not found&quot;);</b>
-<b class="fc">&nbsp;                return ResponseEntity.status(</b>
-<b class="fc">&nbsp;                        HttpStatus.NOT_FOUND).body(result);</b>
+<b class="fc">&nbsp;                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);</b>
 &nbsp;            }
 &nbsp;
-<b class="nc">&nbsp;            Long channelId = body.containsKey(&quot;groupId&quot;) &amp;&amp; body.get(&quot;groupId&quot;) != null ?</b>
-<b class="nc">&nbsp;                    Long.valueOf(body.get(&quot;groupId&quot;).toString()) :</b>
-<b class="nc">&nbsp;                    null;</b>
+<b class="pc">&nbsp;            Long groupId = body.containsKey(&quot;groupId&quot;) &amp;&amp; body.get(&quot;groupId&quot;) != null ?</b>
+<b class="fc">&nbsp;                    Long.valueOf(body.get(&quot;groupId&quot;).toString()) : null;</b>
 &nbsp;
-<b class="nc">&nbsp;            String mediaPath = body.get(&quot;imageUrl&quot;).toString();</b>
+<b class="fc">&nbsp;            String imageUrl = body.get(&quot;imageUrl&quot;).toString();</b>
+<b class="pc">&nbsp;            String caption = body.containsKey(&quot;caption&quot;) ? body.get(&quot;caption&quot;).toString() : null;</b>
 &nbsp;
-<b class="nc">&nbsp;            String msgCaption = body.containsKey(&quot;caption&quot;) ? body.get(&quot;caption&quot;).toString() : null;</b>
+<b class="fc">&nbsp;            ImageMessage newEntry = new ImageMessage(senderId, groupId, imageUrl, caption);</b>
+<b class="fc">&nbsp;            newEntry = mediaRepo.save(newEntry);</b>
 &nbsp;
-<b class="nc">&nbsp;            ImageMessage newEntry = new ImageMessage(authorId, channelId, mediaPath, msgCaption);</b>
-<b class="nc">&nbsp;            newEntry = mediaRepo.save(newEntry);</b>
-&nbsp;
-<b class="nc">&nbsp;            result.put(&quot;message&quot;, &quot;Image sent successfully&quot;);</b>
-<b class="nc">&nbsp;            result.putAll(buildMediaMap(newEntry));</b>
-<b class="nc">&nbsp;            return ResponseEntity.ok(result);</b>
+<b class="fc">&nbsp;            result.put(&quot;message&quot;, &quot;Image sent successfully&quot;);</b>
+<b class="fc">&nbsp;            result.putAll(buildMediaMap(newEntry));</b>
+<b class="fc">&nbsp;            return ResponseEntity.ok(result);</b>
 &nbsp;
 &nbsp;        } catch (Exception e) {
 <b class="nc">&nbsp;            result.put(&quot;message&quot;, &quot;Error sending image: &quot; + e.getMessage());</b>
-<b class="nc">&nbsp;            return ResponseEntity.status(</b>
-<b class="nc">&nbsp;                    HttpStatus.BAD_REQUEST).body(result);</b>
+<b class="nc">&nbsp;            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);</b>
 &nbsp;        }
 &nbsp;    }
 &nbsp;
@@ -156,12 +152,12 @@ Current scope:     <a href="../../index.html">all classes</a>
 &nbsp;     */
 &nbsp;    @GetMapping(&quot;/groups/{groupId}/images&quot;)
 &nbsp;    public ResponseEntity&lt;List&lt;Map&lt;String, Object&gt;&gt;&gt; getGroupImages(@PathVariable Long groupId) {
-<b class="nc">&nbsp;        List&lt;ImageMessage&gt; mediaList = mediaRepo.findByChannelIdOrderByDispatchTimeDesc(groupId);</b>
-<b class="nc">&nbsp;        List&lt;Map&lt;String, Object&gt;&gt; result = new ArrayList&lt;&gt;();</b>
-<b class="nc">&nbsp;        for (ImageMessage entry : mediaList) {</b>
-<b class="nc">&nbsp;            result.add(buildMediaMap(entry));</b>
+<b class="fc">&nbsp;        List&lt;ImageMessage&gt; mediaList = mediaRepo.findByGroupIdOrderBySentAtDesc(groupId);</b>
+<b class="fc">&nbsp;        List&lt;Map&lt;String, Object&gt;&gt; result = new ArrayList&lt;&gt;();</b>
+<b class="fc">&nbsp;        for (ImageMessage entry : mediaList) {</b>
+<b class="fc">&nbsp;            result.add(buildMediaMap(entry));</b>
 &nbsp;        }
-<b class="nc">&nbsp;        return ResponseEntity.ok(result);</b>
+<b class="fc">&nbsp;        return ResponseEntity.ok(result);</b>
 &nbsp;    }
 &nbsp;
 &nbsp;    /**
@@ -171,12 +167,12 @@ Current scope:     <a href="../../index.html">all classes</a>
 &nbsp;    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; getImageById(@PathVariable Long id) {
 <b class="fc">&nbsp;        Map&lt;String, Object&gt; result = new HashMap&lt;&gt;();</b>
 <b class="fc">&nbsp;        ImageMessage locatedEntry = mediaRepo.findById(id).orElse(null);</b>
-<b class="nc">&nbsp;        if (locatedEntry == null) {</b>
-<b class="nc">&nbsp;            result.put(&quot;message&quot;, &quot;Image not found&quot;);</b>
-<b class="nc">&nbsp;            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);</b>
+<b class="fc">&nbsp;        if (locatedEntry == null) {</b>
+<b class="fc">&nbsp;            result.put(&quot;message&quot;, &quot;Image not found&quot;);</b>
+<b class="fc">&nbsp;            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);</b>
 &nbsp;        }
-<b class="nc">&nbsp;        result.putAll(buildMediaMap(locatedEntry));</b>
-<b class="nc">&nbsp;        return ResponseEntity.ok(result);</b>
+<b class="fc">&nbsp;        result.putAll(buildMediaMap(locatedEntry));</b>
+<b class="fc">&nbsp;        return ResponseEntity.ok(result);</b>
 &nbsp;    }
 &nbsp;
 &nbsp;    /**
@@ -184,33 +180,34 @@ Current scope:     <a href="../../index.html">all classes</a>
 &nbsp;     */
 &nbsp;    @GetMapping(&quot;/users/{userId}/images&quot;)
 &nbsp;    public ResponseEntity&lt;List&lt;Map&lt;String, Object&gt;&gt;&gt; getUserImages(@PathVariable Long userId) {
-<b class="nc">&nbsp;        List&lt;ImageMessage&gt; mediaList = mediaRepo.findByAuthorId(userId);</b>
-<b class="nc">&nbsp;        List&lt;Map&lt;String, Object&gt;&gt; result = new ArrayList&lt;&gt;();</b>
-<b class="nc">&nbsp;        for (ImageMessage entry : mediaList) {</b>
-<b class="nc">&nbsp;            result.add(buildMediaMap(entry));</b>
+<b class="fc">&nbsp;        List&lt;ImageMessage&gt; mediaList = mediaRepo.findBySenderId(userId);</b>
+<b class="fc">&nbsp;        List&lt;Map&lt;String, Object&gt;&gt; result = new ArrayList&lt;&gt;();</b>
+<b class="fc">&nbsp;        for (ImageMessage entry : mediaList) {</b>
+<b class="fc">&nbsp;            result.add(buildMediaMap(entry));</b>
 &nbsp;        }
-<b class="nc">&nbsp;        return ResponseEntity.ok(result);</b>
+<b class="fc">&nbsp;        return ResponseEntity.ok(result);</b>
 &nbsp;    }
 &nbsp;
 &nbsp;    /**
 &nbsp;     * 5 - Update the caption of an image message
 &nbsp;     */
 &nbsp;    @PutMapping(&quot;/images/{id}/caption&quot;)
-&nbsp;    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; updateCaption(@PathVariable Long id, @RequestBody Map&lt;String, Object&gt; body) {
-<b class="nc">&nbsp;        Map&lt;String, Object&gt; result = new HashMap&lt;&gt;();</b>
-<b class="nc">&nbsp;        ImageMessage foundEntry = mediaRepo.findById(id).orElse(null);</b>
-<b class="nc">&nbsp;        if (foundEntry == null) {</b>
-<b class="nc">&nbsp;            result.put(&quot;message&quot;, &quot;Image not found&quot;);</b>
-<b class="nc">&nbsp;            return ResponseEntity.status(</b>
-<b class="nc">&nbsp;                    HttpStatus.NOT_FOUND).body(result);</b>
+&nbsp;    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; updateCaption(
+&nbsp;            @PathVariable Long id,
+&nbsp;            @RequestBody Map&lt;String, Object&gt; body) {
+<b class="fc">&nbsp;        Map&lt;String, Object&gt; result = new HashMap&lt;&gt;();</b>
+<b class="fc">&nbsp;        ImageMessage foundEntry = mediaRepo.findById(id).orElse(null);</b>
+<b class="fc">&nbsp;        if (foundEntry == null) {</b>
+<b class="fc">&nbsp;            result.put(&quot;message&quot;, &quot;Image not found&quot;);</b>
+<b class="fc">&nbsp;            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);</b>
 &nbsp;        }
-<b class="nc">&nbsp;        if (body.containsKey(&quot;caption&quot;)) {</b>
-<b class="nc">&nbsp;            foundEntry.setMsgCaption(body.get(&quot;caption&quot;).toString());</b>
+<b class="pc">&nbsp;        if (body.containsKey(&quot;caption&quot;)) {</b>
+<b class="fc">&nbsp;            foundEntry.setCaption(body.get(&quot;caption&quot;).toString());</b>
 &nbsp;        }
-<b class="nc">&nbsp;        foundEntry = mediaRepo.save(foundEntry);</b>
-<b class="nc">&nbsp;        result.put(&quot;message&quot;, &quot;Caption updated successfully&quot;);</b>
-<b class="nc">&nbsp;        result.putAll(buildMediaMap(foundEntry));</b>
-<b class="nc">&nbsp;        return ResponseEntity.ok(result);</b>
+<b class="fc">&nbsp;        foundEntry = mediaRepo.save(foundEntry);</b>
+<b class="fc">&nbsp;        result.put(&quot;message&quot;, &quot;Caption updated successfully&quot;);</b>
+<b class="fc">&nbsp;        result.putAll(buildMediaMap(foundEntry));</b>
+<b class="fc">&nbsp;        return ResponseEntity.ok(result);</b>
 &nbsp;    }
 &nbsp;
 &nbsp;    /**
@@ -218,27 +215,28 @@ Current scope:     <a href="../../index.html">all classes</a>
 &nbsp;     */
 &nbsp;    @DeleteMapping(&quot;/images/{id}&quot;)
 &nbsp;    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; deleteImage(@PathVariable Long id) {
-<b class="nc">&nbsp;        Map&lt;String, Object&gt; result = new HashMap&lt;&gt;();</b>
-<b class="nc">&nbsp;        ImageMessage foundEntry = mediaRepo.findById(id).orElse(null);</b>
-<b class="nc">&nbsp;        if (foundEntry == null) {</b>
-<b class="nc">&nbsp;            result.put(&quot;message&quot;, &quot;Image not found&quot;);</b>
-<b class="nc">&nbsp;            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);</b>
+<b class="fc">&nbsp;        Map&lt;String, Object&gt; result = new HashMap&lt;&gt;();</b>
+<b class="fc">&nbsp;        ImageMessage foundEntry = mediaRepo.findById(id).orElse(null);</b>
+<b class="fc">&nbsp;        if (foundEntry == null) {</b>
+<b class="fc">&nbsp;            result.put(&quot;message&quot;, &quot;Image not found&quot;);</b>
+<b class="fc">&nbsp;            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);</b>
 &nbsp;        }
-<b class="nc">&nbsp;        mediaRepo.delete(foundEntry);</b>
-<b class="nc">&nbsp;        result.put(&quot;message&quot;, &quot;Image message deleted successfully&quot;);</b>
-<b class="nc">&nbsp;        result.put(&quot;id&quot;, id);</b>
-<b class="nc">&nbsp;        return ResponseEntity.ok(result);</b>
+<b class="fc">&nbsp;        mediaRepo.delete(foundEntry);</b>
+<b class="fc">&nbsp;        result.put(&quot;message&quot;, &quot;Image message deleted successfully&quot;);</b>
+<b class="fc">&nbsp;        result.put(&quot;id&quot;, id);</b>
+<b class="fc">&nbsp;        return ResponseEntity.ok(result);</b>
 &nbsp;    }
 &nbsp;
+&nbsp;
 &nbsp;    private Map&lt;String, Object&gt; buildMediaMap(ImageMessage entry) {
-<b class="nc">&nbsp;        Map&lt;String, Object&gt; map = new HashMap&lt;&gt;();</b>
-<b class="nc">&nbsp;        map.put(&quot;id&quot;, entry.getMsgKey());</b>
-<b class="nc">&nbsp;        map.put(&quot;senderId&quot;, entry.getAuthorId());</b>
-<b class="nc">&nbsp;        map.put(&quot;groupId&quot;, entry.getChannelId());</b>
-<b class="nc">&nbsp;        map.put(&quot;imageUrl&quot;, entry.getMediaPath());</b>
-<b class="nc">&nbsp;        map.put(&quot;caption&quot;, entry.getMsgCaption());</b>
-<b class="nc">&nbsp;        map.put(&quot;sentAt&quot;, entry.getDispatchTime() != null ? entry.getDispatchTime().toString() : null);</b>
-<b class="nc">&nbsp;        return map;</b>
+<b class="fc">&nbsp;        Map&lt;String, Object&gt; map = new HashMap&lt;&gt;();</b>
+<b class="fc">&nbsp;        map.put(&quot;id&quot;, entry.getId());</b>
+<b class="fc">&nbsp;        map.put(&quot;senderId&quot;, entry.getSenderId());</b>
+<b class="fc">&nbsp;        map.put(&quot;groupId&quot;, entry.getGroupId());</b>
+<b class="fc">&nbsp;        map.put(&quot;imageUrl&quot;, entry.getImageUrl());</b>
+<b class="fc">&nbsp;        map.put(&quot;caption&quot;, entry.getCaption());</b>
+<b class="pc">&nbsp;        map.put(&quot;sentAt&quot;, entry.getSentAt() != null ? entry.getSentAt().toString() : null);</b>
+<b class="fc">&nbsp;        return map;</b>
 &nbsp;    }
 &nbsp;}
 </code>
@@ -264,7 +262,7 @@ Current scope:     <a href="../../index.html">all classes</a>
 
 <div class="footer">
     
-    <div style="float:right;">generated on 2026-05-03 10:21</div>
+    <div style="float:right;">generated on 2026-05-04 17:14</div>
 </div>
 </body>
 </html>

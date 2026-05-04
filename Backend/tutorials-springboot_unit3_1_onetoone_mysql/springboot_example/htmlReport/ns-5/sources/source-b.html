@@ -5,7 +5,7 @@
 <html id="htmlId">
 <head>
   <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
-  <title>Coverage Report > GroupMembershipRepository</title>
+  <title>Coverage Report > GroupRepository</title>
   <style type="text/css">
     @import "../../css/coverage.css";
     @import "../../css/idea.min.css";
@@ -22,14 +22,14 @@ Current scope:     <a href="../../index.html">all classes</a>
     <a href="../index.html">onetoone.Groups</a>
 </div>
 
-<h1>Coverage Summary for Class: GroupMembershipRepository (onetoone.Groups)</h1>
+<h1>Coverage Summary for Class: GroupRepository (onetoone.Groups)</h1>
 
 <table class="coverageStats">
 <tr>
   <th class="name">Class</th>
 </tr>
 <tr>
-  <td class="name">GroupMembershipRepository</td>
+  <td class="name">GroupRepository</td>
 </tr>
 
 </table>
@@ -43,18 +43,16 @@ Current scope:     <a href="../../index.html">all classes</a>
 &nbsp;import org.springframework.data.jpa.repository.JpaRepository;
 &nbsp;import org.springframework.stereotype.Repository;
 &nbsp;import java.util.List;
-&nbsp;import java.util.Optional;
 &nbsp;
 &nbsp;/**
-&nbsp; * GroupMembership Repository
 &nbsp; * @author Chris Lopez
 &nbsp; */
-&nbsp;public interface GroupMembershipRepository extends JpaRepository&lt;GroupMembership, Integer&gt; {
-&nbsp;    List&lt;GroupMembership&gt; findByGroupId(int groupId);
-&nbsp;    List&lt;GroupMembership&gt; findByUserId(int userId);
-&nbsp;    Optional&lt;GroupMembership&gt; findByGroupIdAndUserId(int groupId, int userId);
-&nbsp;    boolean existsByGroupIdAndUserId(int groupId, int userId);
-&nbsp;}
+&nbsp;@Repository
+&nbsp;public interface GroupRepository extends JpaRepository&lt;Group, Integer&gt; {
+&nbsp;        List&lt;Group&gt; findByGroupType(String groupType);
+&nbsp;    }
+&nbsp;
+&nbsp;
 </code>
 </pre>
 </div>
@@ -78,7 +76,7 @@ Current scope:     <a href="../../index.html">all classes</a>
 
 <div class="footer">
     
-    <div style="float:right;">generated on 2026-05-03 10:21</div>
+    <div style="float:right;">generated on 2026-05-04 17:14</div>
 </div>
 </body>
 </html>

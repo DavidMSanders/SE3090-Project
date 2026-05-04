@@ -1,0 +1,443 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > DeleteRequest</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">onetoone.Users</a>
+</div>
+
+<h1>Coverage Summary for Class: DeleteRequest (onetoone.Users)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DeleteRequest</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (5/5)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (5/5)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package onetoone.Users;
+&nbsp;
+&nbsp;import java.time.LocalDate;
+&nbsp;import java.time.format.DateTimeFormatter;
+&nbsp;import java.util.HashMap;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.List;
+&nbsp;import java.util.ArrayList;
+&nbsp;import onetoone.Groups.GroupMembership;
+&nbsp;import onetoone.Groups.GroupMembershipRepository;
+&nbsp;import onetoone.Groups.Group;
+&nbsp;import onetoone.Groups.GroupRepository;
+&nbsp;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.http.HttpStatus;
+&nbsp;import org.springframework.http.ResponseEntity;
+&nbsp;import org.springframework.web.bind.annotation.*;
+&nbsp;//import org.springframework.web.bind.annotation.PostMapping;
+&nbsp;//import org.springframework.web.bind.annotation.PutMapping;
+&nbsp;
+&nbsp;//import onetoone.Laptops.Laptop;
+&nbsp;//import onetoone.Laptops.LaptopRepository;
+&nbsp;
+&nbsp;/**
+&nbsp; * 
+&nbsp; * @author Chris Lopez
+&nbsp; * 
+&nbsp; */
+&nbsp;
+&nbsp;@RestController
+&nbsp;@RequestMapping(&quot;/api/v1/users&quot;)
+&nbsp;public class UserController {
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    UserRepository userRepository;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    GroupMembershipRepository membershipRepository;
+&nbsp;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    GroupRepository groupRepository;
+&nbsp;
+&nbsp;    // 17. GET /users/{trainerId}/assignable-groups
+&nbsp;    @GetMapping(&quot;/{trainerId}/assignable-groups&quot;)
+&nbsp;    public ResponseEntity&lt;List&lt;Map&lt;String, Object&gt;&gt;&gt; getAssignableGroups(@PathVariable int trainerId) {
+&nbsp;        List&lt;Map&lt;String, Object&gt;&gt; res = new ArrayList&lt;&gt;();
+&nbsp;        for (GroupMembership gm : membershipRepository.findAll()) {
+&nbsp;            if (gm.getUserId() == trainerId &amp;&amp; gm.isWorkoutEnabled()) {
+&nbsp;                Map&lt;String, Object&gt; map = new HashMap&lt;&gt;();
+&nbsp;                map.put(&quot;groupId&quot;, gm.getGroupId());
+&nbsp;                Group g = groupRepository.findById(gm.getGroupId()).orElse(null);
+&nbsp;                if (g != null) {
+&nbsp;                    map.put(&quot;groupTitle&quot;, g.getGroupTitle());
+&nbsp;                }
+&nbsp;                res.add(map);
+&nbsp;            }
+&nbsp;        }
+&nbsp;        return ResponseEntity.ok(res);
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Deletes a user by username and date of birth
+&nbsp;     * &lt;p&gt;
+&nbsp;     * Body example
+&nbsp;     * {
+&nbsp;     * &quot;username&quot;: &quot;testuser1234&quot;,
+&nbsp;     * &quot;dateofBrth&quot;: 01/23/2004&quot;
+&nbsp;     * }
+&nbsp;     */
+&nbsp;
+&nbsp;    @PostMapping(&quot;/delete&quot;)
+&nbsp;    public ResponseEntity&lt;Map&lt;String, String&gt;&gt; deleteUser(@RequestBody DeleteRequest requestData) {
+&nbsp;        Map&lt;String, String&gt; responseMap = new HashMap&lt;&gt;();
+&nbsp;
+&nbsp;        try {
+&nbsp;            DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(&quot;MM/dd/yyyy&quot;);
+&nbsp;            LocalDate parsedBirthDate = LocalDate.parse(requestData.getDateOfBirth(), dateTimeFormatter);
+&nbsp;
+&nbsp;            User accountToDelete = userRepository.findByAccountNameAndBirthDate(
+&nbsp;                    requestData.getUsername(),
+&nbsp;                    parsedBirthDate
+&nbsp;            );
+&nbsp;
+&nbsp;
+&nbsp;            if (accountToDelete != null) {
+&nbsp;                userRepository.delete(accountToDelete);
+&nbsp;                responseMap.put(&quot;message&quot;, &quot;User deleted successfully&quot;);
+&nbsp;                return ResponseEntity.ok(responseMap);
+&nbsp;            } else {
+&nbsp;                responseMap.put(&quot;message&quot;, &quot;User not found&quot;);
+&nbsp;                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseMap);
+&nbsp;            }
+&nbsp;
+&nbsp;        } catch (Exception error) {
+&nbsp;            responseMap.put(&quot;message&quot;, &quot;Error deleting user&quot; + error.getLocalizedMessage());
+&nbsp;            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseMap);
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * DELETE by ID
+&nbsp;     *
+&nbsp;     */
+&nbsp;    @DeleteMapping(&quot;/{id}&quot;)
+&nbsp;    public ResponseEntity&lt;Map&lt;String, String&gt;&gt; deleteUserByID(@PathVariable int id) {
+&nbsp;        Map&lt;String, String&gt; responseMap = new HashMap&lt;&gt;();
+&nbsp;
+&nbsp;        User foundAccount = userRepository.findById(id).orElse(null);
+&nbsp;
+&nbsp;        if (foundAccount != null) {
+&nbsp;            userRepository.delete(foundAccount);
+&nbsp;            responseMap.put(&quot;message&quot;, &quot;User deleted sucessfully&quot;);
+&nbsp;
+&nbsp;            return ResponseEntity.ok(responseMap);
+&nbsp;        } else {
+&nbsp;            responseMap.put(&quot;message&quot;, &quot;User not found&quot;);
+&nbsp;
+&nbsp;            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseMap);
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Sets a user&#39;s role to Trainer
+&nbsp;     */
+&nbsp;
+&nbsp;    @PutMapping(&quot;/{userId}/set-trainer&quot;)
+&nbsp;    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; setTrainerRole(@PathVariable int userId){
+&nbsp;        Map&lt;String, Object&gt; result = new HashMap&lt;&gt;();
+&nbsp;        User found = userRepository.findById(userId).orElse(null);
+&nbsp;        if (found == null){
+&nbsp;            result.put(&quot;message&quot;, &quot;User not found&quot;);
+&nbsp;            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
+&nbsp;    }
+&nbsp;
+&nbsp;        found.setRole(&quot;Trainer&quot;);
+&nbsp;        userRepository.save(found);
+&nbsp;
+&nbsp;        List&lt;GroupMembership&gt; memberships = membershipRepository.findByUserId(userId);
+&nbsp;        for (GroupMembership membership : memberships) {
+&nbsp;            if (GroupMembership.ROLE_MEMBER.equals(membership.getAccessLevel())) {
+&nbsp;                membership.setAccessLevel(GroupMembership.ROLE_TRAINER);
+&nbsp;                membership.setPermissionByRole(GroupMembership.ROLE_TRAINER);
+&nbsp;                membershipRepository.save(membership);
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+&nbsp;        result.put(&quot;message&quot;, &quot;User role updated successfully&quot;);
+&nbsp;        result.put(&quot;userId&quot;, found.getUserId());
+&nbsp;        result.put(&quot;role&quot;, found.getRole());
+&nbsp;        result.put(&quot;membershipsUpdated&quot;, memberships.size());
+&nbsp;        return ResponseEntity.ok(result);
+&nbsp;
+&nbsp;}
+&nbsp;
+&nbsp;    @PutMapping(&quot;/{userId}/set-admin&quot;)
+&nbsp;    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; assignAdminRole(@PathVariable int userId) {
+&nbsp;        Map&lt;String, Object&gt; responseData = new HashMap&lt;&gt;();
+&nbsp;
+&nbsp;        User targetAccount = userRepository.findById(userId).orElse(null);
+&nbsp;        if (targetAccount == null) {
+&nbsp;            responseData.put(&quot;message&quot;, &quot;User not found&quot;);
+&nbsp;            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseData);
+&nbsp;        }
+&nbsp;
+&nbsp;        targetAccount.setRole(&quot;Admin&quot;);
+&nbsp;        userRepository.save(targetAccount);
+&nbsp;
+&nbsp;        responseData.put(&quot;message&quot;, &quot;User role updated successfully&quot;);
+&nbsp;        responseData.put(&quot;userId&quot;, targetAccount.getUserId());
+&nbsp;        responseData.put(&quot;role&quot;, targetAccount.getRole());
+&nbsp;        return ResponseEntity.ok(responseData);
+&nbsp;    }
+&nbsp;
+&nbsp;
+&nbsp;    @PutMapping(&quot;/{userId}/set-client&quot;)
+&nbsp;    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; assignClientRole(@PathVariable int userId) {
+&nbsp;        Map&lt;String, Object&gt; responseData = new HashMap&lt;&gt;();
+&nbsp;
+&nbsp;        User targetAccount = userRepository.findById(userId).orElse(null);
+&nbsp;        if (targetAccount == null) {
+&nbsp;            responseData.put(&quot;message&quot;, &quot;User not found&quot;);
+&nbsp;            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseData);
+&nbsp;        }
+&nbsp;
+&nbsp;        targetAccount.setRole(&quot;Client&quot;);
+&nbsp;        userRepository.save(targetAccount);
+&nbsp;
+&nbsp;        responseData.put(&quot;message&quot;, &quot;User role updated successfully&quot;);
+&nbsp;        responseData.put(&quot;userId&quot;, targetAccount.getUserId());
+&nbsp;        responseData.put(&quot;role&quot;, targetAccount.getRole());
+&nbsp;        return ResponseEntity.ok(responseData);
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Get
+&nbsp;     * Endpoint to get user by id
+&nbsp;     */
+&nbsp;    @GetMapping(&quot;/{id}&quot;)
+&nbsp;    public ResponseEntity&lt;?&gt; getUserById(@PathVariable int id) {
+&nbsp;        User foundAccount = userRepository.findById(id).orElse(null);
+&nbsp;
+&nbsp;        if (foundAccount != null) {
+&nbsp;            return ResponseEntity.ok(foundAccount);
+&nbsp;        } else {
+&nbsp;            Map&lt;String, String&gt; responseMap = new HashMap&lt;&gt;();
+&nbsp;            responseMap.put(&quot;message&quot;, &quot;User not found&quot;);
+&nbsp;            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseMap);
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Get
+&nbsp;     * Endpoint to list all users
+&nbsp;     * Use for testing
+&nbsp;     */
+&nbsp;
+&nbsp;    @PutMapping(&quot;/{userId}/profile&quot;)
+&nbsp;    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; updateUserProfile(@PathVariable int userId, @RequestBody ProfileUpdateRequest request) {
+&nbsp;        Map&lt;String, Object&gt; result = new HashMap&lt;&gt;();
+&nbsp;        User foundUser = userRepository.findById(userId).orElse(null);
+&nbsp;        if (foundUser == null) {
+&nbsp;            result.put(&quot;message&quot;, &quot;User not found&quot;);
+&nbsp;            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
+&nbsp;        }
+&nbsp;
+&nbsp;        if (request.getAccountName() != null &amp;&amp; !request.getAccountName().trim().isEmpty()) {
+&nbsp;            foundUser.setAccountName(request.getAccountName());
+&nbsp;        }
+&nbsp;        if (request.getUserPassword() != null &amp;&amp; !request.getUserPassword().trim().isEmpty()) {
+&nbsp;            foundUser.setUserPassword(request.getUserPassword());
+&nbsp;        }
+&nbsp;        if (request.getBirthDate() != null &amp;&amp; !request.getBirthDate().trim().isEmpty()) {
+&nbsp;            try {
+&nbsp;                DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(&quot;MM/dd/yyyy&quot;);
+&nbsp;                LocalDate parsedDate = LocalDate.parse(request.getBirthDate(), dateTimeFormatter);
+&nbsp;                foundUser.setBirthDate(parsedDate);
+&nbsp;            } catch (Exception e) {
+&nbsp;                result.put(&quot;message&quot;, &quot;Invalid date format. Please use MM/dd/yyyy&quot;);
+&nbsp;                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+&nbsp;        userRepository.save(foundUser);
+&nbsp;        result.put(&quot;message&quot;, &quot;Profile updated successfully&quot;);
+&nbsp;        result.put(&quot;user&quot;, foundUser);
+&nbsp;        return ResponseEntity.ok(result);
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Get
+&nbsp;     * Endpoint to list all users
+&nbsp;     * Use for testing
+&nbsp;     */
+&nbsp;
+&nbsp;    @GetMapping
+&nbsp;    public ResponseEntity&lt;?&gt; getAllUsers() {
+&nbsp;        return ResponseEntity.ok(userRepository.findAll());
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * @author Matthew Smith
+&nbsp;     */
+&nbsp;    @PostMapping(&quot;/login&quot;)
+&nbsp;    public ResponseEntity&lt;?&gt; loginUser(@RequestBody LoginRequest request) {
+&nbsp;
+&nbsp;        User foundUser = userRepository.findByAccountNameAndUserPassword(
+&nbsp;                request.getAccountName(),
+&nbsp;                request.getUserPassword());
+&nbsp;
+&nbsp;        if (foundUser != null &amp;&amp; foundUser.isEnabled()) {
+&nbsp;            return ResponseEntity.ok(foundUser);
+&nbsp;        } else {
+&nbsp;            Map&lt;String, String&gt; response = new HashMap&lt;&gt;();
+&nbsp;            response.put(&quot;message&quot;, &quot;Invalid username or password&quot;);
+&nbsp;            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+&nbsp;        }
+&nbsp;    }
+&nbsp;}
+&nbsp;
+&nbsp;/**
+&nbsp; * Request body class for delete endpoint
+&nbsp; */
+&nbsp;
+<b class="fc">&nbsp;class DeleteRequest {</b>
+&nbsp;    private String username;
+&nbsp;    private String dateOfBirth;
+&nbsp;
+&nbsp;    public String getUsername() {
+&nbsp;
+<b class="fc">&nbsp;        return username;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setUsername(String username) {
+&nbsp;
+<b class="fc">&nbsp;        this.username = username;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public String getDateOfBirth() {
+&nbsp;
+<b class="fc">&nbsp;        return dateOfBirth;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setDateOfBirth(String dateOfBirth) {
+&nbsp;
+<b class="fc">&nbsp;        this.dateOfBirth = dateOfBirth;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+&nbsp;
+&nbsp;class ProfileUpdateRequest {
+&nbsp;    private String accountName;
+&nbsp;    private String userPassword;
+&nbsp;    private String birthDate; // format: MM/dd/yyyy
+&nbsp;
+&nbsp;    public String getAccountName() {
+&nbsp;        return accountName;
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setAccountName(String accountName) {
+&nbsp;        this.accountName = accountName;
+&nbsp;    }
+&nbsp;
+&nbsp;    public String getUserPassword() {
+&nbsp;        return userPassword;
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setUserPassword(String userPassword) {
+&nbsp;        this.userPassword = userPassword;
+&nbsp;    }
+&nbsp;
+&nbsp;    public String getBirthDate() {
+&nbsp;        return birthDate;
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setBirthDate(String birthDate) {
+&nbsp;        this.birthDate = birthDate;
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-05-04 17:14</div>
+</div>
+</body>
+</html>

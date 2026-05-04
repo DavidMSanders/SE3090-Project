@@ -32,23 +32,20 @@ public class ImageMessageController {
     public ResponseEntity<Map<String, Object>> sendImage(@RequestBody Map<String, Object> body) {
         Map<String, Object> result = new HashMap<>();
         try {
-            Long authorId = Long.valueOf(body.get("senderId").toString());
+            Long senderId = Long.valueOf(body.get("senderId").toString());
 
-            if (!userRepo.existsById(authorId.intValue())) {
+            if (!userRepo.existsById(senderId.intValue())) {
                 result.put("message", "Sender not found");
-                return ResponseEntity.status(
-                        HttpStatus.NOT_FOUND).body(result);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
             }
 
-            Long channelId = body.containsKey("groupId") && body.get("groupId") != null ?
-                    Long.valueOf(body.get("groupId").toString()) :
-                    null;
+            Long groupId = body.containsKey("groupId") && body.get("groupId") != null ?
+                    Long.valueOf(body.get("groupId").toString()) : null;
 
-            String mediaPath = body.get("imageUrl").toString();
+            String imageUrl = body.get("imageUrl").toString();
+            String caption = body.containsKey("caption") ? body.get("caption").toString() : null;
 
-            String msgCaption = body.containsKey("caption") ? body.get("caption").toString() : null;
-
-            ImageMessage newEntry = new ImageMessage(authorId, channelId, mediaPath, msgCaption);
+            ImageMessage newEntry = new ImageMessage(senderId, groupId, imageUrl, caption);
             newEntry = mediaRepo.save(newEntry);
 
             result.put("message", "Image sent successfully");
@@ -57,8 +54,7 @@ public class ImageMessageController {
 
         } catch (Exception e) {
             result.put("message", "Error sending image: " + e.getMessage());
-            return ResponseEntity.status(
-                    HttpStatus.BAD_REQUEST).body(result);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
         }
     }
 
@@ -67,7 +63,7 @@ public class ImageMessageController {
      */
     @GetMapping("/groups/{groupId}/images")
     public ResponseEntity<List<Map<String, Object>>> getGroupImages(@PathVariable Long groupId) {
-        List<ImageMessage> mediaList = mediaRepo.findByChannelIdOrderByDispatchTimeDesc(groupId);
+        List<ImageMessage> mediaList = mediaRepo.findByGroupIdOrderBySentAtDesc(groupId);
         List<Map<String, Object>> result = new ArrayList<>();
         for (ImageMessage entry : mediaList) {
             result.add(buildMediaMap(entry));
@@ -95,7 +91,7 @@ public class ImageMessageController {
      */
     @GetMapping("/users/{userId}/images")
     public ResponseEntity<List<Map<String, Object>>> getUserImages(@PathVariable Long userId) {
-        List<ImageMessage> mediaList = mediaRepo.findByAuthorId(userId);
+        List<ImageMessage> mediaList = mediaRepo.findBySenderId(userId);
         List<Map<String, Object>> result = new ArrayList<>();
         for (ImageMessage entry : mediaList) {
             result.add(buildMediaMap(entry));
@@ -107,16 +103,17 @@ public class ImageMessageController {
      * 5 - Update the caption of an image message
      */
     @PutMapping("/images/{id}/caption")
-    public ResponseEntity<Map<String, Object>> updateCaption(@PathVariable Long id, @RequestBody Map<String, Object> body) {
+    public ResponseEntity<Map<String, Object>> updateCaption(
+            @PathVariable Long id,
+            @RequestBody Map<String, Object> body) {
         Map<String, Object> result = new HashMap<>();
         ImageMessage foundEntry = mediaRepo.findById(id).orElse(null);
         if (foundEntry == null) {
             result.put("message", "Image not found");
-            return ResponseEntity.status(
-                    HttpStatus.NOT_FOUND).body(result);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
         }
         if (body.containsKey("caption")) {
-            foundEntry.setMsgCaption(body.get("caption").toString());
+            foundEntry.setCaption(body.get("caption").toString());
         }
         foundEntry = mediaRepo.save(foundEntry);
         result.put("message", "Caption updated successfully");
@@ -141,14 +138,15 @@ public class ImageMessageController {
         return ResponseEntity.ok(result);
     }
 
+
     private Map<String, Object> buildMediaMap(ImageMessage entry) {
         Map<String, Object> map = new HashMap<>();
-        map.put("id", entry.getMsgKey());
-        map.put("senderId", entry.getAuthorId());
-        map.put("groupId", entry.getChannelId());
-        map.put("imageUrl", entry.getMediaPath());
-        map.put("caption", entry.getMsgCaption());
-        map.put("sentAt", entry.getDispatchTime() != null ? entry.getDispatchTime().toString() : null);
+        map.put("id", entry.getId());
+        map.put("senderId", entry.getSenderId());
+        map.put("groupId", entry.getGroupId());
+        map.put("imageUrl", entry.getImageUrl());
+        map.put("caption", entry.getCaption());
+        map.put("sentAt", entry.getSentAt() != null ? entry.getSentAt().toString() : null);
         return map;
     }
 }

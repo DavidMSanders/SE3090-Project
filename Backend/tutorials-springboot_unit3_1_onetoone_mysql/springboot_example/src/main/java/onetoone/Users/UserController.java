@@ -35,7 +35,8 @@ public class UserController {
     UserRepository userRepository;
 
     @Autowired
-    GroupMembershipRepository membershipRepo;
+    GroupMembershipRepository membershipRepository;
+
 
     @Autowired
     GroupRepository groupRepository;
@@ -44,7 +45,7 @@ public class UserController {
     @GetMapping("/{trainerId}/assignable-groups")
     public ResponseEntity<List<Map<String, Object>>> getAssignableGroups(@PathVariable int trainerId) {
         List<Map<String, Object>> res = new ArrayList<>();
-        for (GroupMembership gm : membershipRepo.findAll()) {
+        for (GroupMembership gm : membershipRepository.findAll()) {
             if (gm.getUserId() == trainerId && gm.isWorkoutEnabled()) {
                 Map<String, Object> map = new HashMap<>();
                 map.put("groupId", gm.getGroupId());
@@ -78,7 +79,9 @@ public class UserController {
 
             User accountToDelete = userRepository.findByAccountNameAndBirthDate(
                     requestData.getUsername(),
-                    parsedBirthDate);
+                    parsedBirthDate
+            );
+
 
             if (accountToDelete != null) {
                 userRepository.delete(accountToDelete);
@@ -133,9 +136,19 @@ public class UserController {
         found.setRole("Trainer");
         userRepository.save(found);
 
+        List<GroupMembership> memberships = membershipRepository.findByUserId(userId);
+        for (GroupMembership membership : memberships) {
+            if (GroupMembership.ROLE_MEMBER.equals(membership.getAccessLevel())) {
+                membership.setAccessLevel(GroupMembership.ROLE_TRAINER);
+                membership.setPermissionByRole(GroupMembership.ROLE_TRAINER);
+                membershipRepository.save(membership);
+            }
+        }
+
         result.put("message", "User role updated successfully");
         result.put("userId", found.getUserId());
         result.put("role", found.getRole());
+        result.put("membershipsUpdated", memberships.size());
         return ResponseEntity.ok(result);
 
 }
@@ -324,58 +337,3 @@ class ProfileUpdateRequest {
         this.birthDate = birthDate;
     }
 }
-
-/*
- * @Autowired
- * LaptopRepository laptopRepository;
- * 
- * private String success = "{\"message\":\"success\"}";
- * private String failure = "{\"message\":\"failure\"}";
- * 
- * @GetMapping(path = "/users")
- * List<User> getAllUsers(){
- * return userRepository.findAll();
- * }
- * 
- * @GetMapping(path = "/users/{id}")
- * User getUserById( @PathVariable int id){
- * return userRepository.findById(id);
- * }
- * 
- * @PostMapping(path = "/users")
- * String createUser(@RequestBody User user){
- * if (user == null)
- * return failure;
- * userRepository.save(user);
- * return success;
- * }
- * 
- * @PutMapping("/users/{id}")
- * User updateUser(@PathVariable int id, @RequestBody User request){
- * User user = userRepository.findById(id);
- * if(user == null)
- * return null;
- * userRepository.save(request);
- * return userRepository.findById(id);
- * }
- * 
- * @PutMapping("/users/{userId}/laptops/{laptopId}")
- * String assignLaptopToUser(@PathVariable int userId,@PathVariable int
- * laptopId){
- * User user = userRepository.findById(userId);
- * Laptop laptop = laptopRepository.findById(laptopId);
- * if(user == null || laptop == null)
- * return failure;
- * laptop.setUser(user);
- * user.setLaptop(laptop);
- * userRepository.save(user);
- * return success;
- * }
- * 
- * @DeleteMapping(path = "/users/{id}")
- * String deleteUser(@PathVariable int id){
- * userRepository.deleteById(id);
- * return success;
- * }
- * }
- **/

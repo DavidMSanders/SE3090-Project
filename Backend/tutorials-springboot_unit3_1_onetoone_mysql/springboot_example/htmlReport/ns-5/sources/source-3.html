@@ -45,59 +45,59 @@ Current scope:     <a href="../../index.html">all classes</a>
   <td class="name">GroupMembership</td>
 <td class="coverageStat">
   <span class="percent">
-    4.5%
+    72.7%
   </span>
   <span class="absValue">
-    (1/22)
+    (16/22)
   </span>
 </td>
 <td class="coverageStat">
   <span class="percent">
-    0%
+    18.2%
   </span>
   <span class="absValue">
-    (0/11)
+    (2/11)
   </span>
 </td>
 <td class="coverageStat">
   <span class="percent">
-    12.2%
+    67.3%
   </span>
   <span class="absValue">
-    (6/49)
+    (33/49)
   </span>
 </td>
 </tr>
   <tr>
-    <td class="name">GroupMembership$HibernateInstantiator$T8KLM69q</td>
+    <td class="name">GroupMembership$HibernateInstantiator$NLua29AF</td>
   </tr>
   <tr>
-    <td class="name">GroupMembership$HibernateProxy$mLj2xfXh</td>
+    <td class="name">GroupMembership$HibernateProxy$4JC4KcFl</td>
   </tr>
 <tr>
   <td class="name"><strong>Total</strong></td>
 <td class="coverageStat">
   <span class="percent">
-    4.5%
+    72.7%
   </span>
   <span class="absValue">
-    (1/22)
+    (16/22)
   </span>
 </td>
 <td class="coverageStat">
   <span class="percent">
-    0%
+    18.2%
   </span>
   <span class="absValue">
-    (0/11)
+    (2/11)
   </span>
 </td>
 <td class="coverageStat">
   <span class="percent">
-    12.2%
+    67.3%
   </span>
   <span class="absValue">
-    (6/49)
+    (33/49)
   </span>
 </td>
 </tr>
@@ -147,21 +147,21 @@ Current scope:     <a href="../../index.html">all classes</a>
 &nbsp;
 <b class="fc">&nbsp;    public GroupMembership() {}</b>
 &nbsp;
-<b class="nc">&nbsp;    public GroupMembership(int groupId, int userId, String accessLevel) {</b>
-<b class="nc">&nbsp;        this.groupId = groupId;</b>
-<b class="nc">&nbsp;        this.userId = userId;</b>
-<b class="nc">&nbsp;        this.accessLevel = accessLevel;</b>
-<b class="nc">&nbsp;        setPermissionByRole(accessLevel);</b>
+<b class="fc">&nbsp;    public GroupMembership(int groupId, int userId, String accessLevel) {</b>
+<b class="fc">&nbsp;        this.groupId = groupId;</b>
+<b class="fc">&nbsp;        this.userId = userId;</b>
+<b class="fc">&nbsp;        this.accessLevel = accessLevel;</b>
+<b class="fc">&nbsp;        setPermissionByRole(accessLevel);</b>
 &nbsp;    }
 &nbsp;
 &nbsp;    public void setPermissionByRole(String role) {
-<b class="nc">&nbsp;        switch (role) {</b>
+<b class="pc">&nbsp;        switch (role) {</b>
 &nbsp;            case &quot;GROUP_LEADER&quot;:
 &nbsp;            case &quot;ADMIN&quot;:
-<b class="nc">&nbsp;                this.chatEnabled = true;</b>
-<b class="nc">&nbsp;                this.manageEnabled = true;</b>
-<b class="nc">&nbsp;                this.announceEnabled = true;</b>
-<b class="nc">&nbsp;                this.workoutEnabled = true;</b>
+<b class="fc">&nbsp;                this.chatEnabled = true;</b>
+<b class="fc">&nbsp;                this.manageEnabled = true;</b>
+<b class="fc">&nbsp;                this.announceEnabled = true;</b>
+<b class="fc">&nbsp;                this.workoutEnabled = true;</b>
 &nbsp;                break;
 &nbsp;            case &quot;TRAINER&quot;:
 <b class="nc">&nbsp;                this.chatEnabled = true;</b>
@@ -171,10 +171,10 @@ Current scope:     <a href="../../index.html">all classes</a>
 &nbsp;                break;
 &nbsp;            case &quot;MEMBER&quot;:
 &nbsp;            default:
-<b class="nc">&nbsp;                this.chatEnabled = true;</b>
-<b class="nc">&nbsp;                this.manageEnabled = false;</b>
-<b class="nc">&nbsp;                this.announceEnabled = false;</b>
-<b class="nc">&nbsp;                this.workoutEnabled = false;</b>
+<b class="fc">&nbsp;                this.chatEnabled = true;</b>
+<b class="fc">&nbsp;                this.manageEnabled = false;</b>
+<b class="fc">&nbsp;                this.announceEnabled = false;</b>
+<b class="fc">&nbsp;                this.workoutEnabled = false;</b>
 &nbsp;                break;
 &nbsp;        }
 &nbsp;    }
@@ -199,7 +199,7 @@ Current scope:     <a href="../../index.html">all classes</a>
 &nbsp;    }
 &nbsp;
 &nbsp;    public int getMembershipId() {
-<b class="nc">&nbsp;        return membershipId;</b>
+<b class="fc">&nbsp;        return membershipId;</b>
 &nbsp;    }
 &nbsp;
 &nbsp;    public void setMembershipId(int membershipId) {
@@ -207,7 +207,7 @@ Current scope:     <a href="../../index.html">all classes</a>
 &nbsp;    }
 &nbsp;
 &nbsp;    public int getGroupId() {
-<b class="nc">&nbsp;        return groupId;</b>
+<b class="fc">&nbsp;        return groupId;</b>
 &nbsp;    }
 &nbsp;
 &nbsp;    public void setGroupId(int groupId) {
@@ -215,7 +215,7 @@ Current scope:     <a href="../../index.html">all classes</a>
 &nbsp;    }
 &nbsp;
 &nbsp;    public int getUserId() {
-<b class="nc">&nbsp;        return userId;</b>
+<b class="fc">&nbsp;        return userId;</b>
 &nbsp;    }
 &nbsp;
 &nbsp;    public void setUserId(int userId) {
@@ -223,43 +223,43 @@ Current scope:     <a href="../../index.html">all classes</a>
 &nbsp;    }
 &nbsp;
 &nbsp;    public String getAccessLevel() {
-<b class="nc">&nbsp;        return accessLevel;</b>
+<b class="fc">&nbsp;        return accessLevel;</b>
 &nbsp;    }
 &nbsp;
 &nbsp;    public void setAccessLevel(String accessLevel) {
-<b class="nc">&nbsp;        this.accessLevel = accessLevel;</b>
+<b class="fc">&nbsp;        this.accessLevel = accessLevel;</b>
 &nbsp;    }
 &nbsp;
 &nbsp;    public boolean isChatEnabled() {
-<b class="nc">&nbsp;        return chatEnabled;</b>
+<b class="fc">&nbsp;        return chatEnabled;</b>
 &nbsp;    }
 &nbsp;
 &nbsp;    public void setChatEnabled(boolean chatEnabled) {
-<b class="nc">&nbsp;        this.chatEnabled = chatEnabled;</b>
+<b class="fc">&nbsp;        this.chatEnabled = chatEnabled;</b>
 &nbsp;    }
 &nbsp;
 &nbsp;    public boolean isManageEnabled() {
-<b class="nc">&nbsp;        return manageEnabled;</b>
+<b class="fc">&nbsp;        return manageEnabled;</b>
 &nbsp;    }
 &nbsp;
 &nbsp;    public void setManageEnabled(boolean manageEnabled) {
-<b class="nc">&nbsp;        this.manageEnabled = manageEnabled;</b>
+<b class="fc">&nbsp;        this.manageEnabled = manageEnabled;</b>
 &nbsp;    }
 &nbsp;
 &nbsp;    public boolean isAnnounceEnabled() {
-<b class="nc">&nbsp;        return announceEnabled;</b>
+<b class="fc">&nbsp;        return announceEnabled;</b>
 &nbsp;    }
 &nbsp;
 &nbsp;    public void setAnnounceEnabled(boolean announceEnabled) {
-<b class="nc">&nbsp;        this.announceEnabled = announceEnabled;</b>
+<b class="fc">&nbsp;        this.announceEnabled = announceEnabled;</b>
 &nbsp;    }
 &nbsp;
 &nbsp;    public boolean isWorkoutEnabled() {
-<b class="nc">&nbsp;        return workoutEnabled;</b>
+<b class="fc">&nbsp;        return workoutEnabled;</b>
 &nbsp;    }
 &nbsp;
 &nbsp;    public void setWorkoutEnabled(boolean workoutEnabled) {
-<b class="nc">&nbsp;        this.workoutEnabled = workoutEnabled;</b>
+<b class="fc">&nbsp;        this.workoutEnabled = workoutEnabled;</b>
 &nbsp;    }
 &nbsp;
 &nbsp;    @Override
@@ -295,7 +295,7 @@ Current scope:     <a href="../../index.html">all classes</a>
 
 <div class="footer">
     
-    <div style="float:right;">generated on 2026-05-03 10:21</div>
+    <div style="float:right;">generated on 2026-05-04 17:14</div>
 </div>
 </body>
 </html>

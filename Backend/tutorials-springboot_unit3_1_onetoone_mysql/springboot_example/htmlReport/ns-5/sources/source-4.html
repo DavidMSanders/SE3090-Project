@@ -56,26 +56,26 @@ Current scope:     <a href="../../index.html">all classes</a>
 </td>
 <td class="coverageStat">
   <span class="percent">
-    60%
+    100%
   </span>
   <span class="absValue">
-    (3/5)
+    (5/5)
   </span>
 </td>
 <td class="coverageStat">
   <span class="percent">
-    8.3%
+    75%
   </span>
   <span class="absValue">
-    (2/24)
+    (18/24)
   </span>
 </td>
 <td class="coverageStat">
   <span class="percent">
-    11.1%
+    91.9%
   </span>
   <span class="absValue">
-    (11/99)
+    (91/99)
   </span>
 </td>
 </tr>
@@ -123,18 +123,18 @@ Current scope:     <a href="../../index.html">all classes</a>
 <b class="fc">&nbsp;        Optional&lt;GroupMembership&gt; membershipQuery = membershipRepo.findByGroupIdAndUserId(groupId, userId);</b>
 &nbsp;
 &nbsp;
-<b class="pc">&nbsp;        if (membershipQuery.isPresent()) {</b>
+<b class="fc">&nbsp;        if (membershipQuery.isPresent()) {</b>
 &nbsp;
-<b class="nc">&nbsp;            GroupMembership m = membershipQuery.get();</b>
-<b class="nc">&nbsp;            result.put(&quot;membershipId&quot;, m.getMembershipId());</b>
-<b class="nc">&nbsp;            result.put(&quot;groupId&quot;, m.getGroupId());</b>
-<b class="nc">&nbsp;            result.put(&quot;userId&quot;, m.getUserId());</b>
-<b class="nc">&nbsp;            result.put(&quot;membershipRole&quot;, m.getAccessLevel());</b>
-<b class="nc">&nbsp;            result.put(&quot;canSendMessages&quot;, m.isChatEnabled());</b>
-<b class="nc">&nbsp;            result.put(&quot;canManageMembers&quot;, m.isManageEnabled());</b>
-<b class="nc">&nbsp;            result.put(&quot;canPostAnnouncements&quot;, m.isAnnounceEnabled());</b>
-<b class="nc">&nbsp;            result.put(&quot;canAssignWorkouts&quot;, m.isWorkoutEnabled());</b>
-<b class="nc">&nbsp;            return ResponseEntity.ok(result);</b>
+<b class="fc">&nbsp;            GroupMembership m = membershipQuery.get();</b>
+<b class="fc">&nbsp;            result.put(&quot;membershipId&quot;, m.getMembershipId());</b>
+<b class="fc">&nbsp;            result.put(&quot;groupId&quot;, m.getGroupId());</b>
+<b class="fc">&nbsp;            result.put(&quot;userId&quot;, m.getUserId());</b>
+<b class="fc">&nbsp;            result.put(&quot;membershipRole&quot;, m.getAccessLevel());</b>
+<b class="fc">&nbsp;            result.put(&quot;canSendMessages&quot;, m.isChatEnabled());</b>
+<b class="fc">&nbsp;            result.put(&quot;canManageMembers&quot;, m.isManageEnabled());</b>
+<b class="fc">&nbsp;            result.put(&quot;canPostAnnouncements&quot;, m.isAnnounceEnabled());</b>
+<b class="fc">&nbsp;            result.put(&quot;canAssignWorkouts&quot;, m.isWorkoutEnabled());</b>
+<b class="fc">&nbsp;            return ResponseEntity.ok(result);</b>
 &nbsp;        } else {
 <b class="fc">&nbsp;            result.put(&quot;message&quot;, &quot;Membership not found&quot;);</b>
 <b class="fc">&nbsp;            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);</b>
@@ -154,35 +154,35 @@ Current scope:     <a href="../../index.html">all classes</a>
 &nbsp;
 <b class="fc">&nbsp;        Optional&lt;GroupMembership&gt; memberLookup = membershipRepo.findByGroupIdAndUserId(groupId, userId);</b>
 &nbsp;
-<b class="pc">&nbsp;        if (memberLookup.isEmpty()) {</b>
+<b class="fc">&nbsp;        if (memberLookup.isEmpty()) {</b>
 <b class="fc">&nbsp;            adminCheck.put(&quot;message&quot;, &quot;Membership not found&quot;);</b>
 <b class="fc">&nbsp;            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(adminCheck);</b>
 &nbsp;        }
 &nbsp;
-<b class="nc">&nbsp;        GroupMembership foundMembership = memberLookup.get();</b>
-<b class="nc">&nbsp;        String accessLevel = foundMembership.getAccessLevel();</b>
+<b class="fc">&nbsp;        GroupMembership foundMembership = memberLookup.get();</b>
+<b class="fc">&nbsp;        String accessLevel = foundMembership.getAccessLevel();</b>
 &nbsp;
-<b class="nc">&nbsp;        adminCheck.put(&quot;userId&quot;, userId);</b>
-<b class="nc">&nbsp;        adminCheck.put(&quot;groupId&quot;, groupId);</b>
-<b class="nc">&nbsp;        adminCheck.put(&quot;membershipRole&quot;, accessLevel);</b>
+<b class="fc">&nbsp;        adminCheck.put(&quot;userId&quot;, userId);</b>
+<b class="fc">&nbsp;        adminCheck.put(&quot;groupId&quot;, groupId);</b>
+<b class="fc">&nbsp;        adminCheck.put(&quot;membershipRole&quot;, accessLevel);</b>
 &nbsp;
-<b class="nc">&nbsp;        if (accessLevel.equals(&quot;ADMIN&quot;) || accessLevel.equals(&quot;GROUP_LEADER&quot;)) {</b>
-<b class="nc">&nbsp;            adminCheck.put(&quot;isAdmin&quot;, true);</b>
-<b class="nc">&nbsp;            adminCheck.put(&quot;canSendMessages&quot;, true);</b>
-<b class="nc">&nbsp;            adminCheck.put(&quot;canManageMembers&quot;, true);</b>
-<b class="nc">&nbsp;            adminCheck.put(&quot;canPostAnnouncements&quot;, true);</b>
-<b class="nc">&nbsp;            adminCheck.put(&quot;canAssignWorkouts&quot;, true);</b>
-<b class="nc">&nbsp;            adminCheck.put(&quot;message&quot;, &quot;User has admin permissions in this group&quot;);</b>
+<b class="pc">&nbsp;        if (accessLevel.equals(&quot;ADMIN&quot;) || accessLevel.equals(&quot;GROUP_LEADER&quot;)) {</b>
+<b class="fc">&nbsp;            adminCheck.put(&quot;isAdmin&quot;, true);</b>
+<b class="fc">&nbsp;            adminCheck.put(&quot;canSendMessages&quot;, true);</b>
+<b class="fc">&nbsp;            adminCheck.put(&quot;canManageMembers&quot;, true);</b>
+<b class="fc">&nbsp;            adminCheck.put(&quot;canPostAnnouncements&quot;, true);</b>
+<b class="fc">&nbsp;            adminCheck.put(&quot;canAssignWorkouts&quot;, true);</b>
+<b class="fc">&nbsp;            adminCheck.put(&quot;message&quot;, &quot;User has admin permissions in this group&quot;);</b>
 &nbsp;        } else {
-<b class="nc">&nbsp;            adminCheck.put(&quot;isAdmin&quot;, false);</b>
-<b class="nc">&nbsp;            adminCheck.put(&quot;canSendMessages&quot;, foundMembership.isChatEnabled());</b>
-<b class="nc">&nbsp;            adminCheck.put(&quot;canManageMembers&quot;, foundMembership.isManageEnabled());</b>
-<b class="nc">&nbsp;            adminCheck.put(&quot;canPostAnnouncements&quot;, foundMembership.isAnnounceEnabled());</b>
-<b class="nc">&nbsp;            adminCheck.put(&quot;canAssignWorkouts&quot;, foundMembership.isWorkoutEnabled());</b>
-<b class="nc">&nbsp;            adminCheck.put(&quot;message&quot;, &quot;User does not have admin permissions in this group&quot;);</b>
+<b class="fc">&nbsp;            adminCheck.put(&quot;isAdmin&quot;, false);</b>
+<b class="fc">&nbsp;            adminCheck.put(&quot;canSendMessages&quot;, foundMembership.isChatEnabled());</b>
+<b class="fc">&nbsp;            adminCheck.put(&quot;canManageMembers&quot;, foundMembership.isManageEnabled());</b>
+<b class="fc">&nbsp;            adminCheck.put(&quot;canPostAnnouncements&quot;, foundMembership.isAnnounceEnabled());</b>
+<b class="fc">&nbsp;            adminCheck.put(&quot;canAssignWorkouts&quot;, foundMembership.isWorkoutEnabled());</b>
+<b class="fc">&nbsp;            adminCheck.put(&quot;message&quot;, &quot;User does not have admin permissions in this group&quot;);</b>
 &nbsp;        }
 &nbsp;
-<b class="nc">&nbsp;        return ResponseEntity.ok(adminCheck);</b>
+<b class="fc">&nbsp;        return ResponseEntity.ok(adminCheck);</b>
 &nbsp;    }
 &nbsp;
 &nbsp;    /**
@@ -195,49 +195,49 @@ Current scope:     <a href="../../index.html">all classes</a>
 &nbsp;     */
 &nbsp;    @PutMapping(&quot;/{membershipId}/permissions&quot;)
 &nbsp;    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; updatePermission(@PathVariable int membershipId, @RequestBody PermissionBody incoming) {
-<b class="nc">&nbsp;        Map&lt;String, Object&gt; result = new HashMap&lt;&gt;();</b>
+<b class="fc">&nbsp;        Map&lt;String, Object&gt; result = new HashMap&lt;&gt;();</b>
 &nbsp;
-<b class="nc">&nbsp;        Optional&lt;GroupMembership&gt; targetQuery = membershipRepo.findById(membershipId);</b>
-<b class="nc">&nbsp;        if (targetQuery.isEmpty()) {</b>
-<b class="nc">&nbsp;            result.put(&quot;message&quot;, &quot;Membership not found&quot;);</b>
-<b class="nc">&nbsp;            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);</b>
+<b class="fc">&nbsp;        Optional&lt;GroupMembership&gt; targetQuery = membershipRepo.findById(membershipId);</b>
+<b class="fc">&nbsp;        if (targetQuery.isEmpty()) {</b>
+<b class="fc">&nbsp;            result.put(&quot;message&quot;, &quot;Membership not found&quot;);</b>
+<b class="fc">&nbsp;            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);</b>
 &nbsp;        }
-<b class="nc">&nbsp;        Optional&lt;GroupMembership&gt; supervisorQuery = membershipRepo.findByGroupIdAndUserId(</b>
-<b class="nc">&nbsp;                targetQuery.get().getGroupId(),</b>
-<b class="nc">&nbsp;                incoming.getSupervisorId());</b>
-<b class="nc">&nbsp;        if (supervisorQuery.isEmpty()) {</b>
+<b class="fc">&nbsp;        Optional&lt;GroupMembership&gt; supervisorQuery = membershipRepo.findByGroupIdAndUserId(</b>
+<b class="fc">&nbsp;                targetQuery.get().getGroupId(),</b>
+<b class="fc">&nbsp;                incoming.getSupervisorId());</b>
+<b class="pc">&nbsp;        if (supervisorQuery.isEmpty()) {</b>
 <b class="nc">&nbsp;            result.put(&quot;message&quot;, &quot;Supervisor is not a member of this group&quot;);</b>
 <b class="nc">&nbsp;            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(result);</b>
 &nbsp;        }
-<b class="nc">&nbsp;        if (!supervisorQuery.get().isManageEnabled()) {</b>
+<b class="pc">&nbsp;        if (!supervisorQuery.get().isManageEnabled()) {</b>
 <b class="nc">&nbsp;            result.put(&quot;message&quot;, &quot;You do not have permission to update permissions&quot;);</b>
 <b class="nc">&nbsp;            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(result);</b>
 &nbsp;
 &nbsp;        }
-<b class="nc">&nbsp;        GroupMembership target = targetQuery.get();</b>
-<b class="nc">&nbsp;        String currentLevel = target.getAccessLevel();</b>
-<b class="nc">&nbsp;        if (currentLevel.equals(&quot;GROUP_LEADER&quot;) || currentLevel.equals(&quot;ADMIN&quot;)) {</b>
+<b class="fc">&nbsp;        GroupMembership target = targetQuery.get();</b>
+<b class="fc">&nbsp;        String currentLevel = target.getAccessLevel();</b>
+<b class="pc">&nbsp;        if (currentLevel.equals(&quot;GROUP_LEADER&quot;) || currentLevel.equals(&quot;ADMIN&quot;)) {</b>
 <b class="nc">&nbsp;            result.put(&quot;message&quot;, &quot;Cannot change GROUP_LEADER or ADMIN permissions&quot;);</b>
 <b class="nc">&nbsp;            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(result);</b>
 &nbsp;
 &nbsp;        }
-<b class="nc">&nbsp;        target.setAccessLevel(incoming.getNewAccessLevel());</b>
-<b class="nc">&nbsp;        target.setChatEnabled(incoming.isSendEnabled());</b>
-<b class="nc">&nbsp;        target.setManageEnabled(incoming.isAdminEnabled());</b>
-<b class="nc">&nbsp;        target.setAnnounceEnabled(incoming.isPostEnabled());</b>
-<b class="nc">&nbsp;        target.setWorkoutEnabled(incoming.isAssignEnabled());</b>
-<b class="nc">&nbsp;        membershipRepo.save(target);</b>
+<b class="fc">&nbsp;        target.setAccessLevel(incoming.getNewAccessLevel());</b>
+<b class="fc">&nbsp;        target.setChatEnabled(incoming.isSendEnabled());</b>
+<b class="fc">&nbsp;        target.setManageEnabled(incoming.isAdminEnabled());</b>
+<b class="fc">&nbsp;        target.setAnnounceEnabled(incoming.isPostEnabled());</b>
+<b class="fc">&nbsp;        target.setWorkoutEnabled(incoming.isAssignEnabled());</b>
+<b class="fc">&nbsp;        membershipRepo.save(target);</b>
 &nbsp;
-<b class="nc">&nbsp;        result.put(&quot;membershipId&quot;, target.getMembershipId());</b>
-<b class="nc">&nbsp;        result.put(&quot;groupId&quot;, target.getGroupId());</b>
-<b class="nc">&nbsp;        result.put(&quot;userId&quot;, target.getUserId());</b>
-<b class="nc">&nbsp;        result.put(&quot;membershipRole&quot;, target.getAccessLevel());</b>
-<b class="nc">&nbsp;        result.put(&quot;canSendMessages&quot;, target.isChatEnabled());</b>
-<b class="nc">&nbsp;        result.put(&quot;canManageMembers&quot;, target.isManageEnabled());</b>
-<b class="nc">&nbsp;        result.put(&quot;canPostAnnouncements&quot;, target.isAnnounceEnabled());</b>
-<b class="nc">&nbsp;        result.put(&quot;canAssignWorkouts&quot;, target.isWorkoutEnabled());</b>
-<b class="nc">&nbsp;        result.put(&quot;message&quot;, &quot;Permissions updated successfully&quot;);</b>
-<b class="nc">&nbsp;        return ResponseEntity.ok(result);</b>
+<b class="fc">&nbsp;        result.put(&quot;membershipId&quot;, target.getMembershipId());</b>
+<b class="fc">&nbsp;        result.put(&quot;groupId&quot;, target.getGroupId());</b>
+<b class="fc">&nbsp;        result.put(&quot;userId&quot;, target.getUserId());</b>
+<b class="fc">&nbsp;        result.put(&quot;membershipRole&quot;, target.getAccessLevel());</b>
+<b class="fc">&nbsp;        result.put(&quot;canSendMessages&quot;, target.isChatEnabled());</b>
+<b class="fc">&nbsp;        result.put(&quot;canManageMembers&quot;, target.isManageEnabled());</b>
+<b class="fc">&nbsp;        result.put(&quot;canPostAnnouncements&quot;, target.isAnnounceEnabled());</b>
+<b class="fc">&nbsp;        result.put(&quot;canAssignWorkouts&quot;, target.isWorkoutEnabled());</b>
+<b class="fc">&nbsp;        result.put(&quot;message&quot;, &quot;Permissions updated successfully&quot;);</b>
+<b class="fc">&nbsp;        return ResponseEntity.ok(result);</b>
 &nbsp;    }
 &nbsp;
 &nbsp;    /**
@@ -246,41 +246,41 @@ Current scope:     <a href="../../index.html">all classes</a>
 &nbsp;     */
 &nbsp;    @DeleteMapping(&quot;/{membershipId}&quot;)
 &nbsp;    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; removeMember(@PathVariable int membershipId, @RequestBody KickBody incoming) {
-<b class="nc">&nbsp;        Map&lt;String, Object&gt; result = new HashMap&lt;&gt;();</b>
+<b class="fc">&nbsp;        Map&lt;String, Object&gt; result = new HashMap&lt;&gt;();</b>
 &nbsp;
-<b class="nc">&nbsp;        Optional&lt;GroupMembership&gt; targetQuery = membershipRepo.findById(membershipId);</b>
+<b class="fc">&nbsp;        Optional&lt;GroupMembership&gt; targetQuery = membershipRepo.findById(membershipId);</b>
 &nbsp;
-<b class="nc">&nbsp;        if (targetQuery.isEmpty()) {</b>
-<b class="nc">&nbsp;            result.put(&quot;message&quot;, &quot;Membership not found&quot;);</b>
-<b class="nc">&nbsp;            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);</b>
+<b class="fc">&nbsp;        if (targetQuery.isEmpty()) {</b>
+<b class="fc">&nbsp;            result.put(&quot;message&quot;, &quot;Membership not found&quot;);</b>
+<b class="fc">&nbsp;            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);</b>
 &nbsp;        }
 &nbsp;
-<b class="nc">&nbsp;        Optional&lt;GroupMembership&gt; supervisorQuery = membershipRepo.findByGroupIdAndUserId(</b>
-<b class="nc">&nbsp;                targetQuery.get().getGroupId(),</b>
-<b class="nc">&nbsp;                incoming.getSupervisorId());</b>
+<b class="fc">&nbsp;        Optional&lt;GroupMembership&gt; supervisorQuery = membershipRepo.findByGroupIdAndUserId(</b>
+<b class="fc">&nbsp;                targetQuery.get().getGroupId(),</b>
+<b class="fc">&nbsp;                incoming.getSupervisorId());</b>
 &nbsp;
-<b class="nc">&nbsp;        if (supervisorQuery.isEmpty()) {</b>
-<b class="nc">&nbsp;            result.put(&quot;message&quot;, &quot;Supervisor is not a member of this group&quot;);</b>
-<b class="nc">&nbsp;            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(result);</b>
+<b class="fc">&nbsp;        if (supervisorQuery.isEmpty()) {</b>
+<b class="fc">&nbsp;            result.put(&quot;message&quot;, &quot;Supervisor is not a member of this group&quot;);</b>
+<b class="fc">&nbsp;            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(result);</b>
 &nbsp;        }
 &nbsp;
-<b class="nc">&nbsp;        if (!supervisorQuery.get().isManageEnabled()) {</b>
+<b class="pc">&nbsp;        if (!supervisorQuery.get().isManageEnabled()) {</b>
 <b class="nc">&nbsp;            result.put(&quot;message&quot;, &quot;You do not have permission to remove members&quot;);</b>
 <b class="nc">&nbsp;            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(result);</b>
 &nbsp;        }
 &nbsp;
-<b class="nc">&nbsp;        int removedUserId = targetQuery.get().getUserId();</b>
-<b class="nc">&nbsp;        int groupId = targetQuery.get().getGroupId();</b>
-<b class="nc">&nbsp;        Optional&lt;User&gt; removedUser = userRepo.findById(removedUserId);</b>
+<b class="fc">&nbsp;        int removedUserId = targetQuery.get().getUserId();</b>
+<b class="fc">&nbsp;        int groupId = targetQuery.get().getGroupId();</b>
+<b class="fc">&nbsp;        Optional&lt;User&gt; removedUser = userRepo.findById(removedUserId);</b>
 &nbsp;
-<b class="nc">&nbsp;        membershipRepo.delete(targetQuery.get());</b>
+<b class="fc">&nbsp;        membershipRepo.delete(targetQuery.get());</b>
 &nbsp;
-<b class="nc">&nbsp;        result.put(&quot;message&quot;, &quot;Member removed from group successfully&quot;);</b>
-<b class="nc">&nbsp;        result.put(&quot;groupId&quot;, groupId);</b>
-<b class="nc">&nbsp;        result.put(&quot;removedUserId&quot;, removedUserId);</b>
-<b class="nc">&nbsp;        result.put(&quot;removedUsername&quot;,</b>
-<b class="nc">&nbsp;                removedUser.map(User::getAccountName).orElse(&quot;Unknown&quot;));</b>
-<b class="nc">&nbsp;        return ResponseEntity.ok(result);</b>
+<b class="fc">&nbsp;        result.put(&quot;message&quot;, &quot;Member removed from group successfully&quot;);</b>
+<b class="fc">&nbsp;        result.put(&quot;groupId&quot;, groupId);</b>
+<b class="fc">&nbsp;        result.put(&quot;removedUserId&quot;, removedUserId);</b>
+<b class="fc">&nbsp;        result.put(&quot;removedUsername&quot;,</b>
+<b class="fc">&nbsp;                removedUser.map(User::getAccountName).orElse(&quot;Unknown&quot;));</b>
+<b class="fc">&nbsp;        return ResponseEntity.ok(result);</b>
 &nbsp;
 &nbsp;    }
 &nbsp;}
@@ -396,7 +396,7 @@ Current scope:     <a href="../../index.html">all classes</a>
 
 <div class="footer">
     
-    <div style="float:right;">generated on 2026-05-03 10:21</div>
+    <div style="float:right;">generated on 2026-05-04 17:14</div>
 </div>
 </body>
 </html>

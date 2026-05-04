@@ -45,26 +45,26 @@ Current scope:     <a href="../../index.html">all classes</a>
   <td class="name">MessageController</td>
 <td class="coverageStat">
   <span class="percent">
-    60%
+    100%
   </span>
   <span class="absValue">
-    (3/5)
+    (5/5)
   </span>
 </td>
 <td class="coverageStat">
   <span class="percent">
-    35.7%
+    57.1%
   </span>
   <span class="absValue">
-    (5/14)
+    (8/14)
   </span>
 </td>
 <td class="coverageStat">
   <span class="percent">
-    45.8%
+    36.1%
   </span>
   <span class="absValue">
-    (33/72)
+    (26/72)
   </span>
 </td>
 </tr>
@@ -72,18 +72,18 @@ Current scope:     <a href="../../index.html">all classes</a>
     <td class="name">MessageController$AmendBody</td>
 <td class="coverageStat">
   <span class="percent">
-    0%
+    80%
   </span>
   <span class="absValue">
-    (0/5)
+    (4/5)
   </span>
 </td>
 <td class="coverageStat">
   <span class="percent">
-    0%
+    80%
   </span>
   <span class="absValue">
-    (0/5)
+    (4/5)
   </span>
 </td>
   </tr>
@@ -91,18 +91,18 @@ Current scope:     <a href="../../index.html">all classes</a>
     <td class="name">MessageController$SenderBody</td>
 <td class="coverageStat">
   <span class="percent">
-    0%
+    100%
   </span>
   <span class="absValue">
-    (0/3)
+    (3/3)
   </span>
 </td>
 <td class="coverageStat">
   <span class="percent">
-    0%
+    100%
   </span>
   <span class="absValue">
-    (0/3)
+    (3/3)
   </span>
 </td>
   </tr>
@@ -110,18 +110,18 @@ Current scope:     <a href="../../index.html">all classes</a>
   <td class="name"><strong>Total</strong></td>
 <td class="coverageStat">
   <span class="percent">
-    23.1%
+    92.3%
   </span>
   <span class="absValue">
-    (3/13)
+    (12/13)
   </span>
 </td>
 <td class="coverageStat">
   <span class="percent">
-    35.7%
+    57.1%
   </span>
   <span class="absValue">
-    (5/14)
+    (8/14)
   </span>
 </td>
 <td class="coverageStat">
@@ -181,24 +181,24 @@ Current scope:     <a href="../../index.html">all classes</a>
 &nbsp;
 <b class="fc">&nbsp;        List&lt;Message&gt; msgHistory = msgRepo.findByGroupRefOrderByCreatedTimestampAsc(groupId);</b>
 &nbsp;
-<b class="fc">&nbsp;        for (Message entry : msgHistory) {</b>
-<b class="fc">&nbsp;            if (!Boolean.TRUE.equals(entry.getActiveFlag())) {</b>
+<b class="pc">&nbsp;        for (Message entry : msgHistory) {</b>
+<b class="nc">&nbsp;            if (!Boolean.TRUE.equals(entry.getActiveFlag())) {</b>
 &nbsp;                continue;
 &nbsp;            }
 &nbsp;
-<b class="fc">&nbsp;            Map&lt;String, Object&gt; msgData = new HashMap&lt;&gt;();</b>
-<b class="fc">&nbsp;            msgData.put(&quot;id&quot;, entry.getId());</b>
-<b class="fc">&nbsp;            msgData.put(&quot;originatorId&quot;, entry.getOriginatorId());</b>
-<b class="fc">&nbsp;            msgData.put(&quot;groupId&quot;, entry.getGroupId());</b>
-<b class="fc">&nbsp;            msgData.put(&quot;targetUserId&quot;, entry.getTargetUserId());</b>
-<b class="fc">&nbsp;            msgData.put(&quot;messageType&quot;, entry.getMessageType());</b>
-<b class="fc">&nbsp;            msgData.put(&quot;textBody&quot;, entry.getTextBody());</b>
-<b class="fc">&nbsp;            msgData.put(&quot;createdTimestamp&quot;, entry.getCreatedTimestamp());</b>
-<b class="fc">&nbsp;            msgData.put(&quot;editTimestamp&quot;, entry.getEditTimestamp());</b>
+<b class="nc">&nbsp;            Map&lt;String, Object&gt; msgData = new HashMap&lt;&gt;();</b>
+<b class="nc">&nbsp;            msgData.put(&quot;id&quot;, entry.getId());</b>
+<b class="nc">&nbsp;            msgData.put(&quot;originatorId&quot;, entry.getOriginatorId());</b>
+<b class="nc">&nbsp;            msgData.put(&quot;groupId&quot;, entry.getGroupId());</b>
+<b class="nc">&nbsp;            msgData.put(&quot;targetUserId&quot;, entry.getTargetUserId());</b>
+<b class="nc">&nbsp;            msgData.put(&quot;messageType&quot;, entry.getMessageType());</b>
+<b class="nc">&nbsp;            msgData.put(&quot;textBody&quot;, entry.getTextBody());</b>
+<b class="nc">&nbsp;            msgData.put(&quot;createdTimestamp&quot;, entry.getCreatedTimestamp());</b>
+<b class="nc">&nbsp;            msgData.put(&quot;editTimestamp&quot;, entry.getEditTimestamp());</b>
 &nbsp;
-<b class="fc">&nbsp;            Optional&lt;User&gt; senderQuery = userRepo.findById(entry.getOriginatorId());</b>
-<b class="fc">&nbsp;            msgData.put(&quot;username&quot;, senderQuery.map(User::getAccountName).orElse(&quot;Unknown&quot;));</b>
-<b class="fc">&nbsp;            result.add(msgData);</b>
+<b class="nc">&nbsp;            Optional&lt;User&gt; senderQuery = userRepo.findById(entry.getOriginatorId());</b>
+<b class="nc">&nbsp;            msgData.put(&quot;username&quot;, senderQuery.map(User::getAccountName).orElse(&quot;Unknown&quot;));</b>
+<b class="nc">&nbsp;            result.add(msgData);</b>
 &nbsp;        }
 <b class="fc">&nbsp;        return ResponseEntity.ok(result);</b>
 &nbsp;    }
@@ -213,21 +213,21 @@ Current scope:     <a href="../../index.html">all classes</a>
 &nbsp;
 <b class="fc">&nbsp;        Message found = msgRepo.findById(messageId).orElse(null);</b>
 <b class="pc">&nbsp;        if(found != null){</b>
-<b class="fc">&nbsp;            Optional&lt;User&gt; senderQuery = userRepo.findById(found.getOriginatorId());</b>
-<b class="fc">&nbsp;            result.put(&quot;id&quot;, found.getId());</b>
-<b class="fc">&nbsp;            result.put(&quot;originatorId&quot;, found.getOriginatorId());</b>
-<b class="fc">&nbsp;            result.put(&quot;username&quot;,</b>
-<b class="fc">&nbsp;                    senderQuery.map(User::getAccountName).orElse(&quot;Unknown&quot;));</b>
-<b class="fc">&nbsp;            result.put(&quot;groupId&quot;, found.getGroupId());</b>
-<b class="fc">&nbsp;            result.put(&quot;targetUserId&quot;, found.getTargetUserId());</b>
-<b class="fc">&nbsp;            result.put(&quot;messageType&quot;, found.getMessageType());</b>
-<b class="fc">&nbsp;            result.put(&quot;textBody&quot;, found.getTextBody());</b>
-<b class="fc">&nbsp;            result.put(&quot;createdTimestamp&quot;, found.getCreatedTimestamp());</b>
-<b class="fc">&nbsp;            result.put(&quot;editTimestamp&quot;, found.getEditTimestamp());</b>
-<b class="fc">&nbsp;            return ResponseEntity.ok(result);</b>
+<b class="nc">&nbsp;            Optional&lt;User&gt; senderQuery = userRepo.findById(found.getOriginatorId());</b>
+<b class="nc">&nbsp;            result.put(&quot;id&quot;, found.getId());</b>
+<b class="nc">&nbsp;            result.put(&quot;originatorId&quot;, found.getOriginatorId());</b>
+<b class="nc">&nbsp;            result.put(&quot;username&quot;,</b>
+<b class="nc">&nbsp;                    senderQuery.map(User::getAccountName).orElse(&quot;Unknown&quot;));</b>
+<b class="nc">&nbsp;            result.put(&quot;groupId&quot;, found.getGroupId());</b>
+<b class="nc">&nbsp;            result.put(&quot;targetUserId&quot;, found.getTargetUserId());</b>
+<b class="nc">&nbsp;            result.put(&quot;messageType&quot;, found.getMessageType());</b>
+<b class="nc">&nbsp;            result.put(&quot;textBody&quot;, found.getTextBody());</b>
+<b class="nc">&nbsp;            result.put(&quot;createdTimestamp&quot;, found.getCreatedTimestamp());</b>
+<b class="nc">&nbsp;            result.put(&quot;editTimestamp&quot;, found.getEditTimestamp());</b>
+<b class="nc">&nbsp;            return ResponseEntity.ok(result);</b>
 &nbsp;        } else {
-<b class="nc">&nbsp;            result.put(&quot;message&quot;, &quot;Message not found&quot;);</b>
-<b class="nc">&nbsp;            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);</b>
+<b class="fc">&nbsp;            result.put(&quot;message&quot;, &quot;Message not found&quot;);</b>
+<b class="fc">&nbsp;            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);</b>
 &nbsp;        }
 &nbsp;    }
 &nbsp;
@@ -238,18 +238,18 @@ Current scope:     <a href="../../index.html">all classes</a>
 &nbsp;    @DeleteMapping(&quot;/{messageId}&quot;)
 &nbsp;    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; dropMessage(
 &nbsp;            @PathVariable Long messageId, @RequestBody SenderBody incoming){
-<b class="nc">&nbsp;        Map&lt;String, Object&gt; result = new HashMap&lt;&gt;();</b>
-<b class="nc">&nbsp;        Message found = msgRepo.findById(messageId).orElse(null);</b>
-<b class="nc">&nbsp;        if (found == null) {</b>
-<b class="nc">&nbsp;            result.put(&quot;message&quot;, &quot;Message not found&quot;);</b>
+<b class="fc">&nbsp;        Map&lt;String, Object&gt; result = new HashMap&lt;&gt;();</b>
+<b class="fc">&nbsp;        Message found = msgRepo.findById(messageId).orElse(null);</b>
+<b class="fc">&nbsp;        if (found == null) {</b>
+<b class="fc">&nbsp;            result.put(&quot;message&quot;, &quot;Message not found&quot;);</b>
 &nbsp;
-<b class="nc">&nbsp;            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);</b>
+<b class="fc">&nbsp;            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);</b>
 &nbsp;        }
 &nbsp;
-<b class="nc">&nbsp;        if (found.getOriginatorId() != incoming.getSenderId()) {</b>
-<b class="nc">&nbsp;            result.put(&quot;message&quot;, &quot;You can only delete your own messages&quot;);</b>
+<b class="pc">&nbsp;        if (found.getOriginatorId() != incoming.getSenderId()) {</b>
+<b class="fc">&nbsp;            result.put(&quot;message&quot;, &quot;You can only delete your own messages&quot;);</b>
 &nbsp;
-<b class="nc">&nbsp;            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(result);</b>
+<b class="fc">&nbsp;            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(result);</b>
 &nbsp;        }
 &nbsp;
 <b class="nc">&nbsp;        result.put(&quot;eventType&quot;, &quot;MESSAGE_DELETED&quot;);</b>
@@ -264,16 +264,16 @@ Current scope:     <a href="../../index.html">all classes</a>
 &nbsp;
 &nbsp;    @PutMapping(&quot;/{messageId}&quot;)
 &nbsp;    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; amendMessage(@PathVariable Long messageId, @RequestBody AmendBody incoming){
-<b class="nc">&nbsp;    Map&lt;String, Object&gt; result = new HashMap&lt;&gt;();</b>
-<b class="nc">&nbsp;        Message found = msgRepo.findById(messageId).orElse(null);</b>
-<b class="nc">&nbsp;        if (found == null) {</b>
-<b class="nc">&nbsp;            result.put(&quot;message&quot;, &quot;Message not found&quot;);</b>
-<b class="nc">&nbsp;            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);</b>
+<b class="fc">&nbsp;    Map&lt;String, Object&gt; result = new HashMap&lt;&gt;();</b>
+<b class="fc">&nbsp;        Message found = msgRepo.findById(messageId).orElse(null);</b>
+<b class="fc">&nbsp;        if (found == null) {</b>
+<b class="fc">&nbsp;            result.put(&quot;message&quot;, &quot;Message not found&quot;);</b>
+<b class="fc">&nbsp;            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);</b>
 &nbsp;        }
 &nbsp;
-<b class="nc">&nbsp;        if (found.getOriginatorId() != incoming.getSenderId()) {</b>
-<b class="nc">&nbsp;            result.put(&quot;message&quot;, &quot;You can only edit your own messages&quot;);</b>
-<b class="nc">&nbsp;            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(result);</b>
+<b class="pc">&nbsp;        if (found.getOriginatorId() != incoming.getSenderId()) {</b>
+<b class="fc">&nbsp;            result.put(&quot;message&quot;, &quot;You can only edit your own messages&quot;);</b>
+<b class="fc">&nbsp;            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(result);</b>
 &nbsp;        }
 &nbsp;
 <b class="nc">&nbsp;        found.setTextBody(incoming.getUpdatedBody());</b>
@@ -299,14 +299,14 @@ Current scope:     <a href="../../index.html">all classes</a>
 &nbsp;/**
 &nbsp; * Request body for deleting message
 &nbsp; */
-<b class="nc">&nbsp;class SenderBody{</b>
+<b class="fc">&nbsp;static class SenderBody{</b>
 &nbsp;    private int senderId;
 &nbsp;    private int getSenderId(){
-<b class="nc">&nbsp;        return senderId;</b>
+<b class="fc">&nbsp;        return senderId;</b>
 &nbsp;    }
 &nbsp;
 &nbsp;    public void setSenderId(int senderId){
-<b class="nc">&nbsp;    this.senderId = senderId;</b>
+<b class="fc">&nbsp;    this.senderId = senderId;</b>
 &nbsp;
 &nbsp;
 &nbsp;    }
@@ -316,17 +316,17 @@ Current scope:     <a href="../../index.html">all classes</a>
 &nbsp; * Request body for editing a message
 &nbsp; */
 &nbsp;
-<b class="nc">&nbsp;class AmendBody{</b>
+<b class="fc">&nbsp;static class AmendBody{</b>
 &nbsp;    private int senderId;
 &nbsp;    private String updatedBody;
 &nbsp;
 &nbsp;
 &nbsp;    public int getSenderId(){
-<b class="nc">&nbsp;        return senderId;</b>
+<b class="fc">&nbsp;        return senderId;</b>
 &nbsp;    }
 &nbsp;
 &nbsp;    public void setSenderId(int senderId){
-<b class="nc">&nbsp;        this.senderId = senderId;</b>
+<b class="fc">&nbsp;        this.senderId = senderId;</b>
 &nbsp;    }
 &nbsp;
 &nbsp;    public String getUpdatedBody() {
@@ -334,7 +334,7 @@ Current scope:     <a href="../../index.html">all classes</a>
 &nbsp;    }
 &nbsp;
 &nbsp;    public void setUpdatedBody(String updatedBody){
-<b class="nc">&nbsp;        this.updatedBody = updatedBody;</b>
+<b class="fc">&nbsp;        this.updatedBody = updatedBody;</b>
 &nbsp;    }
 &nbsp;    }
 &nbsp;}
@@ -361,7 +361,7 @@ Current scope:     <a href="../../index.html">all classes</a>
 
 <div class="footer">
     
-    <div style="float:right;">generated on 2026-05-03 10:21</div>
+    <div style="float:right;">generated on 2026-05-04 17:14</div>
 </div>
 </body>
 </html>

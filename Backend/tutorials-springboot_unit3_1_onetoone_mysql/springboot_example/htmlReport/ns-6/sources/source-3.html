@@ -53,11 +53,11 @@ Current scope:     <a href="../../index.html">all classes</a>
 &nbsp;public interface ImageMessageRepository extends JpaRepository&lt;ImageMessage, Long&gt; {
 &nbsp;
 &nbsp;
-&nbsp;        List&lt;ImageMessage&gt; findByChannelId(Long channelId);
+&nbsp;        List&lt;ImageMessage&gt; findByGroupId(Long groupId);
 &nbsp;
-&nbsp;        List&lt;ImageMessage&gt; findByAuthorId(Long authorId);
+&nbsp;        List&lt;ImageMessage&gt; findBySenderId(Long senderId);
 &nbsp;
-&nbsp;        List&lt;ImageMessage&gt; findByChannelIdOrderByDispatchTimeDesc(Long channelId);
+&nbsp;        List&lt;ImageMessage&gt; findByGroupIdOrderBySentAtDesc(Long groupId);
 &nbsp;    }
 </code>
 </pre>
@@ -82,7 +82,7 @@ Current scope:     <a href="../../index.html">all classes</a>
 
 <div class="footer">
     
-    <div style="float:right;">generated on 2026-05-03 10:21</div>
+    <div style="float:right;">generated on 2026-05-04 17:14</div>
 </div>
 </body>
 </html>

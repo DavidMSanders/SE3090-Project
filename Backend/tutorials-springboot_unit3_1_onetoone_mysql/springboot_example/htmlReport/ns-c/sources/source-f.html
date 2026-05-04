@@ -5,7 +5,7 @@
 <html id="htmlId">
 <head>
   <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
-  <title>Coverage Report > WorkoutPlanRepository</title>
+  <title>Coverage Report > ExerciseRepository</title>
   <style type="text/css">
     @import "../../css/coverage.css";
     @import "../../css/idea.min.css";
@@ -22,14 +22,14 @@ Current scope:     <a href="../../index.html">all classes</a>
     <a href="../index.html">onetoone.Workout</a>
 </div>
 
-<h1>Coverage Summary for Class: WorkoutPlanRepository (onetoone.Workout)</h1>
+<h1>Coverage Summary for Class: ExerciseRepository (onetoone.Workout)</h1>
 
 <table class="coverageStats">
 <tr>
   <th class="name">Class</th>
 </tr>
 <tr>
-  <td class="name">WorkoutPlanRepository</td>
+  <td class="name">ExerciseRepository</td>
 </tr>
 
 </table>
@@ -44,14 +44,11 @@ Current scope:     <a href="../../index.html">all classes</a>
 &nbsp;import org.springframework.data.jpa.repository.JpaRepository;
 &nbsp;import org.springframework.stereotype.Repository;
 &nbsp;
-&nbsp;import java.util.List;
-&nbsp;
 &nbsp;/**
-&nbsp; * Workout plan repository
+&nbsp; * @author Matthew Smith
 &nbsp; */
 &nbsp;@Repository
-&nbsp;public interface WorkoutPlanRepository extends JpaRepository&lt;WorkoutPlan, Long&gt; {
-&nbsp;    List&lt;WorkoutPlan&gt; findByTrainerId(Long trainerId);
+&nbsp;public interface ExerciseRepository extends JpaRepository&lt;Exercise, Long&gt; {
 &nbsp;}
 </code>
 </pre>
@@ -76,7 +73,7 @@ Current scope:     <a href="../../index.html">all classes</a>
 
 <div class="footer">
     
-    <div style="float:right;">generated on 2026-05-03 10:21</div>
+    <div style="float:right;">generated on 2026-05-04 17:14</div>
 </div>
 </body>
 </html>
