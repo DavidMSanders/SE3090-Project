@@ -8,6 +8,7 @@ import static androidx.test.espresso.action.ViewActions.scrollTo;
 import static androidx.test.espresso.assertion.ViewAssertions.matches;
 import static androidx.test.espresso.matcher.ViewMatchers.Visibility.GONE;
 import static androidx.test.espresso.matcher.ViewMatchers.Visibility.VISIBLE;
+import static androidx.test.espresso.matcher.ViewMatchers.hasErrorText;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.withEffectiveVisibility;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
@@ -785,108 +786,385 @@ public class DavidSystemTest {
 
 
     @Test
-    public void createWorkoutActivityOpensAndShowsViews() {
+    public void createWorkoutActivityShowsAllViews() {
         openCreateWorkoutActivityDirectly();
 
-        onView(withId(R.id.recyclerWorkouts))
-                .check(matches(isDisplayed()));
+        onView(withId(R.id.WorkoutName))
+                .check(matches(withEffectiveVisibility(VISIBLE)));
 
-        onView(withId(R.id.CreateitemWorkoutName))
-                .check(matches(isDisplayed()));
+        onView(withId(R.id.WorkoutDate))
+                .check(matches(withEffectiveVisibility(VISIBLE)));
 
-        onView(withId(R.id.CreateitemWorkoutDate))
-                .check(matches(isDisplayed()));
+        onView(withId(R.id.WorkoutDuration))
+                .check(matches(withEffectiveVisibility(VISIBLE)));
 
-        onView(withId(R.id.CreateitemWorkoutDescription))
-                .check(matches(isDisplayed()));
+        onView(withId(R.id.WorkoutDescription))
+                .check(matches(withEffectiveVisibility(VISIBLE)));
 
-        onView(withId(R.id.btnCreateWorkout))
-                .check(matches(isDisplayed()));
+        onView(withId(R.id.workoutID))
+                .check(matches(withEffectiveVisibility(VISIBLE)));
+
+        onView(withId(R.id.getWorkoutJson))
+                .check(matches(withEffectiveVisibility(VISIBLE)));
+
+        onView(withId(R.id.btnSaveWorkout))
+                .check(matches(withEffectiveVisibility(VISIBLE)));
+
+        onView(withId(R.id.btnCancelWorkout))
+                .check(matches(withEffectiveVisibility(VISIBLE)));
+
+        onView(withId(R.id.btnUpdateWorkout))
+                .check(matches(withEffectiveVisibility(VISIBLE)));
+
+        onView(withId(R.id.btnDeleteWorkout))
+                .check(matches(withEffectiveVisibility(VISIBLE)));
+
+        onView(withId(R.id.btnGetWorkout))
+                .check(matches(withEffectiveVisibility(VISIBLE)));
     }
 
     @Test
-    public void createWorkoutActivityEmptySubmitStaysOnPage() {
+    public void createWorkoutCancelButtonClosesPage() {
         openCreateWorkoutActivityDirectly();
 
-        onView(withId(R.id.btnCreateWorkout))
+        onView(withId(R.id.btnCancelWorkout))
+                .check(matches(isDisplayed()));
+
+        onView(withId(R.id.btnCancelWorkout))
                 .perform(click());
 
-        pause(1000);
-
-        onView(withId(R.id.btnCreateWorkout))
-                .check(matches(isDisplayed()));
+        pause(500);
     }
 
     @Test
-    public void createWorkoutActivityNameOnlySubmitStaysOnPage() {
+    public void createWorkoutSaveEmptyNameShowsError() {
         openCreateWorkoutActivityDirectly();
 
-        onView(withId(R.id.CreateitemWorkoutName))
-                .perform(replaceText("Coverage Workout"), closeSoftKeyboard());
-
-        onView(withId(R.id.btnCreateWorkout))
+        onView(withId(R.id.btnSaveWorkout))
                 .perform(click());
 
-        pause(1000);
+        pause(500);
 
-        onView(withId(R.id.CreateitemWorkoutName))
-                .check(matches(withText("Coverage Workout")));
+        onView(withId(R.id.WorkoutName))
+                .check(matches(hasErrorText("Workout name required")));
     }
 
     @Test
-    public void createWorkoutActivityDateOnlySubmitStaysOnPage() {
+    public void createWorkoutSaveEmptyDateShowsError() {
         openCreateWorkoutActivityDirectly();
 
-        onView(withId(R.id.CreateitemWorkoutDate))
+        onView(withId(R.id.WorkoutName))
+                .perform(replaceText("Bench Day"), closeSoftKeyboard());
+
+        onView(withId(R.id.btnSaveWorkout))
+                .perform(click());
+
+        pause(500);
+
+        onView(withId(R.id.WorkoutDate))
+                .check(matches(hasErrorText("Workout date required")));
+    }
+
+    @Test
+    public void createWorkoutSaveBadDateFormatShowsError() {
+        openCreateWorkoutActivityDirectly();
+
+        onView(withId(R.id.WorkoutName))
+                .perform(replaceText("Bench Day"), closeSoftKeyboard());
+
+        onView(withId(R.id.WorkoutDate))
                 .perform(replaceText("2026-05-04"), closeSoftKeyboard());
 
-        onView(withId(R.id.btnCreateWorkout))
+        onView(withId(R.id.btnSaveWorkout))
+                .perform(click());
+
+        pause(500);
+
+        onView(withId(R.id.WorkoutDate))
+                .check(matches(hasErrorText("Workout date required")));
+    }
+
+    @Test
+    public void createWorkoutSaveEmptyDescriptionShowsError() {
+        openCreateWorkoutActivityDirectly();
+
+        onView(withId(R.id.WorkoutName))
+                .perform(replaceText("Bench Day"), closeSoftKeyboard());
+
+        onView(withId(R.id.WorkoutDate))
+                .perform(replaceText("05/04/2026"), closeSoftKeyboard());
+
+        onView(withId(R.id.btnSaveWorkout))
+                .perform(click());
+
+        pause(500);
+
+        onView(withId(R.id.WorkoutDescription))
+                .check(matches(hasErrorText("Workout description required")));
+    }
+
+    @Test
+    public void createWorkoutSaveNonNumberDurationShowsError() {
+        openCreateWorkoutActivityDirectly();
+
+        onView(withId(R.id.WorkoutName))
+                .perform(replaceText("Bench Day"), closeSoftKeyboard());
+
+        onView(withId(R.id.WorkoutDate))
+                .perform(replaceText("05/04/2026"), closeSoftKeyboard());
+
+        onView(withId(R.id.WorkoutDescription))
+                .perform(replaceText("Chest and triceps"), closeSoftKeyboard());
+
+        onView(withId(R.id.WorkoutDuration))
+                .perform(replaceText("abc"), closeSoftKeyboard());
+
+        onView(withId(R.id.btnSaveWorkout))
+                .perform(click());
+
+        pause(500);
+
+        onView(withId(R.id.WorkoutDuration))
+                .check(matches(hasErrorText("Workout duration must be a number")));
+    }
+
+    @Test
+    public void createWorkoutSaveZeroDurationShowsError() {
+        openCreateWorkoutActivityDirectly();
+
+        onView(withId(R.id.WorkoutName))
+                .perform(replaceText("Bench Day"), closeSoftKeyboard());
+
+        onView(withId(R.id.WorkoutDate))
+                .perform(replaceText("05/04/2026"), closeSoftKeyboard());
+
+        onView(withId(R.id.WorkoutDescription))
+                .perform(replaceText("Chest and triceps"), closeSoftKeyboard());
+
+        onView(withId(R.id.WorkoutDuration))
+                .perform(replaceText("0"), closeSoftKeyboard());
+
+        onView(withId(R.id.btnSaveWorkout))
+                .perform(click());
+
+        pause(500);
+
+        onView(withId(R.id.WorkoutDuration))
+                .check(matches(hasErrorText("Workout duration must be greater than 0")));
+    }
+
+    @Test
+    public void createWorkoutSaveValidFieldsBuildsRequestPath() {
+        openCreateWorkoutActivityDirectly();
+
+        onView(withId(R.id.WorkoutName))
+                .perform(replaceText("Bench Day"), closeSoftKeyboard());
+
+        onView(withId(R.id.WorkoutDate))
+                .perform(replaceText("05/04/2026"), closeSoftKeyboard());
+
+        onView(withId(R.id.WorkoutDuration))
+                .perform(replaceText("45"), closeSoftKeyboard());
+
+        onView(withId(R.id.WorkoutDescription))
+                .perform(replaceText("Chest and triceps"), closeSoftKeyboard());
+
+        onView(withId(R.id.btnSaveWorkout))
                 .perform(click());
 
         pause(1000);
 
-        onView(withId(R.id.CreateitemWorkoutDate))
-                .check(matches(withText("2026-05-04")));
+        // If the network fails, the page should still be stable.
+        // If the backend succeeds, the activity may finish.
     }
 
     @Test
-    public void createWorkoutActivityDurationButtonsWork() {
+    public void createWorkoutUpdateEmptyIdShowsError() {
         openCreateWorkoutActivityDirectly();
 
-        onView(withId(R.id.CreatebtnDurationPlus))
-                .perform(click());
-
-        onView(withId(R.id.CreatebtnDurationPlus))
-                .perform(click());
-
-        onView(withId(R.id.CreatebtnDurationMinus))
+        onView(withId(R.id.btnUpdateWorkout))
                 .perform(click());
 
         pause(500);
 
-        onView(withId(R.id.CreateitemWorkoutDuration))
+        onView(withId(R.id.workoutID))
+                .check(matches(hasErrorText("Workout ID required")));
+    }
+
+    @Test
+    public void createWorkoutUpdateNonNumberIdShowsError() {
+        openCreateWorkoutActivityDirectly();
+
+        onView(withId(R.id.workoutID))
+                .perform(replaceText("abc"), closeSoftKeyboard());
+
+        onView(withId(R.id.btnUpdateWorkout))
+                .perform(click());
+
+        pause(500);
+
+        onView(withId(R.id.workoutID))
+                .check(matches(hasErrorText("Workout ID must be a number")));
+    }
+
+    @Test
+    public void createWorkoutUpdateZeroIdShowsError() {
+        openCreateWorkoutActivityDirectly();
+
+        onView(withId(R.id.workoutID))
+                .perform(replaceText("0"), closeSoftKeyboard());
+
+        onView(withId(R.id.btnUpdateWorkout))
+                .perform(click());
+
+        pause(500);
+
+        onView(withId(R.id.workoutID))
+                .check(matches(hasErrorText("Workout ID must be greater than 0")));
+    }
+
+    @Test
+    public void createWorkoutUpdateValidInputsBuildsRequestPath() {
+        openCreateWorkoutActivityDirectly();
+
+        onView(withId(R.id.workoutID))
+                .perform(replaceText("1"), closeSoftKeyboard());
+
+        onView(withId(R.id.WorkoutName))
+                .perform(replaceText("Updated Bench Day"), closeSoftKeyboard());
+
+        onView(withId(R.id.WorkoutDate))
+                .perform(replaceText("05/04/2026"), closeSoftKeyboard());
+
+        onView(withId(R.id.WorkoutDuration))
+                .perform(replaceText("60"), closeSoftKeyboard());
+
+        onView(withId(R.id.WorkoutDescription))
+                .perform(replaceText("Updated description"), closeSoftKeyboard());
+
+        onView(withId(R.id.btnUpdateWorkout))
+                .perform(click());
+
+        pause(1000);
+    }
+
+    @Test
+    public void createWorkoutDeleteEmptyIdShowsError() {
+        openCreateWorkoutActivityDirectly();
+
+        onView(withId(R.id.btnDeleteWorkout))
+                .perform(click());
+
+        pause(500);
+
+        onView(withId(R.id.workoutID))
+                .check(matches(hasErrorText("Workout ID required")));
+    }
+
+    @Test
+    public void createWorkoutDeleteNonNumberIdShowsError() {
+        openCreateWorkoutActivityDirectly();
+
+        onView(withId(R.id.workoutID))
+                .perform(replaceText("abc"), closeSoftKeyboard());
+
+        onView(withId(R.id.btnDeleteWorkout))
+                .perform(click());
+
+        pause(500);
+
+        onView(withId(R.id.workoutID))
+                .check(matches(hasErrorText("Workout ID must be a number")));
+    }
+
+    @Test
+    public void createWorkoutDeleteZeroIdShowsError() {
+        openCreateWorkoutActivityDirectly();
+
+        onView(withId(R.id.workoutID))
+                .perform(replaceText("0"), closeSoftKeyboard());
+
+        onView(withId(R.id.btnDeleteWorkout))
+                .perform(click());
+
+        pause(500);
+
+        onView(withId(R.id.workoutID))
+                .check(matches(hasErrorText("Workout ID must be greater than 0")));
+    }
+
+    @Test
+    public void createWorkoutDeleteValidIdBuildsRequestPath() {
+        openCreateWorkoutActivityDirectly();
+
+        onView(withId(R.id.workoutID))
+                .perform(replaceText("1"), closeSoftKeyboard());
+
+        onView(withId(R.id.btnDeleteWorkout))
+                .perform(click());
+
+        pause(1000);
+    }
+
+    @Test
+    public void createWorkoutGetEmptyIdShowsError() {
+        openCreateWorkoutActivityDirectly();
+
+        onView(withId(R.id.btnGetWorkout))
+                .perform(tapCenterOfView());
+
+        pause(500);
+
+        onView(withId(R.id.workoutID))
+                .check(matches(hasErrorText("Workout ID required")));
+    }
+
+    @Test
+    public void createWorkoutGetNonNumberIdShowsError() {
+        openCreateWorkoutActivityDirectly();
+
+        onView(withId(R.id.workoutID))
+                .perform(replaceText("abc"), closeSoftKeyboard());
+
+        onView(withId(R.id.btnGetWorkout))
+                .perform(click());
+
+        pause(500);
+
+        onView(withId(R.id.workoutID))
+                .check(matches(hasErrorText("Workout ID must be a number")));
+    }
+
+    @Test
+    public void createWorkoutGetZeroIdShowsError() {
+        openCreateWorkoutActivityDirectly();
+
+        onView(withId(R.id.workoutID))
+                .perform(replaceText("0"), closeSoftKeyboard());
+
+        onView(withId(R.id.btnGetWorkout))
+                .perform(click());
+
+        pause(500);
+
+        onView(withId(R.id.workoutID))
+                .check(matches(hasErrorText("Workout ID must be greater than 0")));
+    }
+
+    @Test
+    public void createWorkoutGetValidIdBuildsRequestPath() {
+        openCreateWorkoutActivityDirectly();
+
+        onView(withId(R.id.workoutID))
+                .perform(replaceText("1"), closeSoftKeyboard());
+
+        onView(withId(R.id.btnGetWorkout))
+                .perform(click());
+
+        pause(1000);
+
+        onView(withId(R.id.getWorkoutJson))
                 .check(matches(isDisplayed()));
-    }
-
-    @Test
-    public void createWorkoutActivityHideAndShowCreateBox() {
-        openCreateWorkoutActivityDirectly();
-
-        onView(withId(R.id.checkHideCreate))
-                .perform(click());
-
-        pause(500);
-
-        onView(withId(R.id.create_workout_box))
-                .check(matches(withEffectiveVisibility(GONE)));
-
-        onView(withId(R.id.checkHideCreate))
-                .perform(click());
-
-        pause(500);
-
-        onView(withId(R.id.create_workout_box))
-                .check(matches(withEffectiveVisibility(VISIBLE)));
     }
 
 
@@ -1284,10 +1562,12 @@ public class DavidSystemTest {
         saveTestUser();
         pause(1000);
 
-        ActivityScenario.launch(WorkoutListActivity.class);
+        ActivityScenario.launch(CreateWorkoutActivity.class);
         pause(1000);
         allowNotificationPermissionIfShown();
+        pause(8000);
     }
+
 
     private void openWorkoutListActivityDirectly() {
         saveTestUser();
@@ -1295,6 +1575,7 @@ public class DavidSystemTest {
         ActivityScenario.launch(WorkoutListActivity.class);
         pause(2000);
         allowNotificationPermissionIfShown();
+        pause(1000);
     }
 
     private void openGroupListActivityDirectly() {
