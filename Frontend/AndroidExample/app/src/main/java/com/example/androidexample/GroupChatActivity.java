@@ -807,33 +807,17 @@ public class GroupChatActivity extends AppCompatActivity {
     }
 
     private void sendImageMessage(String imageUrl, String caption) {
-        String url = BASE_URL + "/api/v1/images/send";
-        try {
-            JSONObject body = new JSONObject();
-            body.put("senderId", currentUserId);
-            body.put("groupId", currentGroupId);
-            body.put("imageUrl", imageUrl);
-            body.put("caption", caption);
-
-            JsonObjectRequest request = new JsonObjectRequest(
-                    com.android.volley.Request.Method.POST,
-                    url,
-                    body,
-                    response -> {
-                        Message imageMsg = imageMessageFromResponse(response);
-                        if (imageMsg != null) {
-                            messageList.add(imageMsg);
-                            messageAdapter.notifyItemInserted(messageList.size() - 1);
-                            recyclerViewMessages.scrollToPosition(messageAdapter.getItemCount() - 1);
-                        }
-                    },
-                    error -> Toast.makeText(this, "Failed to send image", Toast.LENGTH_LONG).show()
-            );
-
-            Volley.newRequestQueue(this).add(request);
-        } catch (org.json.JSONException e) {
-            e.printStackTrace();
+        if (currentGroupId == -1) {
+            Toast.makeText(this, "Error: invalid group ID", Toast.LENGTH_LONG).show();
+            return;
         }
+
+        if (chatWebSocketManager == null) {
+            Toast.makeText(this, "Error: not connected to chat", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        chatWebSocketManager.sendImageMessage(currentGroupId, imageUrl, caption);
     }
 
     private void loadGroupImages() {

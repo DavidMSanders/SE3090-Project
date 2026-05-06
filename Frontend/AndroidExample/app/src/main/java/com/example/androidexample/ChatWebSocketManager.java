@@ -172,6 +172,26 @@ public class ChatWebSocketManager {
         }
     }
 
+    public void sendImageMessage(int groupId, String imageUrl, String caption) {
+        if (webSocket != null) {
+            try {
+                JSONObject payload = new JSONObject();
+                payload.put("eventType", "SEND_IMAGE");
+                payload.put("groupId", groupId);
+                payload.put("imageUrl", imageUrl);
+                payload.put("caption", caption);
+
+                String json = payload.toString();
+                Log.d("WS", "Sending image: " + json);
+                webSocket.send(json);
+            } catch (Exception e) {
+                Log.e("WS", "Failed to build image payload", e);
+            }
+        } else {
+            Log.e("WS", "Cannot send image — webSocket is null");
+        }
+    }
+
     public void disconnect() {
         if (webSocket != null) {
             webSocket.close(1000, "Closed");

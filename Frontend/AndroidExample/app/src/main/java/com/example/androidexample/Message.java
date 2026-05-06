@@ -75,6 +75,13 @@ public class Message {
             message.editTimestamp = null;
         }
 
+        if (json.has("imageMessageId") && !json.isNull("imageMessageId")) {
+            message.imageMessageId = json.optLong("imageMessageId", -1);
+        }
+
+        message.imageUrl = json.optString("imageUrl", "");
+        message.caption = json.optString("caption", "");
+
         return message;
     }
 
