@@ -157,7 +157,7 @@ public class MessageController {
 /**
  * Request body for deleting message
  */
-class SenderBody{
+static class SenderBody{
     private int senderId;
     private int getSenderId(){
         return senderId;
@@ -174,7 +174,7 @@ class SenderBody{
  * Request body for editing a message
  */
 
-class AmendBody{
+static class AmendBody{
     private int senderId;
     private String updatedBody;
 

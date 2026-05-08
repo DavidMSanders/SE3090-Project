@@ -12,9 +12,9 @@ import java.util.List;
 public interface ImageMessageRepository extends JpaRepository<ImageMessage, Long> {
 
 
-        List<ImageMessage> findByChannelId(Long channelId);
+        List<ImageMessage> findByGroupId(Long groupId);
 
-        List<ImageMessage> findByAuthorId(Long authorId);
+        List<ImageMessage> findBySenderId(Long senderId);
 
-        List<ImageMessage> findByChannelIdOrderByDispatchTimeDesc(Long channelId);
+        List<ImageMessage> findByGroupIdOrderBySentAtDesc(Long groupId);
     }

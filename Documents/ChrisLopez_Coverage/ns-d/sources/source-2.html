@@ -1,0 +1,253 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > RegistrationInfo</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">onetoone.auth</a>
+</div>
+
+<h1>Coverage Summary for Class: RegistrationInfo (onetoone.auth)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">RegistrationInfo</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    87.5%
+  </span>
+  <span class="absValue">
+    (7/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    63.6%
+  </span>
+  <span class="absValue">
+    (7/11)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package onetoone.auth;
+&nbsp;
+&nbsp;import onetoone.Users.User;
+&nbsp;import onetoone.Users.UserRepository;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.http.HttpStatus;
+&nbsp;import org.springframework.http.ResponseEntity;
+&nbsp;import org.springframework.web.bind.annotation.*;
+&nbsp;
+&nbsp;import java.time.LocalDate;
+&nbsp;import java.time.format.DateTimeFormatter;
+&nbsp;import java.util.HashMap;
+&nbsp;import java.util.Map;
+&nbsp;
+&nbsp;/**
+&nbsp; *
+&nbsp; * Signup Controller
+&nbsp; * 
+&nbsp; * @author Chris Lopez
+&nbsp; *
+&nbsp; */
+&nbsp;
+&nbsp;@RestController
+&nbsp;@RequestMapping(&quot;/api/v1/auth&quot;)
+&nbsp;
+&nbsp;public class SignupController {
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private UserRepository userRepo;
+&nbsp;
+&nbsp;    /**
+&nbsp;     *
+&nbsp;     * POST /api/v1/auth/signup
+&nbsp;     *
+&nbsp;     *
+&nbsp;     */
+&nbsp;    @PostMapping(&quot;/signup&quot;)
+&nbsp;    public ResponseEntity&lt;Map&lt;String, String&gt;&gt; createAccount(@RequestBody RegistrationInfo info) {
+&nbsp;        Map&lt;String, String&gt; response = new HashMap&lt;&gt;();
+&nbsp;
+&nbsp;        try {
+&nbsp;            User existing = userRepo.findByAccountName(info.getUsername());
+&nbsp;            if (existing != null) {
+&nbsp;                response.put(&quot;message&quot;, &quot;Username already exists&quot;);
+&nbsp;                return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+&nbsp;            }
+&nbsp;
+&nbsp;            DateTimeFormatter pattern = DateTimeFormatter.ofPattern(&quot;MM/dd/yyyy&quot;);
+&nbsp;            LocalDate birthdate = LocalDate.parse(info.getDateOfBirth(), pattern);
+&nbsp;
+&nbsp;            User newUser = new User(
+&nbsp;                    info.getUsername(),
+&nbsp;                    info.getPassword(),
+&nbsp;                    birthdate);
+&nbsp;
+&nbsp;            // save database
+&nbsp;            User savedUser = userRepo.save(newUser);
+&nbsp;
+&nbsp;            response.put(&quot;message&quot;, &quot;User created successfully&quot;);
+&nbsp;
+&nbsp;            response.put(&quot;userId&quot;, String.valueOf(savedUser.getUserId()));
+&nbsp;
+&nbsp;            response.put(&quot;username&quot;, savedUser.getAccountName());
+&nbsp;
+&nbsp;            response.put(&quot;role&quot;, savedUser.getRole());
+&nbsp;            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+&nbsp;
+&nbsp;        } catch (Exception problem) {
+&nbsp;            response.put(&quot;message&quot;, &quot;Error creating user: &quot; + problem.getMessage());
+&nbsp;            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @PostMapping(&quot;/login&quot;)
+&nbsp;    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; loginUser(@RequestBody LoginRequest request) {
+&nbsp;        Map&lt;String, Object&gt; response = new HashMap&lt;&gt;();
+&nbsp;
+&nbsp;        String accountName = request.getAccountName();
+&nbsp;        String userPassword = request.getUserPassword();
+&nbsp;
+&nbsp;        if (accountName == null || userPassword == null || accountName.trim().isEmpty() || userPassword.isEmpty()) {
+&nbsp;            response.put(&quot;status&quot;, false);
+&nbsp;            response.put(&quot;message&quot;, &quot;Username and password are required&quot;);
+&nbsp;            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+&nbsp;        }
+&nbsp;
+&nbsp;        User foundUser = userRepo.findByAccountName(accountName.trim());
+&nbsp;
+&nbsp;        if (foundUser == null || !userPassword.equals(foundUser.getUserPassword())) {
+&nbsp;            response.put(&quot;status&quot;, false);
+&nbsp;            response.put(&quot;message&quot;, &quot;login failed&quot;);
+&nbsp;            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+&nbsp;        }
+&nbsp;
+&nbsp;        response.put(&quot;status&quot;, true);
+&nbsp;        response.put(&quot;message&quot;, &quot;Login successful&quot;);
+&nbsp;        response.put(&quot;userId&quot;, foundUser.getUserId());
+&nbsp;        response.put(&quot;username&quot;, foundUser.getAccountName());
+&nbsp;        response.put(&quot;role&quot;, foundUser.getRole());
+&nbsp;        return ResponseEntity.ok(response);
+&nbsp;    }
+&nbsp;}
+&nbsp;
+&nbsp;/**
+&nbsp; * Request body for SignUp
+&nbsp; */
+&nbsp;
+&nbsp;class RegistrationInfo {
+&nbsp;    private String username;
+&nbsp;    private String password;
+&nbsp;    private String dateOfBirth;
+&nbsp;
+<b class="fc">&nbsp;    public RegistrationInfo() {</b>
+&nbsp;    }
+&nbsp;
+<b class="nc">&nbsp;    public RegistrationInfo(String username, String password, String dateOfBirth) {</b>
+&nbsp;
+<b class="nc">&nbsp;        this.username = username;</b>
+<b class="nc">&nbsp;        this.dateOfBirth = dateOfBirth;</b>
+<b class="nc">&nbsp;        this.password = password;</b>
+&nbsp;
+&nbsp;    }
+&nbsp;
+&nbsp;    public String getUsername() {
+&nbsp;
+<b class="fc">&nbsp;        return username;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public String getPassword() {
+<b class="fc">&nbsp;        return password;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setUsername(String username) {
+<b class="fc">&nbsp;        this.username = username;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setPassword(String password) {
+<b class="fc">&nbsp;        this.password = password;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setDateOfBirth(String dateOfBirth) {
+<b class="fc">&nbsp;        this.dateOfBirth = dateOfBirth;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public String getDateOfBirth() {
+<b class="fc">&nbsp;        return dateOfBirth;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-05-04 17:14</div>
+</div>
+</body>
+</html>

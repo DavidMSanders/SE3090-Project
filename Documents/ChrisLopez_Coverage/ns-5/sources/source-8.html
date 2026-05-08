@@ -1,0 +1,390 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > KickBody</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">onetoone.Groups</a>
+</div>
+
+<h1>Coverage Summary for Class: KickBody (onetoone.Groups)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">KickBody</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (3/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (3/3)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package onetoone.Groups;
+&nbsp;import onetoone.Users.User;
+&nbsp;import onetoone.Users.UserRepository;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.http.HttpStatus;
+&nbsp;import org.springframework.http.ResponseEntity;
+&nbsp;import org.springframework.web.bind.annotation.*;
+&nbsp;
+&nbsp;import java.util.HashMap;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.Optional;
+&nbsp;
+&nbsp;//import io.swagger.v3.oas.annotations.Operation;
+&nbsp;//import io.swagger.v3.oas.annotations.responses.ApiResponse;
+&nbsp;//import io.swagger.v3.oas.annotations.responses.ApiResponses;
+&nbsp;
+&nbsp;@RestController
+&nbsp;@RequestMapping(&quot;/api/v1/groupMemberships&quot;)
+&nbsp;public class GroupMembershipController {
+&nbsp;    @Autowired
+&nbsp;    private GroupMembershipRepository membershipRepo;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private UserRepository userRepo;
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Get a specific membership
+&nbsp;     */
+&nbsp;    @GetMapping(&quot;/user/{userId}/group/{groupId}&quot;)
+&nbsp;    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; getMembership(@PathVariable int userId, @PathVariable int groupId) {
+&nbsp;        Map&lt;String, Object&gt; result = new HashMap&lt;&gt;();
+&nbsp;
+&nbsp;
+&nbsp;        Optional&lt;GroupMembership&gt; membershipQuery = membershipRepo.findByGroupIdAndUserId(groupId, userId);
+&nbsp;
+&nbsp;
+&nbsp;        if (membershipQuery.isPresent()) {
+&nbsp;
+&nbsp;            GroupMembership m = membershipQuery.get();
+&nbsp;            result.put(&quot;membershipId&quot;, m.getMembershipId());
+&nbsp;            result.put(&quot;groupId&quot;, m.getGroupId());
+&nbsp;            result.put(&quot;userId&quot;, m.getUserId());
+&nbsp;            result.put(&quot;membershipRole&quot;, m.getAccessLevel());
+&nbsp;            result.put(&quot;canSendMessages&quot;, m.isChatEnabled());
+&nbsp;            result.put(&quot;canManageMembers&quot;, m.isManageEnabled());
+&nbsp;            result.put(&quot;canPostAnnouncements&quot;, m.isAnnounceEnabled());
+&nbsp;            result.put(&quot;canAssignWorkouts&quot;, m.isWorkoutEnabled());
+&nbsp;            return ResponseEntity.ok(result);
+&nbsp;        } else {
+&nbsp;            result.put(&quot;message&quot;, &quot;Membership not found&quot;);
+&nbsp;            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     *
+&nbsp;     * Checks if a user is ADMIN or GROUP_LEADER in a group
+&nbsp;     * If yes returns all permissions as true
+&nbsp;     *
+&nbsp;     */
+&nbsp;
+&nbsp;    @GetMapping(&quot;/user/{userId}/group/{groupId}/check-admin&quot;)
+&nbsp;    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; verifyAdminStatus(@PathVariable int userId, @PathVariable int groupId) {
+&nbsp;        Map&lt;String, Object&gt; adminCheck = new HashMap&lt;&gt;();
+&nbsp;
+&nbsp;        Optional&lt;GroupMembership&gt; memberLookup = membershipRepo.findByGroupIdAndUserId(groupId, userId);
+&nbsp;
+&nbsp;        if (memberLookup.isEmpty()) {
+&nbsp;            adminCheck.put(&quot;message&quot;, &quot;Membership not found&quot;);
+&nbsp;            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(adminCheck);
+&nbsp;        }
+&nbsp;
+&nbsp;        GroupMembership foundMembership = memberLookup.get();
+&nbsp;        String accessLevel = foundMembership.getAccessLevel();
+&nbsp;
+&nbsp;        adminCheck.put(&quot;userId&quot;, userId);
+&nbsp;        adminCheck.put(&quot;groupId&quot;, groupId);
+&nbsp;        adminCheck.put(&quot;membershipRole&quot;, accessLevel);
+&nbsp;
+&nbsp;        if (accessLevel.equals(&quot;ADMIN&quot;) || accessLevel.equals(&quot;GROUP_LEADER&quot;)) {
+&nbsp;            adminCheck.put(&quot;isAdmin&quot;, true);
+&nbsp;            adminCheck.put(&quot;canSendMessages&quot;, true);
+&nbsp;            adminCheck.put(&quot;canManageMembers&quot;, true);
+&nbsp;            adminCheck.put(&quot;canPostAnnouncements&quot;, true);
+&nbsp;            adminCheck.put(&quot;canAssignWorkouts&quot;, true);
+&nbsp;            adminCheck.put(&quot;message&quot;, &quot;User has admin permissions in this group&quot;);
+&nbsp;        } else {
+&nbsp;            adminCheck.put(&quot;isAdmin&quot;, false);
+&nbsp;            adminCheck.put(&quot;canSendMessages&quot;, foundMembership.isChatEnabled());
+&nbsp;            adminCheck.put(&quot;canManageMembers&quot;, foundMembership.isManageEnabled());
+&nbsp;            adminCheck.put(&quot;canPostAnnouncements&quot;, foundMembership.isAnnounceEnabled());
+&nbsp;            adminCheck.put(&quot;canAssignWorkouts&quot;, foundMembership.isWorkoutEnabled());
+&nbsp;            adminCheck.put(&quot;message&quot;, &quot;User does not have admin permissions in this group&quot;);
+&nbsp;        }
+&nbsp;
+&nbsp;        return ResponseEntity.ok(adminCheck);
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Update a members permissions
+&nbsp;     * Only GROUP_LEADER or Admin can do this
+&nbsp;     *
+&nbsp;     * @param membershipId
+&nbsp;     * @param incoming
+&nbsp;     * @return
+&nbsp;     */
+&nbsp;    @PutMapping(&quot;/{membershipId}/permissions&quot;)
+&nbsp;    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; updatePermission(@PathVariable int membershipId, @RequestBody PermissionBody incoming) {
+&nbsp;        Map&lt;String, Object&gt; result = new HashMap&lt;&gt;();
+&nbsp;
+&nbsp;        Optional&lt;GroupMembership&gt; targetQuery = membershipRepo.findById(membershipId);
+&nbsp;        if (targetQuery.isEmpty()) {
+&nbsp;            result.put(&quot;message&quot;, &quot;Membership not found&quot;);
+&nbsp;            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
+&nbsp;        }
+&nbsp;        Optional&lt;GroupMembership&gt; supervisorQuery = membershipRepo.findByGroupIdAndUserId(
+&nbsp;                targetQuery.get().getGroupId(),
+&nbsp;                incoming.getSupervisorId());
+&nbsp;        if (supervisorQuery.isEmpty()) {
+&nbsp;            result.put(&quot;message&quot;, &quot;Supervisor is not a member of this group&quot;);
+&nbsp;            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(result);
+&nbsp;        }
+&nbsp;        if (!supervisorQuery.get().isManageEnabled()) {
+&nbsp;            result.put(&quot;message&quot;, &quot;You do not have permission to update permissions&quot;);
+&nbsp;            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(result);
+&nbsp;
+&nbsp;        }
+&nbsp;        GroupMembership target = targetQuery.get();
+&nbsp;        String currentLevel = target.getAccessLevel();
+&nbsp;        if (currentLevel.equals(&quot;GROUP_LEADER&quot;) || currentLevel.equals(&quot;ADMIN&quot;)) {
+&nbsp;            result.put(&quot;message&quot;, &quot;Cannot change GROUP_LEADER or ADMIN permissions&quot;);
+&nbsp;            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(result);
+&nbsp;
+&nbsp;        }
+&nbsp;        target.setAccessLevel(incoming.getNewAccessLevel());
+&nbsp;        target.setChatEnabled(incoming.isSendEnabled());
+&nbsp;        target.setManageEnabled(incoming.isAdminEnabled());
+&nbsp;        target.setAnnounceEnabled(incoming.isPostEnabled());
+&nbsp;        target.setWorkoutEnabled(incoming.isAssignEnabled());
+&nbsp;        membershipRepo.save(target);
+&nbsp;
+&nbsp;        result.put(&quot;membershipId&quot;, target.getMembershipId());
+&nbsp;        result.put(&quot;groupId&quot;, target.getGroupId());
+&nbsp;        result.put(&quot;userId&quot;, target.getUserId());
+&nbsp;        result.put(&quot;membershipRole&quot;, target.getAccessLevel());
+&nbsp;        result.put(&quot;canSendMessages&quot;, target.isChatEnabled());
+&nbsp;        result.put(&quot;canManageMembers&quot;, target.isManageEnabled());
+&nbsp;        result.put(&quot;canPostAnnouncements&quot;, target.isAnnounceEnabled());
+&nbsp;        result.put(&quot;canAssignWorkouts&quot;, target.isWorkoutEnabled());
+&nbsp;        result.put(&quot;message&quot;, &quot;Permissions updated successfully&quot;);
+&nbsp;        return ResponseEntity.ok(result);
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Kick a member from a group
+&nbsp;     * Only Group_Leader or Admin can do this
+&nbsp;     */
+&nbsp;    @DeleteMapping(&quot;/{membershipId}&quot;)
+&nbsp;    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; removeMember(@PathVariable int membershipId, @RequestBody KickBody incoming) {
+&nbsp;        Map&lt;String, Object&gt; result = new HashMap&lt;&gt;();
+&nbsp;
+&nbsp;        Optional&lt;GroupMembership&gt; targetQuery = membershipRepo.findById(membershipId);
+&nbsp;
+&nbsp;        if (targetQuery.isEmpty()) {
+&nbsp;            result.put(&quot;message&quot;, &quot;Membership not found&quot;);
+&nbsp;            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
+&nbsp;        }
+&nbsp;
+&nbsp;        Optional&lt;GroupMembership&gt; supervisorQuery = membershipRepo.findByGroupIdAndUserId(
+&nbsp;                targetQuery.get().getGroupId(),
+&nbsp;                incoming.getSupervisorId());
+&nbsp;
+&nbsp;        if (supervisorQuery.isEmpty()) {
+&nbsp;            result.put(&quot;message&quot;, &quot;Supervisor is not a member of this group&quot;);
+&nbsp;            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(result);
+&nbsp;        }
+&nbsp;
+&nbsp;        if (!supervisorQuery.get().isManageEnabled()) {
+&nbsp;            result.put(&quot;message&quot;, &quot;You do not have permission to remove members&quot;);
+&nbsp;            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(result);
+&nbsp;        }
+&nbsp;
+&nbsp;        int removedUserId = targetQuery.get().getUserId();
+&nbsp;        int groupId = targetQuery.get().getGroupId();
+&nbsp;        Optional&lt;User&gt; removedUser = userRepo.findById(removedUserId);
+&nbsp;
+&nbsp;        membershipRepo.delete(targetQuery.get());
+&nbsp;
+&nbsp;        result.put(&quot;message&quot;, &quot;Member removed from group successfully&quot;);
+&nbsp;        result.put(&quot;groupId&quot;, groupId);
+&nbsp;        result.put(&quot;removedUserId&quot;, removedUserId);
+&nbsp;        result.put(&quot;removedUsername&quot;,
+&nbsp;                removedUser.map(User::getAccountName).orElse(&quot;Unknown&quot;));
+&nbsp;        return ResponseEntity.ok(result);
+&nbsp;
+&nbsp;    }
+&nbsp;}
+&nbsp;
+&nbsp;        /**
+&nbsp;         * Request body for updating permissions
+&nbsp;         */
+&nbsp;
+&nbsp;        class PermissionBody {
+&nbsp;            private int supervisorId;
+&nbsp;            private String newAccessLevel;
+&nbsp;            private boolean sendEnabled;
+&nbsp;            private boolean adminEnabled;
+&nbsp;            private boolean postEnabled;
+&nbsp;            private boolean assignEnabled;
+&nbsp;
+&nbsp;
+&nbsp;            public int getSupervisorId() {
+&nbsp;
+&nbsp;                return supervisorId;
+&nbsp;            }
+&nbsp;
+&nbsp;            public void setSupervisorId(int supervisorId) {
+&nbsp;
+&nbsp;                this.supervisorId = supervisorId;
+&nbsp;            }
+&nbsp;
+&nbsp;            public String getNewAccessLevel() {
+&nbsp;
+&nbsp;                return newAccessLevel;
+&nbsp;            }
+&nbsp;
+&nbsp;            public void setNewAccessLevel(String newAccessLevel) {
+&nbsp;                this.newAccessLevel = newAccessLevel;
+&nbsp;            }
+&nbsp;
+&nbsp;            public boolean isSendEnabled() {
+&nbsp;
+&nbsp;                return sendEnabled;
+&nbsp;            }
+&nbsp;
+&nbsp;            public void setSendEnabled(boolean sendEnabled) {
+&nbsp;                this.sendEnabled = sendEnabled;
+&nbsp;            }
+&nbsp;
+&nbsp;
+&nbsp;            public boolean isAdminEnabled() {
+&nbsp;                return adminEnabled;
+&nbsp;            }
+&nbsp;
+&nbsp;
+&nbsp;            public boolean isAssignEnabled() {
+&nbsp;                return assignEnabled;
+&nbsp;            }
+&nbsp;
+&nbsp;            public void setAdminEnabled(boolean adminEnabled) {
+&nbsp;                this.adminEnabled = adminEnabled;
+&nbsp;            }
+&nbsp;
+&nbsp;            public boolean isPostEnabled() {
+&nbsp;                return postEnabled;
+&nbsp;            }
+&nbsp;
+&nbsp;            public void setPostEnabled(boolean postEnabled) {
+&nbsp;                this.postEnabled = postEnabled;
+&nbsp;            }
+&nbsp;
+&nbsp;            public void setAssignEnabled(boolean assignEnabled) {
+&nbsp;                this.assignEnabled = assignEnabled;
+&nbsp;
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+&nbsp;            /**
+&nbsp;             * Request body for kicking a member
+&nbsp;             */
+&nbsp;
+<b class="fc">&nbsp;            class KickBody {</b>
+&nbsp;                private int supervisorId;
+&nbsp;
+&nbsp;                public int getSupervisorId() {
+<b class="fc">&nbsp;                    return supervisorId;</b>
+&nbsp;                }
+&nbsp;
+&nbsp;                public void setSupervisorId(int supervisorId) {
+<b class="fc">&nbsp;                    this.supervisorId = supervisorId;</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-05-04 17:14</div>
+</div>
+</body>
+</html>

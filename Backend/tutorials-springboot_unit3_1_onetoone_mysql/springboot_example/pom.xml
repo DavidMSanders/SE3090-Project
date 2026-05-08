@@ -2,78 +2,63 @@
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns="http://maven.apache.org/POM/4.0.0"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-
   <modelVersion>4.0.0</modelVersion>
   <groupId>coms309</groupId>
   <artifactId>onetoone</artifactId>
   <version>1.0.0</version>
 
-  <!-- To make it a spring boot project -->
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>3.3.4</version>
+    <version>3.1.4</version>
   </parent>
 
   <name>one-to-one</name>
 
   <properties>
-
-    <!-- Generic properties -->
-<!--    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>-->
-<!--    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>-->
-<!--    <java.version>11</java.version>-->
-
+    <java.version>17</java.version>
   </properties>
 
   <dependencies>
-
-    <!-- Spring Boot Web dependencies -->
+    <!-- Spring Boot Web -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>
     </dependency>
 
-    <!-- Spring Boot Websocket dependency -->
+    <!-- H2 (in-memory, for local dev/test) -->
     <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-websocket</artifactId>
-    </dependency>
-    
-    <!-- The H2 database dependency -->
-    <dependency>
-        <groupId>com.h2database</groupId>
-        <artifactId>h2</artifactId>
-        <scope>runtime</scope>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
+      <version>1.4.200</version>
+      <scope>runtime</scope>
     </dependency>
 
-    <!-- MYSQL dependencies -->
-<!--	<dependency>-->
-<!--	  <groupId>mysql</groupId>-->
-<!--	  <artifactId>mysql-connector-java</artifactId>-->
-<!--	</dependency>-->
+    <!-- MySQL -->
     <dependency>
       <groupId>com.mysql</groupId>
       <artifactId>mysql-connector-j</artifactId>
     </dependency>
 
-    <!-- The ORM JPA specs/hibernate impl -->
+    <!-- JPA / Hibernate -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-data-jpa</artifactId>
     </dependency>
 
+    <!-- WebSocket -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-websocket</artifactId>
+    </dependency>
+
+    <!-- Jackson Java 8 date/time -->
     <dependency>
       <groupId>com.fasterxml.jackson.datatype</groupId>
       <artifactId>jackson-datatype-jsr310</artifactId>
     </dependency>
 
-    <dependency>
-      <groupId>org.springdoc</groupId>
-      <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-      <version>2.5.0</version>
-    </dependency>
-    <!-- Spring Boot Test -->
+    <!-- Spring Boot Test (JUnit 5 + Mockito) -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-test</artifactId>
@@ -88,13 +73,6 @@
       <scope>test</scope>
     </dependency>
 
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.13.2</version>
-      <scope>test</scope>
-    </dependency>
-
   </dependencies>
 
   <build>
@@ -104,7 +82,7 @@
         <artifactId>spring-boot-maven-plugin</artifactId>
       </plugin>
 
-      <!-- Jacoco coverage plugin -->
+      <!-- JaCoCo coverage -->
       <plugin>
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
@@ -126,6 +104,5 @@
       </plugin>
     </plugins>
   </build>
-  
 
 </project>

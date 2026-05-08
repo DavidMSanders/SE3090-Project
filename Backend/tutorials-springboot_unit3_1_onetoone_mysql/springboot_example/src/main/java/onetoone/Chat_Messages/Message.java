@@ -4,15 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Date;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Lob;
-import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
+import jakarta.persistence.*;
 
 //import lombok.Data;
 
@@ -22,7 +14,6 @@ import jakarta.persistence.TemporalType;
 
 @Entity
 @Table(name = "messages")
-//@Data
 public class Message {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,6 +21,9 @@ public class Message {
 
     @Column(name = "sender_id", nullable = false)
     private Integer originatorId;
+
+    @Column(name = "author_id", nullable = false)
+    private Integer authorId;
 
     @Column(name = "group_id")
     private Integer groupRef;
@@ -42,7 +36,7 @@ public class Message {
     @Column(name = "message_text", nullable = false)
     private String textBody;
 
-    @Column(name = "timeStamp", nullable = false)
+    @Column(name = "time_stamp", nullable = false)
     private LocalDateTime createdTimestamp = LocalDateTime.now();
 
     @Column(name = "is_deleted")
@@ -63,6 +57,7 @@ public class Message {
 
     public Message(Integer originatorId, Integer targetUserId, String textBody) {
         this.originatorId = originatorId;
+        this.authorId = originatorId;
         this.targetUserId = targetUserId;
         this.textBody = textBody;
     }
@@ -70,10 +65,21 @@ public class Message {
 
     public Message(Integer originatorId, Integer groupId, Integer targetUserId, String textBody, String messageType) {
         this.originatorId = originatorId;
+        this.authorId = originatorId;
         this.groupRef = groupId;
         this.targetUserId = targetUserId;
         this.textBody = textBody;
         this.msgCategory = messageType;
+    }
+
+    @PrePersist
+    @PreUpdate
+    private void syncAuthorId() {
+        if (originatorId != null) {
+            this.authorId = originatorId;
+        } else if (authorId != null) {
+            this.originatorId = authorId;
+        }
     }
 
     public static String normalizeMessageType(String type) {
@@ -106,8 +112,17 @@ public class Message {
     }
 
     public void setOriginatorId(Integer originatorId) {
-
         this.originatorId = originatorId;
+        if (originatorId != null) this.authorId = originatorId;
+    }
+
+    public Integer getAuthorId() {
+        return authorId;
+    }
+
+    public void setAuthorId(Integer authorId) {
+        this.authorId = authorId;
+        if (authorId != null) this.originatorId = authorId;
     }
 
     public Integer getGroupId() {
@@ -196,52 +211,4 @@ public class Message {
                 '}';
     }
 }
-    /*@Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "sent")
-    private Date sent = new Date();
-	
-	
-	public Message() {};
-	
-	public Message(String userName, String content) {
-		this.userName = userName;
-		this.content = content;
-	}
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getUserName() {
-        return userName;
-    }
-
-    public void setUserName(String userName) {
-        this.userName = userName;
-    }
-
-    public String getContent() {
-        return content;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
-    }
-
-    public Date getSent() {
-        return sent;
-    }
-
-    public void setSent(Date sent) {
-        this.sent = sent;
-    }
-
-    
-}
-
- **/
 

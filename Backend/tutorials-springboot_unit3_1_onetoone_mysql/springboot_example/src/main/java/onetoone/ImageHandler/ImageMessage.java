@@ -4,89 +4,97 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "messages")
+@Table(name = "image_messages")
 public class ImageMessage {
 
         @Id
         @GeneratedValue(strategy = GenerationType.IDENTITY)
-        private Long msgKey;
+        @Column(name = "id")
+        private Long id;
 
-        @Column(name = "author_id", nullable = false)
-        private Long authorId;
+        @Column(name = "sender_id", nullable = false)
+        private Long senderId;
 
-        @Column(name = "channel_id")
-        private Long channelId;
+        @Column(name = "group_id") // FIXED: removed nullable=false, groupId can be null
+        private Long groupId;
 
-        @Column(name = "media_path", nullable = false)
-        private String mediaPath;
+        @Column(name = "image_url", nullable = false)
+        private String imageUrl;
 
-        @Column(name = "msg_caption")
-        private String msgCaption;
+        @Column(name = "caption")
+        private String caption;
 
-        @Column(name = "dispatch_time")
-        private LocalDateTime dispatchTime;
+        @Column(name = "sent_at")
+        private LocalDateTime sentAt;
 
         public ImageMessage() {}
 
-        public ImageMessage(Long authorId, Long channelId, String mediaPath, String msgCaption) {
-            this.authorId = authorId;
-            this.channelId = channelId;
-            this.mediaPath = mediaPath;
-            this.msgCaption = msgCaption;
-            this.dispatchTime = LocalDateTime.now();
+        public ImageMessage(Long senderId, Long groupId, String imageUrl, String caption) {
+            this.senderId = senderId;
+            this.groupId = groupId;
+            this.imageUrl = imageUrl;
+            this.caption = caption;
+            this.sentAt = LocalDateTime.now();
+    }
+
+
+        public Long getId() {
+
+            return id;
+        }
+        public void setId(Long id) {
+
+            this.id = id;
         }
 
-        public Long getMsgKey() {
-            return msgKey;
-        }
-        public void setMsgKey(Long msgKey) {
-            this.msgKey = msgKey;
-        }
+        public Long getSenderId() {
+        return senderId;
+    }
 
-        public Long getAuthorId() {
-            return authorId;
-        }
-        public void setAuthorId(Long authorId) {
-            this.authorId = authorId;
-        }
+        public void setSenderId(Long senderId) {
+        this.senderId = senderId;
+    }
 
-        public Long getChannelId() {
-            return channelId;
-        }
-        public void setChannelId(Long channelId) {
-            this.channelId = channelId;
-        }
+        public Long getGroupId() {
+        return groupId;
+    }
 
-        public String getMediaPath() {
-            return mediaPath;
-        }
-        public void setMediaPath(String mediaPath) {
-            this.mediaPath = mediaPath;
-        }
+        public void setGroupId(Long groupId) {
+        this.groupId = groupId;
+    }
 
-        public String getMsgCaption() {
-            return msgCaption;
-        }
-        public void setMsgCaption(String msgCaption) {
-            this.msgCaption = msgCaption;
-        }
+        public String getImageUrl() {
+        return imageUrl;
+    }
 
-        public LocalDateTime getDispatchTime() {
-            return dispatchTime;
-        }
-        public void setDispatchTime(LocalDateTime dispatchTime) {
+        public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
 
-            this.dispatchTime = dispatchTime;
-        }
+        public String getCaption() {
+        return caption;
+    }
+
+        public void setCaption(String caption) {
+        this.caption = caption;
+    }
+
+        public LocalDateTime getSentAt() {
+        return sentAt;
+    }
+
+        public void setSentAt(LocalDateTime sentAt) {
+        this.sentAt = sentAt;
+    }
 
         @Override
         public String toString() {
             return "ImageMessage{" +
-                    "msgKey=" + msgKey +
-                    ", authorId=" + authorId +
-                    ", channelId=" + channelId +
-                    ", mediaPath='" + mediaPath + '\'' +
-                    ", dispatchTime=" + dispatchTime +
+                    "id=" + id +
+                    ", senderId=" + senderId +
+                    ", groupId=" + groupId +
+                    ", imageUrl='" + imageUrl + '\'' +
+                    ", sentAt=" + sentAt +
                     '}';
         }
     }

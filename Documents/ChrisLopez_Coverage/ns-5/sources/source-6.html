@@ -1,0 +1,616 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > GroupUpdateRequest</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">onetoone.Groups</a>
+</div>
+
+<h1>Coverage Summary for Class: GroupUpdateRequest (onetoone.Groups)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">GroupUpdateRequest</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    81.8%
+  </span>
+  <span class="absValue">
+    (9/11)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    81.8%
+  </span>
+  <span class="absValue">
+    (9/11)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package onetoone.Groups;
+&nbsp;
+&nbsp;import onetoone.Chat_Messages.MessageRepository;
+&nbsp;import onetoone.Users.User;
+&nbsp;import onetoone.Users.UserRepository;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.http.HttpStatus;
+&nbsp;import org.springframework.http.ResponseEntity;
+&nbsp;import org.springframework.web.bind.annotation.*;
+&nbsp;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.HashMap;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.Optional;
+&nbsp;
+&nbsp;/**
+&nbsp; * Group Controller
+&nbsp; * @author Chris Lopez
+&nbsp; */
+&nbsp;@RestController
+&nbsp;@RequestMapping(&quot;/api/v1/groups&quot;)
+&nbsp;public class GroupController {
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private GroupRepository groupRepo;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private GroupMembershipRepository membershipRepo;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private UserRepository userRepo;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private MessageRepository messageRepo;
+&nbsp;
+&nbsp;    /**
+&nbsp;     * POST /api/v1/groups
+&nbsp;     */
+&nbsp;    @PostMapping
+&nbsp;    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; createGroup(@RequestBody GroupRequest incoming) {
+&nbsp;        Map&lt;String, Object&gt; result = new HashMap&lt;&gt;();
+&nbsp;
+&nbsp;        try {
+&nbsp;            if (incoming.getGroupTitle() == null || incoming.getGroupTitle().trim().isEmpty()) {
+&nbsp;                result.put(&quot;message&quot;, &quot;groupTitle is required&quot;);
+&nbsp;                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
+&nbsp;            }
+&nbsp;
+&nbsp;            if (!incoming.getGroupType().equals(&quot;Trainer Group&quot;) &amp;&amp; !incoming.getGroupType().equals(&quot;Direct Message Group&quot;)) {
+&nbsp;                result.put(&quot;message&quot;, &quot;groupType must be Trainer Group or Direct Message Group&quot;);
+&nbsp;                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
+&nbsp;            }
+&nbsp;
+&nbsp;            Optional&lt;User&gt; creatorQuery = userRepo.findById(incoming.getCreatorId());
+&nbsp;            if (creatorQuery.isEmpty()) {
+&nbsp;                result.put(&quot;message&quot;, &quot;Creator user not found&quot;);
+&nbsp;                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
+&nbsp;            }
+&nbsp;
+&nbsp;            Group newGroup = new Group(
+&nbsp;                    incoming.getGroupTitle(),
+&nbsp;                    incoming.getGroupType(),
+&nbsp;                    incoming.getGroupDetails());
+&nbsp;
+&nbsp;            Group saved = groupRepo.save(newGroup);
+&nbsp;
+&nbsp;            String creatorRole = creatorQuery.get().getRole();
+&nbsp;            String accessLevel = creatorRole.equals(&quot;Trainer&quot;) ? &quot;GROUP_LEADER&quot; : &quot;MEMBER&quot;;
+&nbsp;
+&nbsp;            GroupMembership membership = new GroupMembership(
+&nbsp;                    saved.getGroupId(),
+&nbsp;                    incoming.getCreatorId(),
+&nbsp;                    accessLevel);
+&nbsp;            membershipRepo.save(membership);
+&nbsp;
+&nbsp;            result.put(&quot;groupId&quot;, saved.getGroupId());
+&nbsp;            result.put(&quot;groupName&quot;, saved.getGroupTitle());
+&nbsp;            result.put(&quot;groupType&quot;, saved.getGroupType());
+&nbsp;            result.put(&quot;groupDescription&quot;, saved.getGroupDetails());
+&nbsp;            result.put(&quot;creatorId&quot;, incoming.getCreatorId());
+&nbsp;            result.put(&quot;accessLevel&quot;, accessLevel);
+&nbsp;            result.put(&quot;message&quot;, &quot;Group created successfully&quot;);
+&nbsp;            return ResponseEntity.status(HttpStatus.CREATED).body(result);
+&nbsp;
+&nbsp;        } catch (Exception e) {
+&nbsp;            result.put(&quot;message&quot;, &quot;Error creating group: &quot; + e.getMessage());
+&nbsp;            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @GetMapping
+&nbsp;    public ResponseEntity&lt;List&lt;Map&lt;String, Object&gt;&gt;&gt; fetchAllGroups(
+&nbsp;            @RequestParam int userId,
+&nbsp;            @RequestParam(required = false) String search) {
+&nbsp;        List&lt;Group&gt; allGroups = groupRepo.findAll();
+&nbsp;        List&lt;Map&lt;String, Object&gt;&gt; result = new ArrayList&lt;&gt;();
+&nbsp;
+&nbsp;        for (Group g : allGroups) {
+&nbsp;            if (search != null &amp;&amp; !g.getGroupTitle().toLowerCase().contains(search.toLowerCase())) {
+&nbsp;                continue;
+&nbsp;            }
+&nbsp;
+&nbsp;            Map&lt;String, Object&gt; groupData = new HashMap&lt;&gt;();
+&nbsp;            groupData.put(&quot;groupId&quot;, g.getGroupId());
+&nbsp;            groupData.put(&quot;groupName&quot;, g.getGroupTitle());
+&nbsp;            groupData.put(&quot;groupType&quot;, g.getGroupType());
+&nbsp;            groupData.put(&quot;groupDescription&quot;, g.getGroupDetails());
+&nbsp;
+&nbsp;            Optional&lt;GroupMembership&gt; membershipQuery = membershipRepo.findByGroupIdAndUserId(g.getGroupId(), userId);
+&nbsp;            if (membershipQuery.isPresent()) {
+&nbsp;                groupData.put(&quot;membershipId&quot;, membershipQuery.get().getMembershipId());
+&nbsp;                groupData.put(&quot;membershipRole&quot;, membershipQuery.get().getAccessLevel());
+&nbsp;            } else {
+&nbsp;                groupData.put(&quot;membershipId&quot;, null);
+&nbsp;                groupData.put(&quot;membershipRole&quot;, null);
+&nbsp;            }
+&nbsp;            result.add(groupData);
+&nbsp;        }
+&nbsp;        return ResponseEntity.ok(result);
+&nbsp;    }
+&nbsp;
+&nbsp;    @GetMapping(&quot;/{groupId}&quot;)
+&nbsp;    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; fetchGroupById(@PathVariable int groupId) {
+&nbsp;        Map&lt;String, Object&gt; result = new HashMap&lt;&gt;();
+&nbsp;
+&nbsp;        Group found = groupRepo.findById(groupId).orElse(null);
+&nbsp;        if (found != null) {
+&nbsp;            result.put(&quot;groupId&quot;, found.getGroupId());
+&nbsp;            result.put(&quot;groupName&quot;, found.getGroupTitle());
+&nbsp;            result.put(&quot;groupType&quot;, found.getGroupType());
+&nbsp;            result.put(&quot;groupDescription&quot;, found.getGroupDetails());
+&nbsp;            return ResponseEntity.ok(result);
+&nbsp;
+&nbsp;        } else {
+&nbsp;            result.put(&quot;message&quot;, &quot;Group not found&quot;);
+&nbsp;            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @DeleteMapping(&quot;/{groupId}&quot;)
+&nbsp;    public ResponseEntity&lt;Map&lt;String, String&gt;&gt; removeGroup(@PathVariable int groupId) {
+&nbsp;        Map&lt;String, String&gt; result = new HashMap&lt;&gt;();
+&nbsp;
+&nbsp;        Group found = groupRepo.findById(groupId).orElse(null);
+&nbsp;        if (found != null) {
+&nbsp;            membershipRepo.deleteAll(membershipRepo.findByGroupId(groupId));
+&nbsp;            groupRepo.delete(found);
+&nbsp;            result.put(&quot;message&quot;, &quot;Group deleted sucessfully&quot;);
+&nbsp;            return ResponseEntity.ok(result);
+&nbsp;        } else {
+&nbsp;            result.put(&quot;message&quot;, &quot;Group not found&quot;);
+&nbsp;            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @PostMapping(&quot;/{groupId}/join&quot;)
+&nbsp;    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; joinGroup(@PathVariable int groupId, @RequestBody JoinRequest incoming) {
+&nbsp;        Map&lt;String, Object&gt; result = new HashMap&lt;&gt;();
+&nbsp;
+&nbsp;        Group group = groupRepo.findById(groupId).orElse(null);
+&nbsp;        if (group == null) {
+&nbsp;            result.put(&quot;message&quot;, &quot;Group not found&quot;);
+&nbsp;            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
+&nbsp;        }
+&nbsp;
+&nbsp;        Optional&lt;User&gt; accountQuery = userRepo.findById(incoming.getUserId());
+&nbsp;        if (accountQuery.isEmpty()) {
+&nbsp;            result.put(&quot;message&quot;, &quot;User not found&quot;);
+&nbsp;            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
+&nbsp;        }
+&nbsp;
+&nbsp;        if (membershipRepo.existsByGroupIdAndUserId(groupId, incoming.getUserId())) {
+&nbsp;            result.put(&quot;message&quot;, &quot;User is already a member of this group&quot;);
+&nbsp;            return ResponseEntity.status(HttpStatus.CONFLICT).body(result);
+&nbsp;        }
+&nbsp;
+&nbsp;        String accountRole = accountQuery.get().getRole();
+&nbsp;        String entryLevel = accountRole.equals(&quot;Trainer&quot;) ? &quot;TRAINER&quot; : &quot;MEMBER&quot;;
+&nbsp;
+&nbsp;        GroupMembership newMembership = new GroupMembership(groupId, incoming.getUserId(), entryLevel);
+&nbsp;
+&nbsp;        if (accountRole.equals(&quot;Admin&quot;)) {
+&nbsp;            newMembership.setChatEnabled(true);
+&nbsp;            newMembership.setManageEnabled(true);
+&nbsp;            newMembership.setAnnounceEnabled(true);
+&nbsp;            newMembership.setWorkoutEnabled(true);
+&nbsp;        }
+&nbsp;
+&nbsp;        membershipRepo.save(newMembership);
+&nbsp;
+&nbsp;        result.put(&quot;membershipId&quot;, newMembership.getMembershipId());
+&nbsp;        result.put(&quot;groupId&quot;, groupId);
+&nbsp;        result.put(&quot;userId&quot;, incoming.getUserId());
+&nbsp;        result.put(&quot;membershipRole&quot;, newMembership.getAccessLevel());
+&nbsp;        result.put(&quot;canSendMessages&quot;, newMembership.isChatEnabled());
+&nbsp;        result.put(&quot;canManageMembers&quot;, newMembership.isManageEnabled());
+&nbsp;        result.put(&quot;canPostAnnouncements&quot;, newMembership.isAnnounceEnabled());
+&nbsp;        result.put(&quot;canAssignWorkouts&quot;, newMembership.isWorkoutEnabled());
+&nbsp;        return ResponseEntity.status(HttpStatus.CREATED).body(result);
+&nbsp;    }
+&nbsp;
+&nbsp;    @DeleteMapping(&quot;/{groupId}/leave&quot;)
+&nbsp;    public ResponseEntity&lt;Map&lt;String, String&gt;&gt; leaveGroup(@PathVariable int groupId, @RequestBody JoinRequest incoming) {
+&nbsp;        Map&lt;String, String&gt; result = new HashMap&lt;&gt;();
+&nbsp;
+&nbsp;        Optional&lt;GroupMembership&gt; membershipQuery = membershipRepo.findByGroupIdAndUserId(groupId, incoming.getUserId());
+&nbsp;
+&nbsp;        if (membershipQuery.isPresent()) {
+&nbsp;            membershipRepo.delete(membershipQuery.get());
+&nbsp;            result.put(&quot;message&quot;, &quot;Left group successully&quot;);
+&nbsp;            return ResponseEntity.ok(result);
+&nbsp;        } else {
+&nbsp;            result.put(&quot;message&quot;, &quot;User not a member of this group&quot;);
+&nbsp;            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @GetMapping(&quot;/{groupId}/members&quot;)
+&nbsp;    public ResponseEntity&lt;List&lt;Map&lt;String, Object&gt;&gt;&gt; fetchGroupMembers(@PathVariable int groupId) {
+&nbsp;        List&lt;GroupMembership&gt; membershipList = membershipRepo.findByGroupId(groupId);
+&nbsp;        List&lt;Map&lt;String, Object&gt;&gt; result = new ArrayList&lt;&gt;();
+&nbsp;
+&nbsp;        for (GroupMembership m : membershipList) {
+&nbsp;            Map&lt;String, Object&gt; memberData = new HashMap&lt;&gt;();
+&nbsp;            memberData.put(&quot;membershipId&quot;, m.getMembershipId());
+&nbsp;            memberData.put(&quot;userId&quot;, m.getUserId());
+&nbsp;            memberData.put(&quot;membershipRole&quot;, m.getAccessLevel());
+&nbsp;            memberData.put(&quot;canSendMessages&quot;, m.isChatEnabled());
+&nbsp;            memberData.put(&quot;canManageMembers&quot;, m.isManageEnabled());
+&nbsp;            memberData.put(&quot;canPostAnnouncements&quot;, m.isAnnounceEnabled());
+&nbsp;            memberData.put(&quot;canAssignWorkouts&quot;, m.isWorkoutEnabled());
+&nbsp;
+&nbsp;            Optional&lt;User&gt; accountQuery = userRepo.findById(m.getUserId());
+&nbsp;            memberData.put(&quot;username&quot;, accountQuery.map(User::getAccountName).orElse(&quot;Unknown&quot;));
+&nbsp;            result.add(memberData);
+&nbsp;        }
+&nbsp;        return ResponseEntity.ok(result);
+&nbsp;    }
+&nbsp;
+&nbsp;    @GetMapping(&quot;/{groupId}/members/{userId}&quot;)
+&nbsp;    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; fetchMemberById(@PathVariable int groupId, @PathVariable int userId) {
+&nbsp;        Map&lt;String, Object&gt; result = new HashMap&lt;&gt;();
+&nbsp;
+&nbsp;        Optional&lt;GroupMembership&gt; membershipQuery = membershipRepo.findByGroupIdAndUserId(groupId, userId);
+&nbsp;
+&nbsp;        if (membershipQuery.isPresent()) {
+&nbsp;            GroupMembership m = membershipQuery.get();
+&nbsp;            Optional&lt;User&gt; accountQuery = userRepo.findById(userId);
+&nbsp;
+&nbsp;            result.put(&quot;membershipId&quot;, m.getMembershipId());
+&nbsp;            result.put(&quot;groupId&quot;, m.getGroupId());
+&nbsp;            result.put(&quot;userId&quot;, m.getUserId());
+&nbsp;            result.put(&quot;username&quot;, accountQuery.map(User::getAccountName).orElse(&quot;Unknown&quot;));
+&nbsp;            result.put(&quot;membershipRole&quot;, m.getAccessLevel());
+&nbsp;            result.put(&quot;canSendMessages&quot;, m.isChatEnabled());
+&nbsp;            result.put(&quot;canManageMembers&quot;, m.isManageEnabled());
+&nbsp;            result.put(&quot;canPostAnnouncements&quot;, m.isAnnounceEnabled());
+&nbsp;            result.put(&quot;canAssignWorkouts&quot;, m.isWorkoutEnabled());
+&nbsp;            return ResponseEntity.ok(result);
+&nbsp;        } else {
+&nbsp;            result.put(&quot;message&quot;, &quot;Member not found in this group&quot;);
+&nbsp;            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;    @GetMapping(&quot;/{groupId}/messages&quot;)
+&nbsp;    public ResponseEntity&lt;List&lt;Map&lt;String, Object&gt;&gt;&gt; fetchGroupMessages(@PathVariable int groupId) {
+&nbsp;        List&lt;Map&lt;String, Object&gt;&gt; result = new ArrayList&lt;&gt;();
+&nbsp;        List&lt;onetoone.Chat_Messages.Message&gt; chatLog = messageRepo
+&nbsp;                .findByGroupRefOrderByCreatedTimestampAsc(groupId);
+&nbsp;
+&nbsp;        for (onetoone.Chat_Messages.Message entry : chatLog) {
+&nbsp;            Map&lt;String, Object&gt; messageData = new HashMap&lt;&gt;();
+&nbsp;            messageData.put(&quot;id&quot;, entry.getId());
+&nbsp;            messageData.put(&quot;originatorId&quot;, entry.getOriginatorId());
+&nbsp;            messageData.put(&quot;groupId&quot;, entry.getGroupId());
+&nbsp;            messageData.put(&quot;targetUserId&quot;, entry.getTargetUserId());
+&nbsp;            messageData.put(&quot;messageType&quot;, entry.getMessageType());
+&nbsp;            messageData.put(&quot;textBody&quot;, entry.getTextBody());
+&nbsp;            messageData.put(&quot;createdTimestamp&quot;, entry.getCreatedTimestamp());
+&nbsp;            messageData.put(&quot;editTimestamp&quot;, entry.getEditTimestamp());
+&nbsp;
+&nbsp;            Optional&lt;User&gt; accountQuery = userRepo.findById(entry.getOriginatorId());
+&nbsp;            messageData.put(&quot;username&quot;, accountQuery.map(User::getAccountName).orElse(&quot;Unknown&quot;));
+&nbsp;            result.add(messageData);
+&nbsp;
+&nbsp;        }
+&nbsp;
+&nbsp;        return ResponseEntity.ok(result);
+&nbsp;    }
+&nbsp;
+&nbsp;    @GetMapping(&quot;/user/{userId}&quot;)
+&nbsp;    public ResponseEntity&lt;List&lt;Map&lt;String, Object&gt;&gt;&gt; fetchUserGroups(@PathVariable int userId) {
+&nbsp;        List&lt;GroupMembership&gt; membershipList = membershipRepo.findByUserId(userId);
+&nbsp;        List&lt;Map&lt;String, Object&gt;&gt; result = new ArrayList&lt;&gt;();
+&nbsp;
+&nbsp;        for (GroupMembership m : membershipList) {
+&nbsp;            Group group = groupRepo.findById(m.getGroupId()).orElse(null);
+&nbsp;            if (group != null) {
+&nbsp;                Map&lt;String, Object&gt; groupData = new HashMap&lt;&gt;();
+&nbsp;                groupData.put(&quot;groupId&quot;, group.getGroupId());
+&nbsp;                groupData.put(&quot;groupName&quot;, group.getGroupTitle());
+&nbsp;                groupData.put(&quot;groupType&quot;, group.getGroupType());
+&nbsp;                groupData.put(&quot;membershipRole&quot;, m.getAccessLevel());
+&nbsp;                result.add(groupData);
+&nbsp;            }
+&nbsp;        }
+&nbsp;        return ResponseEntity.ok(result);
+&nbsp;    }
+&nbsp;
+&nbsp;    @PutMapping(&quot;/{groupId}&quot;)
+&nbsp;    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; updateGroup(@PathVariable int groupId, @RequestBody GroupUpdateRequest incoming) {
+&nbsp;        Map&lt;String, Object&gt; result = new HashMap&lt;&gt;();
+&nbsp;
+&nbsp;        Group found = groupRepo.findById(groupId).orElse(null);
+&nbsp;        if (found == null) {
+&nbsp;            result.put(&quot;message&quot;, &quot;Group not found&quot;);
+&nbsp;            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
+&nbsp;        }
+&nbsp;
+&nbsp;        Optional&lt;GroupMembership&gt; requesterLookup = membershipRepo.findByGroupIdAndUserId(groupId, incoming.getRequestUserId());
+&nbsp;        if (requesterLookup.isEmpty() || !requesterLookup.get().getAccessLevel().equals(&quot;GROUP_LEADER&quot;)) {
+&nbsp;            result.put(&quot;message&quot;, &quot;Only GROUP_LEADER can update the group&quot;);
+&nbsp;            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(result);
+&nbsp;        }
+&nbsp;
+&nbsp;        found.setGroupTitle(incoming.getGroupName());
+&nbsp;        found.setGroupDetails(incoming.getGroupDescription());
+&nbsp;        found.setGroupType(incoming.getGroupType());
+&nbsp;        groupRepo.save(found);
+&nbsp;
+&nbsp;        result.put(&quot;groupId&quot;, found.getGroupId());
+&nbsp;        result.put(&quot;requestUserId&quot;, incoming.getRequestUserId());
+&nbsp;        result.put(&quot;groupName&quot;, found.getGroupTitle());
+&nbsp;        result.put(&quot;groupDescription&quot;, found.getGroupDetails());
+&nbsp;        result.put(&quot;groupType&quot;, found.getGroupType());
+&nbsp;        return ResponseEntity.ok(result);
+&nbsp;    }
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;    /**
+&nbsp; * GET /api/v1/groups/{groupId}/assignable-clients?trainerId=3    #18
+&nbsp; * Returns clients in the group that this trainer can assign workouts to.
+&nbsp; *
+&nbsp; * Rule:
+&nbsp; * - requester must be a member of the group
+&nbsp; * - requester must have canAssignWorkouts / workoutEnabled == true
+&nbsp; */
+&nbsp;@GetMapping(&quot;/{groupId}/assignable-clients&quot;)
+&nbsp;public ResponseEntity&lt;List&lt;Map&lt;String, Object&gt;&gt;&gt; getAssignableClients(
+&nbsp;        @PathVariable int groupId,
+&nbsp;        @RequestParam int trainerId) {
+&nbsp;
+&nbsp;    List&lt;Map&lt;String, Object&gt;&gt; res = new ArrayList&lt;&gt;();
+&nbsp;
+&nbsp;    // make sure group exists
+&nbsp;    Group foundGroup = groupRepo.findById(groupId).orElse(null);
+&nbsp;    if (foundGroup == null) {
+&nbsp;        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(res);
+&nbsp;    }
+&nbsp;
+&nbsp;    // make sure requester is in the group
+&nbsp;    Optional&lt;GroupMembership&gt; trainerMembership =
+&nbsp;            membershipRepo.findByGroupIdAndUserId(groupId, trainerId);
+&nbsp;
+&nbsp;    if (trainerMembership.isEmpty()) {
+&nbsp;        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(res);
+&nbsp;    }
+&nbsp;
+&nbsp;    GroupMembership requester = trainerMembership.get();
+&nbsp;
+&nbsp;    // require canAssignWorkouts / workoutEnabled
+&nbsp;    if (!requester.isWorkoutEnabled()) {
+&nbsp;        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(res);
+&nbsp;    }
+&nbsp;
+&nbsp;    // collect all clients in this group except the requester
+&nbsp;    for (GroupMembership gm : membershipRepo.findByGroupId(groupId)) {
+&nbsp;        if (gm.getUserId() == trainerId) {
+&nbsp;            continue;
+&nbsp;        }
+&nbsp;
+&nbsp;        Optional&lt;User&gt; userLookup = userRepo.findById(gm.getUserId());
+&nbsp;        if (userLookup.isEmpty()) {
+&nbsp;            continue;
+&nbsp;        }
+&nbsp;
+&nbsp;        User u = userLookup.get();
+&nbsp;        if (&quot;Client&quot;.equalsIgnoreCase(u.getRole())) {
+&nbsp;            Map&lt;String, Object&gt; map = new HashMap&lt;&gt;();
+&nbsp;            map.put(&quot;userId&quot;, u.getUserId());
+&nbsp;            map.put(&quot;username&quot;, u.getAccountName());
+&nbsp;            res.add(map);
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    return ResponseEntity.ok(res);
+&nbsp;}
+&nbsp;}
+&nbsp;
+&nbsp;/**
+&nbsp; * Request body to create a group
+&nbsp; */
+&nbsp;class GroupRequest {
+&nbsp;
+&nbsp;    private String groupTitle;
+&nbsp;    private String groupType;
+&nbsp;    private String groupDetails;
+&nbsp;    private int creatorId;
+&nbsp;
+&nbsp;    public String getGroupTitle() {
+&nbsp;        return groupTitle;
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setGroupTitle(String groupTitle) {
+&nbsp;        this.groupTitle = groupTitle;
+&nbsp;    }
+&nbsp;
+&nbsp;    public String getGroupType() {
+&nbsp;        return groupType;
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setGroupType(String groupType) {
+&nbsp;        this.groupType = groupType;
+&nbsp;    }
+&nbsp;
+&nbsp;    public String getGroupDetails() {
+&nbsp;        return groupDetails;
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setGroupDetails(String groupDetails) {
+&nbsp;        this.groupDetails = groupDetails;
+&nbsp;    }
+&nbsp;
+&nbsp;    public int getCreatorId() {
+&nbsp;        return creatorId;
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setCreatorId(int creatorId) {
+&nbsp;        this.creatorId = creatorId;
+&nbsp;    }
+&nbsp;}
+&nbsp;
+&nbsp;/**
+&nbsp; * Request body for leaving or joining a group
+&nbsp; */
+&nbsp;class JoinRequest {
+&nbsp;    private int userId;
+&nbsp;
+&nbsp;    public int getUserId() {
+&nbsp;        return userId;
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setUserId(int userId) {
+&nbsp;        this.userId = userId;
+&nbsp;    }
+&nbsp;}
+&nbsp;
+&nbsp;/**
+&nbsp; * Request body for updating a group
+&nbsp; */
+<b class="fc">&nbsp;class GroupUpdateRequest {</b>
+&nbsp;    private int groupId;
+&nbsp;    private int requestUserId;
+&nbsp;    private String groupName;
+&nbsp;    private String groupDescription;
+&nbsp;    private String groupType;
+&nbsp;
+&nbsp;    public int getGroupId() {
+<b class="nc">&nbsp;        return groupId;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setGroupId(int groupId) {
+<b class="nc">&nbsp;        this.groupId = groupId;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public int getRequestUserId() {
+<b class="fc">&nbsp;        return requestUserId;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setRequestUserId(int requestUserId) {
+<b class="fc">&nbsp;        this.requestUserId = requestUserId;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public String getGroupName() {
+<b class="fc">&nbsp;        return groupName;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setGroupName(String groupName) {
+<b class="fc">&nbsp;        this.groupName = groupName;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public String getGroupDescription() {
+<b class="fc">&nbsp;        return groupDescription;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setGroupDescription(String groupDescription) {
+<b class="fc">&nbsp;        this.groupDescription = groupDescription;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public String getGroupType() {
+<b class="fc">&nbsp;        return groupType;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void setGroupType(String groupType) {
+<b class="fc">&nbsp;        this.groupType = groupType;</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-05-04 17:14</div>
+</div>
+</body>
+</html>
