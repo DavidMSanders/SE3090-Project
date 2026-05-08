@@ -43,16 +43,22 @@ public class AssignWorkoutPlanActivity extends AppCompatActivity {
     private ArrayAdapter<UserOption> clientAdapter;
     private ArrayAdapter<WorkoutPlanOption> workoutPlanAdapter;
 
+    private Button btnBackAssignWorkoutPlan;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_assign_workout_plan);
+        AppTopBarController.setup(this);
 
         spinnerGroups = findViewById(R.id.spinnerGroups);
         spinnerClients = findViewById(R.id.spinnerClients);
         spinnerWorkoutPlans = findViewById(R.id.spinnerWorkoutPlans);
         etScheduledDate = findViewById(R.id.etScheduledDate);
         btnAssignWorkoutPlan = findViewById(R.id.btnAssignWorkoutPlan);
+
+        btnBackAssignWorkoutPlan = findViewById(R.id.btnBackAssignWorkoutPlan);
+        btnBackAssignWorkoutPlan.setOnClickListener(v -> finish());
 
         KeepUser keepUser = new KeepUser(this);
         trainerId = keepUser.getUserId();

@@ -19,6 +19,11 @@ public class Message {
 
     private String editTimestamp;
 
+    // Image message fields (used when messageType == "IMAGE")
+    private long imageMessageId;  // backend ID from the images table
+    private String imageUrl;
+    private String caption;
+
     public Message(){}
     public Message(
             long messageId, int originatorId, Integer groupId, Integer targetUserId, String username,
@@ -69,6 +74,13 @@ public class Message {
         } else {
             message.editTimestamp = null;
         }
+
+        if (json.has("imageMessageId") && !json.isNull("imageMessageId")) {
+            message.imageMessageId = json.optLong("imageMessageId", -1);
+        }
+
+        message.imageUrl = json.optString("imageUrl", "");
+        message.caption = json.optString("caption", "");
 
         return message;
     }
@@ -164,6 +176,13 @@ public class Message {
     public void setEditTimestamp(String editTimestamp) {
         this.editTimestamp = editTimestamp;
     }
+
+    public long getImageMessageId() { return imageMessageId; }
+    public void setImageMessageId(long imageMessageId) { this.imageMessageId = imageMessageId; }
+    public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
+    public String getCaption() { return caption; }
+    public void setCaption(String caption) { this.caption = caption; }
 
     @Override
     public String toString() {

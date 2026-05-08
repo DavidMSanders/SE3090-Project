@@ -18,7 +18,6 @@ public class GroupCreateActivity extends AppCompatActivity {
     //private EditText TextCreateGroupType;
     private EditText TextCreateGroupDescription;
     private Button btnSubmitCreateGroup;
-    private Button btnBackFromCreateGroup;
 
     private static final String BASE_URL =
             "http://coms-3090-035.class.las.iastate.edu:8080";
@@ -28,15 +27,14 @@ public class GroupCreateActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_group);
+        AppTopBarController.setup(this);
 
         TextCreateGroupName = findViewById(R.id.etCreateGroupName);
         //TextCreateGroupType = findViewById(R.id.tvCreateGroupTypeValue);
         TextCreateGroupDescription = findViewById(R.id.etCreateGroupDescription);
         btnSubmitCreateGroup = findViewById(R.id.btnSubmitCreateGroup);
-        btnBackFromCreateGroup = findViewById(R.id.btnBackFromCreateGroup);
 
         btnSubmitCreateGroup.setOnClickListener(v -> CreateGroup());
-        btnBackFromCreateGroup.setOnClickListener(v -> finish());
     }
 
     private void CreateGroup() {

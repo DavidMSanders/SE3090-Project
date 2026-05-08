@@ -1,13 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical">
 
-    <LinearLayout
+    <include layout="@layout/view_app_top_bar" />
+
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="16dp">
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+        <!-- Back button -->
+        <Button
+            android:id="@+id/btnBackCreateWorkoutPlan"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:backgroundTint="#0031FD"
+            android:text="Back" />
 
         <EditText
             android:id="@+id/etWorkoutPlanName"
@@ -30,7 +47,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
+            android:backgroundTint="#01AF05"
             android:text="Create Workout Plan" />
 
-    </LinearLayout>
-</ScrollView>
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

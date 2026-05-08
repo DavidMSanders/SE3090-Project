@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TestingActivity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample</a> &gt; <span class="el_source">TestingActivity.java</span></div><h1>TestingActivity.java</h1><pre class="source lang-java linenums">package com.example.androidexample;
+
+import android.os.Bundle;
+import android.widget.Button;
+import android.widget.TextView;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.android.volley.Request;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
+
+import org.json.JSONObject;
+
+<span class="nc" id="L15">public class TestingActivity extends AppCompatActivity {</span>
+
+    private Button btnSetTrainer;
+    private Button btnSetAdmin;
+    private Button btnSetClient;
+    private TextView tvResult;
+
+    private KeepUser keepUser;
+
+    private static final String BASE_URL = &quot;http://coms-3090-035.class.las.iastate.edu:8080&quot;;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+<span class="nc" id="L28">        super.onCreate(savedInstanceState);</span>
+<span class="nc" id="L29">        setContentView(R.layout.activity_testing);</span>
+
+<span class="nc" id="L31">        btnSetTrainer = findViewById(R.id.btnSetTrainer);</span>
+<span class="nc" id="L32">        btnSetAdmin = findViewById(R.id.btnSetAdmin);</span>
+<span class="nc" id="L33">        btnSetClient = findViewById(R.id.btnSetClient);</span>
+<span class="nc" id="L34">        tvResult = findViewById(R.id.tvResult);</span>
+
+<span class="nc" id="L36">        keepUser = new KeepUser(this);</span>
+
+<span class="nc" id="L38">        btnSetTrainer.setOnClickListener(v -&gt; updateRole(&quot;set-trainer&quot;));</span>
+<span class="nc" id="L39">        btnSetAdmin.setOnClickListener(v -&gt; updateRole(&quot;set-admin&quot;));</span>
+<span class="nc" id="L40">        btnSetClient.setOnClickListener(v -&gt; updateRole(&quot;set-client&quot;));</span>
+<span class="nc" id="L41">    }</span>
+
+    private void updateRole(String roleEndpoint) {
+        try {
+<span class="nc" id="L45">            int userId = keepUser.getUserId();</span>
+
+<span class="nc bnc" id="L47" title="All 2 branches missed.">            if (userId == -1) {</span>
+<span class="nc" id="L48">                tvResult.setText(&quot;No logged in user found&quot;);</span>
+<span class="nc" id="L49">                return;</span>
+            }
+
+<span class="nc" id="L52">            String url = BASE_URL + &quot;/api/v1/users/&quot; + userId + &quot;/&quot; + roleEndpoint;</span>
+
+<span class="nc" id="L54">            JSONObject body = new JSONObject(); // empty body</span>
+
+<span class="nc" id="L56">            JsonObjectRequest request = new JsonObjectRequest(</span>
+                    Request.Method.PUT,
+                    url,
+                    body,
+                    response -&gt; {
+<span class="nc" id="L61">                        tvResult.setText(response.toString());</span>
+
+                        try {
+<span class="nc" id="L64">                            int updatedUserId = response.getInt(&quot;userId&quot;);</span>
+<span class="nc" id="L65">                            String updatedRole = response.getString(&quot;role&quot;);</span>
+<span class="nc" id="L66">                            String currentUsername = keepUser.getUsername();</span>
+
+<span class="nc" id="L68">                            keepUser.saveUser(updatedUserId, currentUsername, updatedRole);</span>
+
+<span class="nc" id="L70">                        } catch (Exception e) {</span>
+<span class="nc" id="L71">                            e.printStackTrace();</span>
+<span class="nc" id="L72">                            tvResult.setText(&quot;Response parsing error&quot;);</span>
+<span class="nc" id="L73">                        }</span>
+<span class="nc" id="L74">                    },</span>
+                    error -&gt; {
+<span class="nc bnc" id="L76" title="All 2 branches missed.">                        if (error.networkResponse != null) {</span>
+<span class="nc" id="L77">                            tvResult.setText(&quot;Error: &quot; + error.networkResponse.statusCode);</span>
+                        } else {
+<span class="nc" id="L79">                            tvResult.setText(&quot;Network error: &quot; + error.toString());</span>
+                        }
+<span class="nc" id="L81">                    }</span>
+            );
+
+<span class="nc" id="L84">            Volley.newRequestQueue(this).add(request);</span>
+
+<span class="nc" id="L86">        } catch (Exception e) {</span>
+<span class="nc" id="L87">            e.printStackTrace();</span>
+<span class="nc" id="L88">            tvResult.setText(&quot;Unexpected error&quot;);</span>
+<span class="nc" id="L89">        }</span>
+<span class="nc" id="L90">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

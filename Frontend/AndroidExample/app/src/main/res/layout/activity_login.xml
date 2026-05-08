@@ -5,6 +5,8 @@
     tools:context=".LoginActivity"
     android:layout_height="match_parent"
     android:layout_width="match_parent"
+    android:background="@color/app_bg"
+    android:padding="16dp"
     android:orientation="vertical">
 
     <TextView
@@ -15,7 +17,7 @@
         android:layout_marginTop="100dp"
         android:layout_marginBottom="80dp"
         android:textSize="30dp"
-        android:textColor="#fc0303">
+        android:textColor="@color/app_text_primary">
     </TextView>
 
     <LinearLayout
@@ -30,13 +32,14 @@
             android:layout_height="wrap_content"
             android:text="username: "
             android:textSize="20dp"
-            android:textColor="#000000">
+            android:textColor="@color/app_text_primary">
         </TextView>
 
         <EditText
             android:id="@+id/login_username_edt"
             android:layout_width="wrap_content"
             android:layout_height="50dp"
+            android:backgroundTint="@color/app_divider"
             android:hint="Enter Username Here">
         </EditText>
 
@@ -53,7 +56,7 @@
             android:layout_height="wrap_content"
             android:text="password: "
             android:textSize="20dp"
-            android:textColor="#000000">
+            android:textColor="@color/app_text_primary">
         </TextView>
 
         <EditText
@@ -61,6 +64,7 @@
             android:layout_width="wrap_content"
             android:inputType="textPassword"
             android:layout_height="50dp"
+            android:backgroundTint="@color/app_divider"
             android:hint="Enter Password Here">
         </EditText>
 
@@ -79,8 +83,7 @@
             android:layout_height="wrap_content"
             android:text="Login"
             android:textSize="20sp"
-            android:textColor="#ffffff"
-            android:backgroundTint="#fc0303">
+            android:textColor="@color/button_on_primary">
         </Button>
 
     </LinearLayout>

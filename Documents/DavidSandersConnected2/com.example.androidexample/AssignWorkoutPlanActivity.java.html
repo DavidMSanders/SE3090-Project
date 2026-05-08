@@ -1,0 +1,349 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AssignWorkoutPlanActivity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample</a> &gt; <span class="el_source">AssignWorkoutPlanActivity.java</span></div><h1>AssignWorkoutPlanActivity.java</h1><pre class="source lang-java linenums">package com.example.androidexample;
+
+import android.app.DatePickerDialog;
+import android.os.Bundle;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Spinner;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.android.volley.Request;
+import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.JsonObjectRequest;
+
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
+import java.util.Locale;
+
+<span class="fc" id="L24">public class AssignWorkoutPlanActivity extends AppCompatActivity {</span>
+
+    private Spinner spinnerGroups;
+    private Spinner spinnerClients;
+    private Spinner spinnerWorkoutPlans;
+    private EditText etScheduledDate;
+    private Button btnAssignWorkoutPlan;
+
+    //http://coms-3090-035.class.las.iastate.edu:8080
+    //hhtps
+    private static final String BASE_URL = &quot;http://coms-3090-035.class.las.iastate.edu:8080/api/v1&quot;;
+
+    private int trainerId;
+
+<span class="fc" id="L38">    private final List&lt;GroupOption&gt; groupOptions = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L39">    private final List&lt;UserOption&gt; clientOptions = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L40">    private final List&lt;WorkoutPlanOption&gt; workoutPlanOptions = new ArrayList&lt;&gt;();</span>
+
+    private ArrayAdapter&lt;GroupOption&gt; groupAdapter;
+    private ArrayAdapter&lt;UserOption&gt; clientAdapter;
+    private ArrayAdapter&lt;WorkoutPlanOption&gt; workoutPlanAdapter;
+
+    private Button btnBackAssignWorkoutPlan;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+<span class="fc" id="L50">        super.onCreate(savedInstanceState);</span>
+<span class="fc" id="L51">        setContentView(R.layout.activity_assign_workout_plan);</span>
+
+<span class="fc" id="L53">        spinnerGroups = findViewById(R.id.spinnerGroups);</span>
+<span class="fc" id="L54">        spinnerClients = findViewById(R.id.spinnerClients);</span>
+<span class="fc" id="L55">        spinnerWorkoutPlans = findViewById(R.id.spinnerWorkoutPlans);</span>
+<span class="fc" id="L56">        etScheduledDate = findViewById(R.id.etScheduledDate);</span>
+<span class="fc" id="L57">        btnAssignWorkoutPlan = findViewById(R.id.btnAssignWorkoutPlan);</span>
+
+<span class="fc" id="L59">        btnBackAssignWorkoutPlan = findViewById(R.id.btnBackAssignWorkoutPlan);</span>
+<span class="fc" id="L60">        btnBackAssignWorkoutPlan.setOnClickListener(v -&gt; finish());</span>
+
+<span class="fc" id="L62">        KeepUser keepUser = new KeepUser(this);</span>
+<span class="fc" id="L63">        trainerId = keepUser.getUserId();</span>
+
+<span class="fc" id="L65">        setupAdapters();</span>
+<span class="fc" id="L66">        setupDatePicker();</span>
+
+<span class="fc" id="L68">        loadAssignableGroups();</span>
+<span class="fc" id="L69">        loadWorkoutPlans();</span>
+
+<span class="fc" id="L71">        spinnerGroups.setOnItemSelectedListener(new SimpleItemSelectedListener(position -&gt; {</span>
+<span class="fc" id="L72">            GroupOption selectedGroup = getSelectedGroup();</span>
+<span class="pc bpc" id="L73" title="2 of 4 branches missed.">            if (selectedGroup != null &amp;&amp; selectedGroup.getGroupId() != -1) {</span>
+<span class="nc" id="L74">                loadAssignableClients(selectedGroup.getGroupId());</span>
+            } else {
+<span class="fc" id="L76">                clearClients();</span>
+            }
+<span class="fc" id="L78">        }));</span>
+
+<span class="fc" id="L80">        btnAssignWorkoutPlan.setOnClickListener(v -&gt; assignWorkoutPlan());</span>
+<span class="fc" id="L81">    }</span>
+
+    private void setupAdapters() {
+<span class="fc" id="L84">        groupOptions.add(new GroupOption(-1, &quot;Select Group&quot;));</span>
+<span class="fc" id="L85">        clientOptions.add(new UserOption(-1, &quot;Select Client&quot;));</span>
+<span class="fc" id="L86">        workoutPlanOptions.add(new WorkoutPlanOption(-1, &quot;Select Workout Plan&quot;));</span>
+
+<span class="fc" id="L88">        groupAdapter = new ArrayAdapter&lt;&gt;(this, android.R.layout.simple_spinner_item, groupOptions);</span>
+<span class="fc" id="L89">        groupAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);</span>
+<span class="fc" id="L90">        spinnerGroups.setAdapter(groupAdapter);</span>
+
+<span class="fc" id="L92">        clientAdapter = new ArrayAdapter&lt;&gt;(this, android.R.layout.simple_spinner_item, clientOptions);</span>
+<span class="fc" id="L93">        clientAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);</span>
+<span class="fc" id="L94">        spinnerClients.setAdapter(clientAdapter);</span>
+
+<span class="fc" id="L96">        workoutPlanAdapter = new ArrayAdapter&lt;&gt;(this, android.R.layout.simple_spinner_item, workoutPlanOptions);</span>
+<span class="fc" id="L97">        workoutPlanAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);</span>
+<span class="fc" id="L98">        spinnerWorkoutPlans.setAdapter(workoutPlanAdapter);</span>
+<span class="fc" id="L99">    }</span>
+
+    private void setupDatePicker() {
+<span class="fc" id="L102">        etScheduledDate.setOnClickListener(v -&gt; {</span>
+<span class="fc" id="L103">            Calendar calendar = Calendar.getInstance();</span>
+<span class="fc" id="L104">            int year = calendar.get(Calendar.YEAR);</span>
+<span class="fc" id="L105">            int month = calendar.get(Calendar.MONTH);</span>
+<span class="fc" id="L106">            int day = calendar.get(Calendar.DAY_OF_MONTH);</span>
+
+<span class="fc" id="L108">            DatePickerDialog dialog = new DatePickerDialog(</span>
+                    this,
+                    (view, selectedYear, selectedMonth, selectedDay) -&gt; {
+<span class="fc" id="L111">                        String formattedDate = String.format(</span>
+                                Locale.US,
+                                &quot;%04d-%02d-%02d&quot;,
+<span class="fc" id="L114">                                selectedYear,</span>
+<span class="fc" id="L115">                                selectedMonth + 1,</span>
+<span class="fc" id="L116">                                selectedDay</span>
+                        );
+<span class="fc" id="L118">                        etScheduledDate.setText(formattedDate);</span>
+<span class="fc" id="L119">                    },</span>
+                    year,
+                    month,
+                    day
+            );
+<span class="fc" id="L124">            dialog.show();</span>
+<span class="fc" id="L125">        });</span>
+<span class="fc" id="L126">    }</span>
+
+    private void loadAssignableGroups() {
+<span class="fc" id="L129">        String url = BASE_URL + &quot;/users/&quot; + trainerId + &quot;/assignable-groups&quot;;</span>
+
+<span class="fc" id="L131">        JsonArrayRequest request = new JsonArrayRequest(</span>
+                Request.Method.GET,
+                url,
+                null,
+                response -&gt; {
+<span class="fc" id="L136">                    groupOptions.clear();</span>
+<span class="fc" id="L137">                    groupOptions.add(new GroupOption(-1, &quot;Select Group&quot;));</span>
+
+<span class="fc bfc" id="L139" title="All 2 branches covered.">                    for (int i = 0; i &lt; response.length(); i++) {</span>
+                        try {
+<span class="fc" id="L141">                            JSONObject obj = response.getJSONObject(i);</span>
+<span class="fc" id="L142">                            int groupId = obj.optInt(&quot;groupId&quot;);</span>
+<span class="fc" id="L143">                            String groupName = obj.optString(&quot;groupName&quot;);</span>
+<span class="fc" id="L144">                            groupOptions.add(new GroupOption(groupId, groupName));</span>
+<span class="nc" id="L145">                        } catch (Exception e) {</span>
+<span class="nc" id="L146">                            Toast.makeText(this, &quot;Error parsing groups&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="fc" id="L147">                        }</span>
+                    }
+<span class="fc" id="L149">                    groupAdapter.notifyDataSetChanged();</span>
+<span class="fc" id="L150">                },</span>
+<span class="nc" id="L151">                error -&gt; Toast.makeText(this, &quot;Failed to load groups&quot;, Toast.LENGTH_SHORT).show()</span>
+        );
+
+<span class="fc" id="L154">        VolleySingleton.getInstance(this).addToRequestQueue(request);</span>
+<span class="fc" id="L155">    }</span>
+
+    private void loadAssignableClients(int groupId) {
+<span class="nc" id="L158">        String url = BASE_URL + &quot;/groups/&quot; + groupId + &quot;/assignable-clients?trainerId=&quot; + trainerId;</span>
+
+<span class="nc" id="L160">        JsonArrayRequest request = new JsonArrayRequest(</span>
+                Request.Method.GET,
+                url,
+                null,
+                response -&gt; {
+<span class="nc" id="L165">                    clientOptions.clear();</span>
+<span class="nc" id="L166">                    clientOptions.add(new UserOption(-1, &quot;Select Client&quot;));</span>
+
+<span class="nc bnc" id="L168" title="All 2 branches missed.">                    for (int i = 0; i &lt; response.length(); i++) {</span>
+                        try {
+<span class="nc" id="L170">                            JSONObject obj = response.getJSONObject(i);</span>
+<span class="nc" id="L171">                            int userId = obj.optInt(&quot;userId&quot;);</span>
+<span class="nc" id="L172">                            String username = obj.optString(&quot;username&quot;);</span>
+<span class="nc" id="L173">                            clientOptions.add(new UserOption(userId, username));</span>
+<span class="nc" id="L174">                        } catch (Exception e) {</span>
+<span class="nc" id="L175">                            Toast.makeText(this, &quot;Error parsing clients&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L176">                        }</span>
+                    }
+<span class="nc" id="L178">                    clientAdapter.notifyDataSetChanged();</span>
+<span class="nc" id="L179">                },</span>
+<span class="nc" id="L180">                error -&gt; Toast.makeText(this, &quot;Failed to load clients&quot;, Toast.LENGTH_SHORT).show()</span>
+        );
+
+<span class="nc" id="L183">        VolleySingleton.getInstance(this).addToRequestQueue(request);</span>
+<span class="nc" id="L184">    }</span>
+
+    private void loadWorkoutPlans() {
+<span class="fc" id="L187">        String url = BASE_URL + &quot;/workout-plans/trainer/&quot; + trainerId;</span>
+
+<span class="fc" id="L189">        JsonArrayRequest request = new JsonArrayRequest(</span>
+                Request.Method.GET,
+                url,
+                null,
+                response -&gt; {
+<span class="fc" id="L194">                    workoutPlanOptions.clear();</span>
+<span class="fc" id="L195">                    workoutPlanOptions.add(new WorkoutPlanOption(-1, &quot;Select Workout Plan&quot;));</span>
+
+<span class="pc bpc" id="L197" title="1 of 2 branches missed.">                    for (int i = 0; i &lt; response.length(); i++) {</span>
+                        try {
+<span class="nc" id="L199">                            JSONObject obj = response.getJSONObject(i);</span>
+<span class="nc" id="L200">                            int workoutPlanId = obj.optInt(&quot;workoutPlanId&quot;);</span>
+<span class="nc" id="L201">                            String planName = obj.optString(&quot;planName&quot;);</span>
+<span class="nc" id="L202">                            workoutPlanOptions.add(new WorkoutPlanOption(workoutPlanId, planName));</span>
+<span class="nc" id="L203">                        } catch (Exception e) {</span>
+<span class="nc" id="L204">                            Toast.makeText(this, &quot;Error parsing workout plans&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L205">                        }</span>
+                    }
+<span class="fc" id="L207">                    workoutPlanAdapter.notifyDataSetChanged();</span>
+<span class="fc" id="L208">                },</span>
+<span class="nc" id="L209">                error -&gt; Toast.makeText(this, &quot;Failed to load workout plans&quot;, Toast.LENGTH_SHORT).show()</span>
+        );
+
+<span class="fc" id="L212">        VolleySingleton.getInstance(this).addToRequestQueue(request);</span>
+<span class="fc" id="L213">    }</span>
+
+    private void assignWorkoutPlan() {
+<span class="fc" id="L216">        GroupOption selectedGroup = getSelectedGroup();</span>
+<span class="fc" id="L217">        UserOption selectedClient = getSelectedClient();</span>
+<span class="fc" id="L218">        WorkoutPlanOption selectedPlan = getSelectedWorkoutPlan();</span>
+<span class="fc" id="L219">        String scheduledDate = etScheduledDate.getText().toString().trim();</span>
+
+<span class="pc bpc" id="L221" title="2 of 4 branches missed.">        if (selectedGroup == null || selectedGroup.getGroupId() == -1) {</span>
+<span class="fc" id="L222">            Toast.makeText(this, &quot;Please select a group&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="fc" id="L223">            return;</span>
+        }
+
+<span class="nc bnc" id="L226" title="All 4 branches missed.">        if (selectedClient == null || selectedClient.getUserId() == -1) {</span>
+<span class="nc" id="L227">            Toast.makeText(this, &quot;Please select a client&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L228">            return;</span>
+        }
+
+<span class="nc bnc" id="L231" title="All 4 branches missed.">        if (selectedPlan == null || selectedPlan.getWorkoutPlanId() == -1) {</span>
+<span class="nc" id="L232">            Toast.makeText(this, &quot;Please select a workout plan&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L233">            return;</span>
+        }
+
+<span class="nc bnc" id="L236" title="All 2 branches missed.">        if (scheduledDate.isEmpty()) {</span>
+<span class="nc" id="L237">            Toast.makeText(this, &quot;Please choose a scheduled date&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L238">            return;</span>
+        }
+
+<span class="nc" id="L241">        String url = BASE_URL + &quot;/assigned-workouts&quot;;</span>
+
+        try {
+<span class="nc" id="L244">            JSONObject body = new JSONObject();</span>
+<span class="nc" id="L245">            body.put(&quot;trainerId&quot;, trainerId);</span>
+<span class="nc" id="L246">            body.put(&quot;workoutPlanId&quot;, selectedPlan.getWorkoutPlanId());</span>
+<span class="nc" id="L247">            body.put(&quot;clientId&quot;, selectedClient.getUserId());</span>
+<span class="nc" id="L248">            body.put(&quot;groupId&quot;, selectedGroup.getGroupId());</span>
+<span class="nc" id="L249">            body.put(&quot;scheduledDate&quot;, scheduledDate);</span>
+
+<span class="nc" id="L251">            JsonObjectRequest request = new JsonObjectRequest(</span>
+                    Request.Method.POST,
+                    url,
+                    body,
+                    response -&gt; {
+<span class="nc" id="L256">                        Toast.makeText(this, &quot;Workout assigned successfully&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L257">                        finish();</span>
+<span class="nc" id="L258">                    },</span>
+<span class="nc" id="L259">                    error -&gt; Toast.makeText(this, &quot;Failed to assign workout&quot;, Toast.LENGTH_SHORT).show()</span>
+            );
+
+<span class="nc" id="L262">            VolleySingleton.getInstance(this).addToRequestQueue(request);</span>
+
+<span class="nc" id="L264">        } catch (Exception e) {</span>
+<span class="nc" id="L265">            Toast.makeText(this, &quot;Error building assign request&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L266">        }</span>
+<span class="nc" id="L267">    }</span>
+
+    private void clearClients() {
+<span class="fc" id="L270">        clientOptions.clear();</span>
+<span class="fc" id="L271">        clientOptions.add(new UserOption(-1, &quot;Select Client&quot;));</span>
+<span class="fc" id="L272">        clientAdapter.notifyDataSetChanged();</span>
+<span class="fc" id="L273">    }</span>
+
+    private GroupOption getSelectedGroup() {
+<span class="fc" id="L276">        Object selected = spinnerGroups.getSelectedItem();</span>
+<span class="pc bpc" id="L277" title="1 of 2 branches missed.">        return selected instanceof GroupOption ? (GroupOption) selected : null;</span>
+    }
+
+    private UserOption getSelectedClient() {
+<span class="fc" id="L281">        Object selected = spinnerClients.getSelectedItem();</span>
+<span class="pc bpc" id="L282" title="1 of 2 branches missed.">        return selected instanceof UserOption ? (UserOption) selected : null;</span>
+    }
+
+    private WorkoutPlanOption getSelectedWorkoutPlan() {
+<span class="fc" id="L286">        Object selected = spinnerWorkoutPlans.getSelectedItem();</span>
+<span class="pc bpc" id="L287" title="1 of 2 branches missed.">        return selected instanceof WorkoutPlanOption ? (WorkoutPlanOption) selected : null;</span>
+    }
+
+    // ---------- helper model classes ----------
+
+    private static class GroupOption {
+        private final int groupId;
+        private final String groupName;
+
+<span class="fc" id="L296">        GroupOption(int groupId, String groupName) {</span>
+<span class="fc" id="L297">            this.groupId = groupId;</span>
+<span class="fc" id="L298">            this.groupName = groupName;</span>
+<span class="fc" id="L299">        }</span>
+
+        int getGroupId() {
+<span class="fc" id="L302">            return groupId;</span>
+        }
+
+        @Override
+        public String toString() {
+<span class="fc" id="L307">            return groupName;</span>
+        }
+    }
+
+    private static class UserOption {
+        private final int userId;
+        private final String username;
+
+<span class="fc" id="L315">        UserOption(int userId, String username) {</span>
+<span class="fc" id="L316">            this.userId = userId;</span>
+<span class="fc" id="L317">            this.username = username;</span>
+<span class="fc" id="L318">        }</span>
+
+        int getUserId() {
+<span class="nc" id="L321">            return userId;</span>
+        }
+
+        @Override
+        public String toString() {
+<span class="fc" id="L326">            return username;</span>
+        }
+    }
+
+    private static class WorkoutPlanOption {
+        private final int workoutPlanId;
+        private final String planName;
+
+<span class="fc" id="L334">        WorkoutPlanOption(int workoutPlanId, String planName) {</span>
+<span class="fc" id="L335">            this.workoutPlanId = workoutPlanId;</span>
+<span class="fc" id="L336">            this.planName = planName;</span>
+<span class="fc" id="L337">        }</span>
+
+        int getWorkoutPlanId() {
+<span class="nc" id="L340">            return workoutPlanId;</span>
+        }
+
+        @Override
+        public String toString() {
+<span class="fc" id="L345">            return planName;</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

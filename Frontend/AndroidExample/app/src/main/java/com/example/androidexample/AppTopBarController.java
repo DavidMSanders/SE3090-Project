@@ -9,6 +9,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.PopupMenu;
 
+import androidx.activity.ComponentActivity;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
@@ -19,12 +20,22 @@ public final class AppTopBarController {
     private AppTopBarController() {
     }
 
-    public static void setup(Activity activity) {
-        Button notificationButton = activity.findViewById(R.id.btnTopNotification);
-        Button homeButton = activity.findViewById(R.id.btnTopHome);
-        Button userMenuButton = activity.findViewById(R.id.btnTopUserMenu);
+    public static void refreshNotificationIndicator(Activity activity) {
+        if (activity == null) {
+            return;
+        }
+        View notificationDot = activity.findViewById(R.id.viewTopNotificationDot);
+        updateNotificationDot(notificationDot, activity);
+    }
 
-        if (notificationButton == null || homeButton == null || userMenuButton == null) {
+    public static void setup(Activity activity) {
+        Button backButton = activity.findViewById(R.id.btnTopBack);
+        View notificationButton = activity.findViewById(R.id.btnTopNotification);
+        View notificationDot = activity.findViewById(R.id.viewTopNotificationDot);
+        Button homeButton = activity.findViewById(R.id.btnTopHome);
+        View userMenuButton = activity.findViewById(R.id.btnTopUserMenu);
+
+        if (backButton == null || notificationButton == null || homeButton == null || userMenuButton == null) {
             return;
         }
 
@@ -60,7 +71,19 @@ public final class AppTopBarController {
 
         KeepUser keepUser = new KeepUser(activity);
         String username = keepUser.getDisplayUsername();
-        userMenuButton.setText(username + " v");
+
+        if (activity instanceof MainActivity) {
+            backButton.setVisibility(View.GONE);
+        } else {
+            backButton.setVisibility(View.VISIBLE);
+            backButton.setOnClickListener(v -> {
+                if (activity instanceof ComponentActivity) {
+                    ((ComponentActivity) activity).getOnBackPressedDispatcher().onBackPressed();
+                } else {
+                    activity.onBackPressed();
+                }
+            });
+        }
 
         AppNotificationManager.requestNotificationPermissionIfNeeded(activity);
         NotificationSyncManager.getInstance(activity).startForCurrentUser();
@@ -68,6 +91,8 @@ public final class AppTopBarController {
         if ("No notifications yet".equals(AppNotificationManager.getLatestNotification(activity))) {
             AppNotificationManager.addNotification(activity, "Welcome, " + username + "!");
         }
+
+        updateNotificationDot(notificationDot, activity);
 
         homeButton.setOnClickListener(v -> {
             if (!(activity instanceof MainActivity)) {
@@ -77,9 +102,22 @@ public final class AppTopBarController {
             }
         });
 
-        notificationButton.setOnClickListener(v -> showNotificationsDropdown(activity, v));
+        notificationButton.setOnClickListener(v -> {
+            showNotificationsDropdown(activity, v);
+            AppNotificationManager.markNotificationsRead(activity);
+            updateNotificationDot(notificationDot, activity);
+        });
 
-        userMenuButton.setOnClickListener(v -> showUserMenu(activity, v, username));
+        userMenuButton.setOnClickListener(v -> showUserMenu(activity, v));
+    }
+
+    private static void updateNotificationDot(View notificationDot, Activity activity) {
+        if (notificationDot == null) {
+            return;
+        }
+
+        boolean hasUnread = AppNotificationManager.hasUnreadNotifications(activity);
+        notificationDot.setVisibility(hasUnread ? View.VISIBLE : View.GONE);
     }
 
     private static void showNotificationsDropdown(Activity activity, View anchor) {
@@ -114,12 +152,13 @@ public final class AppTopBarController {
         popupMenu.show();
     }
 
-    private static void showUserMenu(Activity activity, View anchor, String username) {
+    private static void showUserMenu(Activity activity, View anchor) {
         PopupMenu popupMenu = new PopupMenu(activity, anchor);
         KeepUser keepUser = new KeepUser(activity);
         popupMenu.getMenuInflater().inflate(R.menu.user_dropdown_menu, popupMenu.getMenu());
 
-        popupMenu.getMenu().findItem(R.id.menu_username).setTitle("Signed in as: " + username);
+        popupMenu.getMenu().findItem(R.id.menu_username)
+                .setTitle("Signed in as: " + keepUser.getDisplayUsername());
 
         popupMenu.setOnMenuItemClickListener(menuItem -> {
             int itemId = menuItem.getItemId();

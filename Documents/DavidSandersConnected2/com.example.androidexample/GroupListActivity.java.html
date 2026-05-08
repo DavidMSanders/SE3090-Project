@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GroupListActivity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample</a> &gt; <span class="el_source">GroupListActivity.java</span></div><h1>GroupListActivity.java</h1><pre class="source lang-java linenums">package com.example.androidexample;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.android.volley.Request;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.List;
+
+<span class="fc" id="L23">public class GroupListActivity extends AppCompatActivity {</span>
+
+    private EditText etSearchGroups;
+    private RecyclerView recyclerView;
+    private GroupAdapter adapter;
+    private List&lt;Group&gt; groupList;
+
+    private Button btnBackFromGroups;
+    private Button btnSearchGroups;
+
+    private Button btnCreateGroup;
+
+
+
+    private static final String BASE_URL =
+            &quot;http://coms-3090-035.class.las.iastate.edu:8080&quot;;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState){
+<span class="fc" id="L42">        super.onCreate(savedInstanceState);</span>
+<span class="fc" id="L43">        setContentView(R.layout.activity_list_group);</span>
+
+<span class="fc" id="L45">        etSearchGroups = findViewById(R.id.etSearchGroups);</span>
+<span class="fc" id="L46">        btnBackFromGroups = findViewById(R.id.btnBackFromGroups);</span>
+<span class="fc" id="L47">        btnSearchGroups = findViewById(R.id.btnSearchGroups);</span>
+<span class="fc" id="L48">        recyclerView = findViewById(R.id.rvGroups);</span>
+
+<span class="fc" id="L50">        btnCreateGroup = findViewById(R.id.btnCreateGroup);</span>
+
+
+
+<span class="fc" id="L54">        recyclerView.setLayoutManager(new LinearLayoutManager(this));</span>
+        //grouplist before adapter
+<span class="fc" id="L56">        groupList = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L57">        adapter = new GroupAdapter(this, groupList);</span>
+
+<span class="fc" id="L59">        recyclerView.setAdapter(adapter);</span>
+
+        //initial loading of groups
+<span class="fc" id="L62">        getGroups(&quot;&quot;);</span>
+
+<span class="fc" id="L64">        btnSearchGroups.setOnClickListener(v -&gt; {</span>
+<span class="nc" id="L65">            String searchQuery = etSearchGroups.getText().toString().trim();</span>
+<span class="nc" id="L66">            getGroups(searchQuery);</span>
+<span class="nc" id="L67">        });</span>
+
+<span class="fc" id="L69">        KeepUser keepUser = new KeepUser(this);</span>
+<span class="fc" id="L70">        String role = keepUser.getRole(); //getRole()</span>
+
+<span class="pc bpc" id="L72" title="2 of 4 branches missed.">        if (role != null &amp;&amp; role.equalsIgnoreCase(&quot;trainer&quot;)) {</span>
+<span class="fc" id="L73">            btnCreateGroup.setVisibility(Button.VISIBLE);</span>
+        } else {
+<span class="nc" id="L75">            btnCreateGroup.setVisibility(Button.GONE);</span>
+        }
+
+<span class="fc" id="L78">        btnCreateGroup.setOnClickListener(v -&gt; {</span>
+<span class="nc" id="L79">            Toast.makeText(this, &quot;Go to Create Group page&quot;, Toast.LENGTH_SHORT).show();</span>
+
+
+<span class="nc" id="L82">            Intent intent = new Intent(GroupListActivity.this, GroupCreateActivity.class);</span>
+<span class="nc" id="L83">            startActivity(intent);</span>
+<span class="nc" id="L84">        });</span>
+
+<span class="fc" id="L86">        btnBackFromGroups.setOnClickListener(v -&gt; {</span>
+<span class="nc" id="L87">            finish();</span>
+<span class="nc" id="L88">        });</span>
+<span class="fc" id="L89">    }</span>
+
+    private void getGroups(String searchQuery){
+<span class="fc" id="L92">        KeepUser keepUser = new KeepUser(this);</span>
+<span class="fc" id="L93">        int userId = keepUser.getUserId();</span>
+
+<span class="pc bpc" id="L95" title="1 of 2 branches missed.">        if (userId == -1) {</span>
+<span class="nc" id="L96">            Toast.makeText(this, &quot;No logged in user found&quot;, Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L97">            return;</span>
+        }
+
+<span class="fc" id="L100">        String url = BASE_URL + &quot;/api/v1/groups?userId=&quot; + userId;</span>
+<span class="pc bpc" id="L101" title="1 of 2 branches missed.">        if (!searchQuery.isEmpty()) {</span>
+<span class="nc" id="L102">            url += &quot;&amp;search=&quot; + searchQuery;</span>
+        }
+
+<span class="fc" id="L105">        JsonArrayRequest request = new JsonArrayRequest(</span>
+                Request.Method.GET,
+                url,
+                null,
+                this::parseGroupsResponse,
+<span class="nc" id="L110">                error -&gt; Toast.makeText(</span>
+                        GroupListActivity.this,
+<span class="nc" id="L112">                        &quot;Failed to load groups: &quot; + readableVolleyError(error),</span>
+                        Toast.LENGTH_LONG
+<span class="nc" id="L114">                ).show()</span>
+        );
+
+<span class="fc" id="L117">        VolleySingleton.getInstance(this).addToRequestQueue(request);</span>
+
+<span class="fc" id="L119">    }</span>
+    private void parseGroupsResponse(JSONArray response) {
+<span class="fc" id="L121">        groupList.clear(); //first clear</span>
+
+<span class="fc bfc" id="L123" title="All 2 branches covered.">        for (int i = 0; i &lt; response.length(); i++) {</span>
+            try {
+<span class="fc" id="L125">                JSONObject groupJson = response.getJSONObject(i);</span>
+<span class="fc" id="L126">                int groupId = groupJson.getInt(&quot;groupId&quot;);</span>
+<span class="fc" id="L127">                String groupName = groupJson.getString(&quot;groupName&quot;);</span>
+<span class="fc" id="L128">                String groupType = groupJson.getString(&quot;groupType&quot;);</span>
+<span class="fc" id="L129">                String groupDescription = groupJson.getString(&quot;groupDescription&quot;);</span>
+
+<span class="fc" id="L131">                Integer membershipId = null;</span>
+<span class="pc bpc" id="L132" title="1 of 4 branches missed.">                if (groupJson.has(&quot;membershipId&quot;) &amp;&amp; !groupJson.isNull(&quot;membershipId&quot;)) {</span>
+<span class="fc" id="L133">                    membershipId = groupJson.getInt(&quot;membershipId&quot;);</span>
+                }
+
+<span class="fc" id="L136">                String membershipRole = null;</span>
+<span class="pc bpc" id="L137" title="1 of 4 branches missed.">                if (groupJson.has(&quot;membershipRole&quot;) &amp;&amp; !groupJson.isNull(&quot;membershipRole&quot;)) {</span>
+<span class="fc" id="L138">                    membershipRole = groupJson.getString(&quot;membershipRole&quot;);</span>
+                }
+
+<span class="fc" id="L141">                Group group = new Group(groupId, groupName, groupType, groupDescription, membershipId, membershipRole);</span>
+
+<span class="fc" id="L143">                groupList.add(group);</span>
+
+
+<span class="nc" id="L146">            } catch (Exception e) {</span>
+<span class="nc" id="L147">                Toast.makeText(</span>
+                        GroupListActivity.this,
+<span class="nc" id="L149">                        &quot;Failed to parse group: &quot; + e.getMessage(),</span>
+                        Toast.LENGTH_LONG
+<span class="nc" id="L151">                ).show();</span>
+<span class="nc" id="L152">                return;</span>
+<span class="fc" id="L153">            }</span>
+
+        }
+        //update group adapter
+<span class="fc" id="L157">        adapter.notifyDataSetChanged();</span>
+
+<span class="pc bpc" id="L159" title="1 of 2 branches missed.">        if (groupList.isEmpty()) {</span>
+<span class="nc" id="L160">            Toast.makeText(this, &quot;No groups found&quot;, Toast.LENGTH_SHORT).show();</span>
+        }
+
+<span class="fc" id="L163">    }</span>
+
+    private String readableVolleyError(VolleyError error) {
+<span class="nc bnc" id="L166" title="All 2 branches missed.">        if(error==null) return &quot;Unknown error&quot;;</span>
+<span class="nc bnc" id="L167" title="All 2 branches missed.">        if(error.networkResponse!=null) {</span>
+<span class="nc" id="L168">            return &quot;HTTP &quot; + error.networkResponse.statusCode;</span>
+        }
+        else {
+<span class="nc" id="L171">            return error.toString();</span>
+        }
+    }
+
+    @Override
+    protected void onResume() {
+<span class="fc" id="L177">        super.onResume();</span>
+<span class="fc" id="L178">        getGroups(&quot;&quot;);</span>
+<span class="fc" id="L179">    }</span>
+
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

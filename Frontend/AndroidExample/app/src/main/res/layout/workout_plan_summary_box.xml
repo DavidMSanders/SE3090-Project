@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="14dp"
+    android:layout_marginBottom="12dp"
+    android:background="#EEEEEE">
+
+    <TextView
+        android:id="@+id/txtPlanName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Plan Name"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="6dp" />
+
+    <TextView
+        android:id="@+id/txtPlanId"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Plan ID: 0"
+        android:textSize="14sp"
+        android:layout_marginBottom="8dp" />
+
+    <TextView
+        android:id="@+id/txtCounts"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Accepted: 0 | Rejected: 0 | Completed: 0 | Pending: 0"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="10dp" />
+
+    <TextView
+        android:id="@+id/txtAcceptedUsers"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Accepted: none"
+        android:textSize="14sp"
+        android:layout_marginBottom="4dp" />
+
+    <TextView
+        android:id="@+id/txtRejectedUsers"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Rejected: none"
+        android:textSize="14sp"
+        android:layout_marginBottom="4dp" />
+
+    <TextView
+        android:id="@+id/txtCompletedUsers"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Completed: none"
+        android:textSize="14sp"
+        android:layout_marginBottom="4dp" />
+
+    <TextView
+        android:id="@+id/txtPendingUsers"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Pending: none"
+        android:textSize="14sp" />
+
+</LinearLayout>

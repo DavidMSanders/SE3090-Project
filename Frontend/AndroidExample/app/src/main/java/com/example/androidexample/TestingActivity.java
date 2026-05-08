@@ -27,6 +27,7 @@ public class TestingActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_testing);
+        AppTopBarController.setup(this);
 
         btnSetTrainer = findViewById(R.id.btnSetTrainer);
         btnSetAdmin = findViewById(R.id.btnSetAdmin);

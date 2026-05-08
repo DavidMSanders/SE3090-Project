@@ -1,0 +1,753 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GroupChatActivity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample</a> &gt; <span class="el_source">GroupChatActivity.java</span></div><h1>GroupChatActivity.java</h1><pre class="source lang-java linenums">package com.example.androidexample;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.android.volley.Request;
+import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+
+<span class="nc" id="L29">public class GroupChatActivity extends AppCompatActivity {</span>
+
+
+    private RecyclerView recyclerViewMessages;
+    private EditText etMessageInput;
+    private Button btnSendMessage;
+
+    private Button btnBackFromChat;
+
+    private Button btnUpdateGroup;
+
+    private Button btnLeaveGroup;
+
+
+    private MessageAdapter messageAdapter;
+<span class="nc" id="L44">    private final ArrayList&lt;Message&gt; messageList = new ArrayList&lt;&gt;();</span>
+
+    private int currentUserId;
+    private String currentUsername;
+    private int currentGroupId;
+    private String groupName;
+    private String groupDescription;
+    private String groupType;
+
+
+
+
+    //membership booleans and role
+<span class="nc" id="L57">    private boolean canSendMessages = false;</span>
+<span class="nc" id="L58">    private boolean canManageMembers = false;</span>
+<span class="nc" id="L59">    private boolean canPostAnnouncements = false;</span>
+<span class="nc" id="L60">    private boolean canAssignWorkouts = false;</span>
+
+    private String membershipRole;
+
+    private ChatWebSocketManager chatWebSocketManager;
+
+
+    //flags for MESSAGE TYPE
+
+<span class="nc" id="L69">    private boolean sendAsAnnouncement= false;</span>
+    private Button btnAnnouncement;
+<span class="nc" id="L71">    private boolean sendAsDirect= false;</span>
+<span class="nc" id="L72">    private Integer pendingTargetUserId = null;</span>
+
+<span class="nc" id="L74">    private boolean isEditingMessage = false;</span>
+<span class="nc" id="L75">    private Long editingMessageId = null;</span>
+
+
+    private static final String BASE_URL = &quot;http://coms-3090-035.class.las.iastate.edu:8080&quot;;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+<span class="nc" id="L82">        Log.d(&quot;TEST_LOG&quot;, &quot;App started&quot;);</span>
+<span class="nc" id="L83">        super.onCreate(savedInstanceState);</span>
+<span class="nc" id="L84">        setContentView(R.layout.activity_group_chat);</span>
+<span class="nc" id="L85">        recyclerViewMessages = findViewById(R.id.rvChatMessages);</span>
+<span class="nc" id="L86">        etMessageInput = findViewById(R.id.etChatMessage);</span>
+<span class="nc" id="L87">        btnSendMessage = findViewById(R.id.btnSendMessage);</span>
+<span class="nc" id="L88">        btnBackFromChat = findViewById(R.id.btnBackFromChat);</span>
+
+<span class="nc" id="L90">        btnAnnouncement = findViewById(R.id.btnAnnouncement);</span>
+<span class="nc" id="L91">        btnUpdateGroup = findViewById(R.id.btnUpdateGroup);</span>
+
+<span class="nc" id="L93">        btnLeaveGroup = findViewById(R.id.btnLeaveGroup);</span>
+
+
+<span class="nc" id="L96">        KeepUser user = new KeepUser(this);</span>
+<span class="nc" id="L97">        currentUserId = user.getUserId();</span>
+<span class="nc" id="L98">        currentUsername = user.getUsername();</span>
+
+        //currentUserId = getIntent().getIntExtra(&quot;currentUserId&quot;, -1);
+        //currentUsername = getIntent().getStringExtra(&quot;currentUsername&quot;);
+
+<span class="nc" id="L103">        currentGroupId = getIntent().getIntExtra(&quot;groupId&quot;, -1);</span>
+
+<span class="nc" id="L105">        groupName = getIntent().getStringExtra(&quot;groupName&quot;);</span>
+<span class="nc" id="L106">        groupDescription = getIntent().getStringExtra(&quot;groupDescription&quot;);</span>
+<span class="nc" id="L107">        groupType = getIntent().getStringExtra(&quot;groupType&quot;);</span>
+
+<span class="nc" id="L109">        TextView tvGroupTitle = findViewById(R.id.tvChatGroupTitle);</span>
+
+<span class="nc bnc" id="L111" title="All 4 branches missed.">        if (groupName != null &amp;&amp; !groupName.trim().isEmpty()) {</span>
+<span class="nc" id="L112">            tvGroupTitle.setText(groupName);</span>
+        } else {
+<span class="nc" id="L114">            tvGroupTitle.setText(&quot;Group Chat&quot;);</span>
+        }
+
+<span class="nc" id="L117">        setupRecyclerView();</span>
+<span class="nc" id="L118">        fetchMembershipAndInit();</span>
+        //had to be put inside INIT function
+        //loadInitialMessages();
+        //setupWebSocket();
+<span class="nc" id="L122">        setupSendButton();</span>
+<span class="nc" id="L123">        setupAnnouncementButton();</span>
+
+<span class="nc" id="L125">        btnUpdateGroup.setOnClickListener(v -&gt; {</span>
+<span class="nc" id="L126">            Intent intent = new Intent(GroupChatActivity.this, Activity_Update_Group.class);</span>
+
+<span class="nc" id="L128">            intent.putExtra(&quot;groupId&quot;, currentGroupId);</span>
+<span class="nc" id="L129">            intent.putExtra(&quot;groupName&quot;, groupName);</span>
+<span class="nc" id="L130">            intent.putExtra(&quot;groupDescription&quot;, groupDescription);</span>
+<span class="nc" id="L131">            intent.putExtra(&quot;groupType&quot;, groupType);</span>
+
+<span class="nc" id="L133">            startActivity(intent);</span>
+<span class="nc" id="L134">        });</span>
+
+<span class="nc" id="L136">        btnBackFromChat.setOnClickListener(v -&gt; {</span>
+<span class="nc" id="L137">            finish();</span>
+<span class="nc" id="L138">        });</span>
+
+<span class="nc" id="L140">        btnLeaveGroup.setOnClickListener(v -&gt; {</span>
+<span class="nc" id="L141">            new AlertDialog.Builder(GroupChatActivity.this)</span>
+<span class="nc" id="L142">                    .setTitle(&quot;Leave Group&quot;)</span>
+<span class="nc" id="L143">                    .setMessage(&quot;Are you sure you want to leave this group?&quot;)</span>
+<span class="nc" id="L144">                    .setPositiveButton(&quot;Leave&quot;, (dialog, which) -&gt; {</span>
+<span class="nc bnc" id="L145" title="All 2 branches missed.">                        if (chatWebSocketManager != null) {</span>
+<span class="nc" id="L146">                            chatWebSocketManager.sendLeaveGroup(currentGroupId);</span>
+<span class="nc" id="L147">                            finish();</span>
+                        } else {
+<span class="nc" id="L149">                            Toast.makeText(</span>
+                                    GroupChatActivity.this,
+                                    &quot;Not connected to chat&quot;,
+                                    Toast.LENGTH_LONG
+<span class="nc" id="L153">                            ).show();</span>
+                        }
+<span class="nc" id="L155">                    })</span>
+<span class="nc" id="L156">                    .setNegativeButton(&quot;Cancel&quot;, null)</span>
+<span class="nc" id="L157">                    .show();</span>
+
+<span class="nc" id="L159">        });</span>
+<span class="nc" id="L160">    }</span>
+    private void setupRecyclerView() {
+        //messageAdapter = new MessageAdapter(messageList, currentUserId);
+<span class="nc" id="L163">        LinearLayoutManager layoutManager = new LinearLayoutManager(this); // test -w</span>
+<span class="nc" id="L164">        layoutManager.setStackFromEnd(false); //</span>
+
+<span class="nc" id="L166">        recyclerViewMessages.setLayoutManager(layoutManager); //</span>
+        //recyclerViewMessages.setAdapter(messageAdapter);
+
+<span class="nc" id="L169">    }</span>
+
+    //setup adapter now
+    private void setupAdapter() {
+<span class="nc" id="L173">        messageAdapter = new MessageAdapter(</span>
+                messageList,
+                currentUserId,
+                canManageMembers,
+<span class="nc" id="L177">                new MessageAdapter.OnMessageMenuActionListener() {</span>
+                    @Override
+                    public void onDirectMessage(Message message) {
+                        // Turn on DIRECT mode for next outgoing message
+<span class="nc" id="L181">                        enableDirectMode(message.getOriginatorId());</span>
+<span class="nc" id="L182">                        Toast.makeText(</span>
+                                GroupChatActivity.this,
+<span class="nc" id="L184">                                &quot;Next message will be direct to &quot; + message.getUsername(),</span>
+                                Toast.LENGTH_LONG
+<span class="nc" id="L186">                        ).show();</span>
+<span class="nc" id="L187">                    }</span>
+
+                    @Override
+                    public void onEditPermissions(Message message) {
+                        // Open the edit-permissions dialog
+                        //for getting user info
+<span class="nc" id="L193">                        fetchTargetMembershipAndShowDialog(message);</span>
+<span class="nc" id="L194">                    }</span>
+
+                    @Override
+                    public void onEditMessage(Message message) {
+                        // For now, just put existing text into input box for editing
+
+<span class="nc" id="L200">                        isEditingMessage = true;</span>
+<span class="nc" id="L201">                        editingMessageId = message.getMessageId();</span>
+
+
+<span class="nc" id="L204">                        etMessageInput.setText(message.getTextBody());</span>
+<span class="nc" id="L205">                        etMessageInput.setSelection(etMessageInput.getText().length());</span>
+
+<span class="nc" id="L207">                        btnSendMessage.setText(&quot;Save Edit&quot;);</span>
+
+<span class="nc" id="L209">                        Toast.makeText(</span>
+                                GroupChatActivity.this,
+                                &quot;Editing your message&quot;,
+                                Toast.LENGTH_LONG
+<span class="nc" id="L213">                        ).show();</span>
+<span class="nc" id="L214">                    }</span>
+                    @Override
+                    public void onDeleteMessage(Message message) {
+<span class="nc" id="L217">                        new AlertDialog.Builder(GroupChatActivity.this)</span>
+<span class="nc" id="L218">                                .setTitle(&quot;Delete Message&quot;)</span>
+<span class="nc" id="L219">                                .setMessage(&quot;Delete this message?&quot;)</span>
+<span class="nc" id="L220">                                .setPositiveButton(&quot;Delete&quot;, (dialog, which) -&gt; {</span>
+<span class="nc bnc" id="L221" title="All 2 branches missed.">                                    if (chatWebSocketManager != null) {</span>
+<span class="nc" id="L222">                                        chatWebSocketManager.sendDeleteMessage(message.getMessageId());</span>
+                                    }
+<span class="nc" id="L224">                                })</span>
+<span class="nc" id="L225">                                .setNegativeButton(&quot;Cancel&quot;, null)</span>
+<span class="nc" id="L226">                                .show();</span>
+<span class="nc" id="L227">                    }</span>
+                }
+
+        );
+
+<span class="nc" id="L232">        recyclerViewMessages.setAdapter(messageAdapter);</span>
+<span class="nc" id="L233">    }</span>
+    private void loadInitialMessages() {
+
+<span class="nc" id="L236">            String url = BASE_URL + &quot;/api/v1/messages/group/&quot; + currentGroupId;</span>
+
+<span class="nc" id="L238">            JsonArrayRequest request = new JsonArrayRequest(</span>
+                    Request.Method.GET,
+                    url,
+                    null,
+                    response -&gt; {
+<span class="nc" id="L243">                        messageList.clear();</span>
+
+<span class="nc bnc" id="L245" title="All 2 branches missed.">                        for (int i = 0; i &lt; response.length(); i++) {</span>
+                            try {
+<span class="nc" id="L247">                                JSONObject obj = response.getJSONObject(i);</span>
+<span class="nc" id="L248">                                Message message = Message.fromJson(obj);</span>
+<span class="nc bnc" id="L249" title="All 2 branches missed.">                                if(canSeeMessage(message)) {</span>
+<span class="nc" id="L250">                                    messageList.add(message);</span>
+                                }
+<span class="nc" id="L252">                            } catch (JSONException e) {</span>
+<span class="nc" id="L253">                                e.printStackTrace();</span>
+<span class="nc" id="L254">                            }</span>
+                        }
+
+<span class="nc" id="L257">                        messageAdapter.notifyDataSetChanged();</span>
+
+<span class="nc bnc" id="L259" title="All 2 branches missed.">                        if (!messageList.isEmpty()) {</span>
+<span class="nc" id="L260">                            recyclerViewMessages.scrollToPosition(messageAdapter.getItemCount() - 1);</span>
+                        }
+<span class="nc" id="L262">                    },</span>
+<span class="nc" id="L263">                    error -&gt; Toast.makeText(</span>
+                            GroupChatActivity.this,
+                            &quot;Failed to load chat history&quot;,
+                            Toast.LENGTH_LONG
+<span class="nc" id="L267">                    ).show()</span>
+            );
+
+<span class="nc" id="L270">            Volley.newRequestQueue(this).add(request);</span>
+<span class="nc" id="L271">    }</span>
+
+
+
+    private void setupWebSocket() {
+<span class="nc" id="L276">        Log.d(&quot;CHAT_TRACE&quot;, &quot;setupWebSocket() called. currentUserId=&quot; + currentUserId</span>
+                + &quot;, currentGroupId=&quot; + currentGroupId);
+<span class="nc" id="L278">        chatWebSocketManager = new ChatWebSocketManager();</span>
+
+<span class="nc" id="L280">        chatWebSocketManager.connect(currentUserId, new ChatWebSocketManager.SocketConnectListener() {</span>
+            @Override
+            public void onConnected() {
+<span class="nc" id="L283">                Log.d(&quot;CHAT_TRACE&quot;, &quot;Socket onConnected() fired&quot;);</span>
+<span class="nc" id="L284">                chatWebSocketManager.setGroupEventListener(currentGroupId, new ChatWebSocketManager.GroupEventListener() {</span>
+                    @Override
+                    public void onEventReceived(ChatSocketEvent event) {
+<span class="nc" id="L287">                        Log.d(&quot;CHAT_TRACE&quot;, &quot;onEventReceived() fired. eventType=&quot;</span>
+<span class="nc bnc" id="L288" title="All 2 branches missed.">                                + (event != null ? event.getEventType() : &quot;null&quot;));</span>
+<span class="nc" id="L289">                        runOnUiThread(() -&gt; handleSocketEvent(event));</span>
+<span class="nc" id="L290">                    }</span>
+                });
+
+<span class="nc" id="L293">                Log.d(&quot;CHAT_TRACE&quot;, &quot;setGroupEventListener() finished for groupId=&quot; + currentGroupId);</span>
+<span class="nc" id="L294">            }</span>
+
+            @Override
+            public void onError(String errorMessage) {
+<span class="nc" id="L298">                Log.e(&quot;CHAT_TRACE&quot;, &quot;Socket onError(): &quot; + errorMessage);</span>
+<span class="nc" id="L299">                runOnUiThread(() -&gt;</span>
+<span class="nc" id="L300">                        Toast.makeText(GroupChatActivity.this, errorMessage, Toast.LENGTH_LONG).show()</span>
+                );
+<span class="nc" id="L302">            }</span>
+        });
+<span class="nc" id="L304">    }</span>
+
+    private void handleSocketEvent(ChatSocketEvent event) {
+<span class="nc" id="L307">        Log.d(&quot;CHAT_TRACE&quot;, &quot;handleSocketEvent() called. eventType=&quot;</span>
+<span class="nc bnc" id="L308" title="All 2 branches missed.">                + (event != null ? event.getEventType() : &quot;null&quot;));</span>
+
+<span class="nc bnc" id="L310" title="All 4 branches missed.">        if (event == null || event.getEventType() == null) return;</span>
+
+<span class="nc bnc" id="L312" title="All 8 branches missed.">        switch (event.getEventType()) {</span>
+
+            //handle CONNECTED event from backend
+            case &quot;CONNECTED&quot;:
+                // backend confirmed connection — do nothing or log
+<span class="nc" id="L317">                break;</span>
+
+            //handle ERROR event from backend
+            // was receiving [SYSTEM] text — now receives JSON ERROR event
+            case &quot;ERROR&quot;:
+<span class="nc" id="L322">                new AlertDialog.Builder(GroupChatActivity.this)</span>
+<span class="nc" id="L323">                        .setTitle(&quot;Send Error&quot;)</span>
+<span class="nc" id="L324">                        .setMessage(event.getErrorMessage())</span>
+<span class="nc" id="L325">                        .setPositiveButton(&quot;OK&quot;, null)</span>
+<span class="nc" id="L326">                        .show();</span>
+<span class="nc" id="L327">                break;</span>
+
+            case &quot;MESSAGE_CREATED&quot;:
+<span class="nc" id="L330">                Log.d(&quot;CHAT_TRACE&quot;, &quot;MESSAGE_CREATED case hit&quot;);</span>
+                /*
+                if (event.getMessage() != null &amp;&amp;
+                        canSeeMessage(event.getMessage())) {
+                    messageAdapter.addMessage(event.getMessage());
+                    recyclerViewMessages.scrollToPosition(
+                            messageAdapter.getItemCount() - 1);
+                }
+                */
+
+<span class="nc" id="L340">                Log.d(&quot;CHAT_UI&quot;, &quot;MESSAGE_CREATED received&quot;);</span>
+<span class="nc" id="L341">                Log.d(&quot;CHAT_UI&quot;, &quot;event message = &quot; + event.getMessage());</span>
+<span class="nc bnc" id="L342" title="All 2 branches missed.">                if (event.getMessage() != null) {</span>
+<span class="nc" id="L343">                    Log.d(&quot;CHAT_UI&quot;, &quot;originatorId=&quot; + event.getMessage().getOriginatorId()</span>
+                            + &quot;, currentUserId=&quot; + currentUserId
+<span class="nc" id="L345">                            + &quot;, type=&quot; + event.getMessage().getMessageType()</span>
+<span class="nc" id="L346">                            + &quot;, targetUserId=&quot; + event.getMessage().getTargetUserId()</span>
+<span class="nc" id="L347">                            + &quot;, canSee=&quot; + canSeeMessage(event.getMessage()));</span>
+<span class="nc" id="L348">                    Log.d(&quot;CHAT_TRACE&quot;, &quot;messageId=&quot; + event.getMessage().getMessageId()</span>
+<span class="nc" id="L349">                            + &quot;, originatorId=&quot; + event.getMessage().getOriginatorId()</span>
+<span class="nc" id="L350">                            + &quot;, groupId=&quot; + event.getMessage().getGroupId()</span>
+<span class="nc" id="L351">                            + &quot;, type=&quot; + event.getMessage().getMessageType()</span>
+<span class="nc" id="L352">                            + &quot;, canSee=&quot; + canSeeMessage(event.getMessage()));</span>
+                }
+                else{
+<span class="nc" id="L355">                    Log.d(&quot;CHAT_TRACE&quot;, &quot;event.getMessage() is null&quot;);</span>
+                }
+<span class="nc bnc" id="L357" title="All 4 branches missed.">                if (event.getMessage() != null &amp;&amp; canSeeMessage(event.getMessage())) {</span>
+<span class="nc" id="L358">                    messageAdapter.addMessage(event.getMessage());</span>
+<span class="nc" id="L359">                    Log.d(&quot;CHAT_TRACE&quot;, &quot;messageAdapter.addMessage() called&quot;);</span>
+<span class="nc" id="L360">                    recyclerViewMessages.scrollToPosition(messageAdapter.getItemCount() - 1);</span>
+                }
+
+                break;
+
+            case &quot;MESSAGE_UPDATED&quot;:
+<span class="nc bnc" id="L366" title="All 2 branches missed.">                if (event.getMessage() != null) {</span>
+<span class="nc" id="L367">                    messageAdapter.updateMessage(event.getMessage());</span>
+                }
+                break;
+
+            case &quot;MESSAGE_DELETED&quot;:
+<span class="nc bnc" id="L372" title="All 2 branches missed.">                if (event.getMessageId() != null) {</span>
+<span class="nc" id="L373">                    messageAdapter.removeMessageById(event.getMessageId());</span>
+                }
+                break;
+
+            case &quot;GROUP_MEMBER_REMOVED&quot;:
+<span class="nc bnc" id="L378" title="All 4 branches missed.">                if (event.getTargetUserId() != null &amp;&amp; event.getTargetUserId() == currentUserId) {</span>
+<span class="nc" id="L379">                    Toast.makeText(</span>
+                            GroupChatActivity.this,
+                            &quot;You left the group&quot;,
+                            Toast.LENGTH_LONG
+<span class="nc" id="L383">                    ).show();</span>
+<span class="nc" id="L384">                    finish();</span>
+                }
+                break;
+
+            case &quot;GROUP_PERMISSION_UPDATED&quot;:
+<span class="nc bnc" id="L389" title="All 2 branches missed.">                if (event.getTargetUserId() != null &amp;&amp;</span>
+<span class="nc bnc" id="L390" title="All 2 branches missed.">                        event.getTargetUserId() == currentUserId) {</span>
+<span class="nc bnc" id="L391" title="All 2 branches missed.">                    if (event.getMembershipRole() != null) {</span>
+<span class="nc" id="L392">                        membershipRole = event.getMembershipRole();</span>
+                    }
+<span class="nc" id="L394">                    canSendMessages = event.isCanSendMessages();</span>
+<span class="nc" id="L395">                    canManageMembers = event.isCanManageMembers();</span>
+<span class="nc" id="L396">                    canPostAnnouncements = event.isCanPostAnnouncements();</span>
+<span class="nc" id="L397">                    canAssignWorkouts = event.isCanAssignWorkouts();</span>
+<span class="nc" id="L398">                    updatePermissionUI();</span>
+<span class="nc" id="L399">                    setupAdapter();</span>
+<span class="nc" id="L400">                    loadInitialMessages();</span>
+<span class="nc" id="L401">                    Toast.makeText(</span>
+                            GroupChatActivity.this,
+                            &quot;Your group permissions were updated&quot;,
+                            Toast.LENGTH_LONG
+<span class="nc" id="L405">                    ).show();</span>
+                }
+                break;
+        }
+<span class="nc" id="L409">    }</span>
+
+    private void setupSendButton() {
+<span class="nc" id="L412">        btnSendMessage.setOnClickListener(v -&gt; {</span>
+<span class="nc" id="L413">            String text = etMessageInput.getText().toString().trim();</span>
+
+<span class="nc bnc" id="L415" title="All 2 branches missed.">            if (text.isEmpty()) {</span>
+<span class="nc" id="L416">                return;</span>
+            }
+
+            // check groupId is valid before sending
+            // if -1 the intent extra was not passed correctly
+<span class="nc bnc" id="L421" title="All 2 branches missed.">            if (currentGroupId == -1) {</span>
+<span class="nc" id="L422">                Toast.makeText(GroupChatActivity.this,</span>
+                        &quot;Error: invalid group ID&quot;,
+<span class="nc" id="L424">                        Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L425">                return;</span>
+            }
+
+            // check WebSocket is connected before sending
+<span class="nc bnc" id="L429" title="All 2 branches missed.">            if (chatWebSocketManager == null) {</span>
+<span class="nc" id="L430">                Toast.makeText(GroupChatActivity.this,</span>
+                        &quot;Error: not connected to chat&quot;,
+<span class="nc" id="L432">                        Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L433">                return;</span>
+            }
+
+            // EDIT existing message
+<span class="nc bnc" id="L437" title="All 4 branches missed.">            if (isEditingMessage &amp;&amp; editingMessageId != null) {</span>
+<span class="nc" id="L438">                chatWebSocketManager.sendEditMessage(editingMessageId, text);</span>
+
+<span class="nc" id="L440">                etMessageInput.setText(&quot;&quot;);</span>
+<span class="nc" id="L441">                isEditingMessage = false;</span>
+<span class="nc" id="L442">                editingMessageId = null;</span>
+<span class="nc" id="L443">                btnSendMessage.setText(&quot;Send&quot;);</span>
+<span class="nc" id="L444">                return;</span>
+            }
+
+<span class="nc" id="L447">            String messageType = resolveOutgoingMessageType();</span>
+
+<span class="nc" id="L449">            SendMessageRequest request = new SendMessageRequest(</span>
+                    currentGroupId,
+                    messageType,
+<span class="nc bnc" id="L452" title="All 2 branches missed.">                    sendAsDirect ? pendingTargetUserId : null,</span>
+                    text
+            );
+
+<span class="nc" id="L456">            chatWebSocketManager.sendGroupMessage(request);</span>
+<span class="nc" id="L457">            etMessageInput.setText(&quot;&quot;);</span>
+
+<span class="nc bnc" id="L459" title="All 2 branches missed.">            if (sendAsAnnouncement) {</span>
+<span class="nc" id="L460">                disableAnnouncementMode();</span>
+            }
+
+<span class="nc bnc" id="L463" title="All 2 branches missed.">            if (sendAsDirect) {</span>
+<span class="nc" id="L464">                disableDirectMode();</span>
+            }
+<span class="nc" id="L466">        });</span>
+<span class="nc" id="L467">    }</span>
+    @Override
+    protected void onDestroy() {
+<span class="nc" id="L470">        super.onDestroy();</span>
+
+<span class="nc bnc" id="L472" title="All 2 branches missed.">        if (chatWebSocketManager != null) {</span>
+<span class="nc" id="L473">            chatWebSocketManager.disconnect();</span>
+        }
+<span class="nc" id="L475">    }</span>
+
+    private boolean canSeeMessage(Message message) {
+<span class="nc bnc" id="L478" title="All 2 branches missed.">        if(message == null) return false;</span>
+
+        // All non-direct messages are visible
+<span class="nc bnc" id="L481" title="All 2 branches missed.">        if (!&quot;DIRECT&quot;.equalsIgnoreCase(message.getMessageType())) {</span>
+<span class="nc" id="L482">            return true;</span>
+        }
+
+        //Sender can see their own direct message
+<span class="nc bnc" id="L486" title="All 2 branches missed.">        if (message.getOriginatorId() == currentUserId) {</span>
+<span class="nc" id="L487">            return true;</span>
+        }
+
+        // Recipient can see it
+<span class="nc" id="L491">        Integer targetUserId = message.getTargetUserId();</span>
+<span class="nc bnc" id="L492" title="All 4 branches missed.">        if (targetUserId != null &amp;&amp; targetUserId == currentUserId) {</span>
+<span class="nc" id="L493">            return true;</span>
+        }
+
+        //members with management permission are able to see these messages
+<span class="nc bnc" id="L497" title="All 2 branches missed.">        if(canManageMembers)</span>
+        {
+<span class="nc" id="L499">            return true;</span>
+        }
+<span class="nc" id="L501">        return false;</span>
+    }
+
+    private void fetchMembershipAndInit() {
+<span class="nc" id="L505">        String url = BASE_URL + &quot;/api/v1/groupMemberships/user/&quot; + currentUserId + &quot;/group/&quot; + currentGroupId;</span>
+
+<span class="nc" id="L507">        JsonObjectRequest request = new JsonObjectRequest(</span>
+                Request.Method.GET,
+                url,
+                null,
+                response -&gt; {
+                    try {
+                        //SET ALL PERMISSIONS
+<span class="nc" id="L514">                        membershipRole = response.getString(&quot;membershipRole&quot;);</span>
+
+<span class="nc" id="L516">                        canSendMessages = response.getBoolean(&quot;canSendMessages&quot;);</span>
+<span class="nc" id="L517">                        canManageMembers = response.getBoolean(&quot;canManageMembers&quot;);</span>
+<span class="nc" id="L518">                        canPostAnnouncements = response.getBoolean(&quot;canPostAnnouncements&quot;);</span>
+<span class="nc" id="L519">                        canAssignWorkouts = response.getBoolean(&quot;canAssignWorkouts&quot;);</span>
+
+<span class="nc" id="L521">                    } catch (JSONException e) {</span>
+<span class="nc" id="L522">                        e.printStackTrace();</span>
+<span class="nc" id="L523">                    }</span>
+
+                    // continue normal flow
+<span class="nc" id="L526">                    setupAdapter();</span>
+<span class="nc" id="L527">                    loadInitialMessages();</span>
+
+<span class="nc bnc" id="L529" title="All 2 branches missed.">                    if (canPostAnnouncements) {</span>
+<span class="nc" id="L530">                        btnAnnouncement.setVisibility(View.VISIBLE);</span>
+                    } else {
+<span class="nc" id="L532">                        btnAnnouncement.setVisibility(View.GONE);</span>
+                    }
+<span class="nc" id="L534">                    btnSendMessage.setEnabled(canSendMessages);</span>
+<span class="nc bnc" id="L535" title="All 2 branches missed.">                    if(!canSendMessages){</span>
+<span class="nc" id="L536">                        btnSendMessage.setText(&quot;MUTED&quot;);</span>
+                    }
+
+                    //update group button visibility
+<span class="nc bnc" id="L540" title="All 2 branches missed.">                    if (&quot;GROUP_LEADER&quot;.equals(membershipRole)) {</span>
+<span class="nc" id="L541">                        btnUpdateGroup.setVisibility(View.VISIBLE);</span>
+                    } else {
+<span class="nc" id="L543">                        btnUpdateGroup.setVisibility(View.GONE);</span>
+                    }
+
+<span class="nc" id="L546">                    setupWebSocket();</span>
+<span class="nc" id="L547">                },</span>
+                error -&gt; {
+<span class="nc" id="L549">                    error.printStackTrace();</span>
+
+<span class="nc" id="L551">                    Toast.makeText(</span>
+                            GroupChatActivity.this,
+                            &quot;Failed to load membership&quot;,
+                            Toast.LENGTH_LONG
+<span class="nc" id="L555">                    ).show();</span>
+
+                    // fallback: everything false
+<span class="nc" id="L558">                    canSendMessages = false;</span>
+<span class="nc" id="L559">                    canManageMembers = false;</span>
+<span class="nc" id="L560">                    canPostAnnouncements = false;</span>
+<span class="nc" id="L561">                    canAssignWorkouts = false;</span>
+                    //needs to do it here because the req is asyn so it needs to do the checks first
+
+<span class="nc" id="L564">                    setupAdapter();</span>
+<span class="nc" id="L565">                    loadInitialMessages();</span>
+
+<span class="nc bnc" id="L567" title="All 2 branches missed.">                    if (canPostAnnouncements) {</span>
+<span class="nc" id="L568">                        btnAnnouncement.setVisibility(View.VISIBLE);</span>
+                    } else {
+<span class="nc" id="L570">                        btnAnnouncement.setVisibility(View.GONE);</span>
+                    }
+<span class="nc" id="L572">                    btnSendMessage.setEnabled(canSendMessages);</span>
+<span class="nc bnc" id="L573" title="All 2 branches missed.">                    if(!canSendMessages){</span>
+<span class="nc" id="L574">                        btnSendMessage.setText(&quot;MUTED&quot;);</span>
+                    }
+<span class="nc" id="L576">                    setupWebSocket();</span>
+<span class="nc" id="L577">                }</span>
+        );
+
+<span class="nc" id="L580">        Volley.newRequestQueue(this).add(request);</span>
+<span class="nc" id="L581">    }</span>
+
+    private void enableAnnouncementMode() {
+<span class="nc" id="L584">        sendAsAnnouncement = true;</span>
+<span class="nc" id="L585">        sendAsDirect = false;</span>
+<span class="nc" id="L586">        pendingTargetUserId = null;</span>
+
+<span class="nc" id="L588">        btnAnnouncement.setText(&quot;Announcement ON&quot;);</span>
+<span class="nc" id="L589">    }</span>
+
+    private void disableAnnouncementMode() {
+<span class="nc" id="L592">        sendAsAnnouncement = false;</span>
+<span class="nc" id="L593">        btnAnnouncement.setText(&quot;Announcement&quot;);</span>
+<span class="nc" id="L594">    }</span>
+
+    private void enableDirectMode(int targetUserId) {
+<span class="nc" id="L597">        sendAsDirect = true;</span>
+<span class="nc" id="L598">        pendingTargetUserId = targetUserId;</span>
+
+<span class="nc" id="L600">        sendAsAnnouncement = false;</span>
+<span class="nc" id="L601">        btnAnnouncement.setText(&quot;Announcement&quot;);</span>
+<span class="nc" id="L602">    }</span>
+
+    private void disableDirectMode() {
+<span class="nc" id="L605">        sendAsDirect = false;</span>
+<span class="nc" id="L606">        pendingTargetUserId = null;</span>
+<span class="nc" id="L607">    }</span>
+
+    private void setupAnnouncementButton() {
+<span class="nc" id="L610">        btnAnnouncement.setOnClickListener(v -&gt; {</span>
+
+            //toggle between announcement modes
+<span class="nc bnc" id="L613" title="All 2 branches missed.">            if (sendAsAnnouncement) {</span>
+<span class="nc" id="L614">                disableAnnouncementMode();</span>
+                //Toast.makeText(this, &quot;Announcement mode cancelled&quot;, Toast.LENGTH_LONG).show();
+            } else {
+<span class="nc" id="L617">                enableAnnouncementMode();</span>
+                //Toast.makeText(this, &quot;Your next message will be sent as an announcement&quot;, Toast.LENGTH_LONG).show();
+            }
+<span class="nc" id="L620">        });</span>
+<span class="nc" id="L621">    }</span>
+
+    private String resolveOutgoingMessageType() {
+<span class="nc bnc" id="L624" title="All 2 branches missed.">        if (sendAsAnnouncement) {</span>
+<span class="nc" id="L625">            return &quot;ANNOUNCEMENT&quot;;</span>
+        }
+
+<span class="nc bnc" id="L628" title="All 2 branches missed.">        if (sendAsDirect) {</span>
+<span class="nc" id="L629">            return &quot;DIRECT&quot;;</span>
+        }
+
+<span class="nc bnc" id="L632" title="All 2 branches missed.">        if (membershipRole != null &amp;&amp;</span>
+<span class="nc bnc" id="L633" title="All 2 branches missed.">                (membershipRole.equalsIgnoreCase(&quot;trainer&quot;)</span>
+<span class="nc bnc" id="L634" title="All 2 branches missed.">                        || membershipRole.equalsIgnoreCase(&quot;group_leader&quot;))) {</span>
+<span class="nc" id="L635">            return &quot;TRAINER&quot;;</span>
+        }
+
+<span class="nc" id="L638">        return &quot;NORMAL&quot;;</span>
+    }
+
+    private void fetchTargetMembershipAndShowDialog(Message message) {
+<span class="nc" id="L642">        String url = BASE_URL + &quot;/api/v1/groupMemberships/user/&quot; + message.getOriginatorId() + &quot;/group/&quot; +currentGroupId ;</span>
+
+<span class="nc" id="L644">        JsonObjectRequest request = new JsonObjectRequest(</span>
+                Request.Method.GET,
+                url,
+                null,
+<span class="nc" id="L648">                response -&gt; showEditPermissionsDialog(message, response),</span>
+<span class="nc" id="L649">                error -&gt; Toast.makeText(</span>
+                        GroupChatActivity.this,
+                        &quot;Failed to load target membership&quot;,
+                        Toast.LENGTH_LONG
+<span class="nc" id="L653">                ).show()</span>
+        );
+
+<span class="nc" id="L656">        Volley.newRequestQueue(this).add(request);</span>
+<span class="nc" id="L657">    }</span>
+
+    private void showEditPermissionsDialog(Message message, JSONObject membershipJson) {
+<span class="nc" id="L660">        View dialogView = getLayoutInflater().inflate(R.layout.chat_edit_permissions, null);</span>
+
+<span class="nc" id="L662">        TextView tvTargetUsername = dialogView.findViewById(R.id.tvTargetUsername);</span>
+<span class="nc" id="L663">        CheckBox cbCanSendMessages = dialogView.findViewById(R.id.cbCanSendMessages);</span>
+<span class="nc" id="L664">        CheckBox cbCanManageMembers = dialogView.findViewById(R.id.cbCanManageMembers);</span>
+<span class="nc" id="L665">        CheckBox cbCanPostAnnouncements = dialogView.findViewById(R.id.cbCanPostAnnouncements);</span>
+<span class="nc" id="L666">        CheckBox cbCanAssignWorkouts = dialogView.findViewById(R.id.cbCanAssignWorkouts);</span>
+<span class="nc" id="L667">        Button btnSavePermissions = dialogView.findViewById(R.id.btnSavePermissions);</span>
+
+<span class="nc" id="L669">        tvTargetUsername.setText(&quot;Editing: &quot; + message.getUsername());</span>
+
+        try {
+<span class="nc" id="L672">            cbCanSendMessages.setChecked(membershipJson.getBoolean(&quot;canSendMessages&quot;));</span>
+<span class="nc" id="L673">            cbCanManageMembers.setChecked(membershipJson.getBoolean(&quot;canManageMembers&quot;));</span>
+<span class="nc" id="L674">            cbCanPostAnnouncements.setChecked(membershipJson.getBoolean(&quot;canPostAnnouncements&quot;));</span>
+<span class="nc" id="L675">            cbCanAssignWorkouts.setChecked(membershipJson.getBoolean(&quot;canAssignWorkouts&quot;));</span>
+<span class="nc" id="L676">        } catch (JSONException e) {</span>
+<span class="nc" id="L677">            e.printStackTrace();</span>
+<span class="nc" id="L678">        }</span>
+
+<span class="nc" id="L680">        AlertDialog dialog = new AlertDialog.Builder(this)</span>
+<span class="nc" id="L681">                .setView(dialogView)</span>
+<span class="nc" id="L682">                .create();</span>
+
+<span class="nc" id="L684">        btnSavePermissions.setOnClickListener(v -&gt; {</span>
+<span class="nc" id="L685">            sendPermissionUpdate(</span>
+<span class="nc" id="L686">                    message.getOriginatorId(),</span>
+<span class="nc" id="L687">                    cbCanSendMessages.isChecked(),</span>
+<span class="nc" id="L688">                    cbCanManageMembers.isChecked(),</span>
+<span class="nc" id="L689">                    cbCanPostAnnouncements.isChecked(),</span>
+<span class="nc" id="L690">                    cbCanAssignWorkouts.isChecked()</span>
+            );
+
+<span class="nc" id="L693">            dialog.dismiss();</span>
+<span class="nc" id="L694">        });</span>
+<span class="nc" id="L695">        dialog.show();</span>
+<span class="nc" id="L696">    }</span>
+
+    //fake rn
+    private void sendPermissionUpdate(int targetUserId,
+                                      boolean newCanSendMessages,
+                                      boolean newCanManageMembers,
+                                      boolean newCanPostAnnouncements,
+                                      boolean newCanAssignWorkouts) {
+        try {
+<span class="nc" id="L705">            JSONObject payload = new JSONObject();</span>
+
+<span class="nc" id="L707">            payload.put(&quot;eventType&quot; ,&quot;UPDATE_PERMISSIONS&quot;);</span>
+<span class="nc" id="L708">            payload.put(&quot;groupId&quot;, currentGroupId);</span>
+            //payload.put(&quot;requestUserId&quot;, currentUserId);
+<span class="nc" id="L710">            payload.put(&quot;targetUserId&quot;, targetUserId);</span>
+
+            // full overwrite
+<span class="nc" id="L713">            payload.put(&quot;membershipRole&quot;, &quot;MEMBER&quot;);</span>
+<span class="nc" id="L714">            payload.put(&quot;canSendMessages&quot;, newCanSendMessages);</span>
+<span class="nc" id="L715">            payload.put(&quot;canManageMembers&quot;, newCanManageMembers);</span>
+<span class="nc" id="L716">            payload.put(&quot;canPostAnnouncements&quot;, newCanPostAnnouncements);</span>
+<span class="nc" id="L717">            payload.put(&quot;canAssignWorkouts&quot;, newCanAssignWorkouts);</span>
+
+
+            // Later send this to backend via ws
+
+<span class="nc" id="L722">             chatWebSocketManager.sendPermissionUpdate(payload);</span>
+
+<span class="nc" id="L724">            Toast.makeText(</span>
+                    this,
+                    &quot;Permissions saved for user &quot; + targetUserId,
+                    Toast.LENGTH_LONG
+<span class="nc" id="L728">            ).show();</span>
+
+<span class="nc" id="L730">        } catch (JSONException e) {</span>
+<span class="nc" id="L731">            e.printStackTrace();</span>
+<span class="nc" id="L732">            Toast.makeText(this, &quot;Failed to build permission update&quot;, Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L733">        }</span>
+<span class="nc" id="L734">    }</span>
+
+    private void updatePermissionUI() {
+<span class="nc bnc" id="L737" title="All 2 branches missed.">        if (canPostAnnouncements) {</span>
+<span class="nc" id="L738">            btnAnnouncement.setVisibility(View.VISIBLE);</span>
+        } else {
+<span class="nc" id="L740">            btnAnnouncement.setVisibility(View.GONE);</span>
+<span class="nc" id="L741">            disableAnnouncementMode();</span>
+        }
+
+<span class="nc" id="L744">        btnSendMessage.setEnabled(canSendMessages);</span>
+
+<span class="nc bnc" id="L746" title="All 2 branches missed.">        if (canSendMessages) {</span>
+<span class="nc" id="L747">            btnSendMessage.setText(&quot;Send&quot;);</span>
+        } else {
+<span class="nc" id="L749">            btnSendMessage.setText(&quot;MUTED&quot;);</span>
+        }
+<span class="nc" id="L751">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

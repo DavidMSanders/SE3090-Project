@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AppNotificationManager.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample</a> &gt; <span class="el_source">AppNotificationManager.java</span></div><h1>AppNotificationManager.java</h1><pre class="source lang-java linenums">package com.example.androidexample;
+
+import android.Manifest;
+import android.app.Activity;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.os.Build;
+
+import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
+import androidx.core.content.ContextCompat;
+
+import android.app.PendingIntent;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+
+public final class AppNotificationManager {
+
+    private static final String PREFS_NAME = &quot;app_notifications&quot;;
+    private static final String KEY_ITEMS_PREFIX = &quot;items_&quot;;
+    private static final String LEGACY_KEY_ITEMS = &quot;items&quot;;
+    private static final String KEY_NEXT_SYSTEM_NOTIFICATION_ID = &quot;next_system_notification_id&quot;;
+    private static final int MAX_ITEMS = 30;
+    private static final String SYSTEM_CHANNEL_ID = &quot;general_notifications&quot;;
+    private static final String SYSTEM_CHANNEL_NAME = &quot;General notifications&quot;;
+    private static final int NOTIFICATION_PERMISSION_REQUEST_CODE = 2201;
+
+    private AppNotificationManager() {
+    }
+
+    public static void addNotification(Context context, String message) {
+<span class="pc bpc" id="L44" title="2 of 4 branches missed.">        if (message == null || message.trim().isEmpty()) {</span>
+<span class="nc" id="L45">            return;</span>
+        }
+
+        // Preserve style marker – trim() strips control characters (&lt; '\u0020')
+<span class="pc bpc" id="L49" title="2 of 4 branches missed.">        char marker = (!message.isEmpty() &amp;&amp; message.charAt(0) &lt; '\u0020') ? message.charAt(0) : 0;</span>
+<span class="fc" id="L50">        String body = message.trim();</span>
+
+<span class="fc" id="L52">        List&lt;String&gt; items = getNotifications(context);</span>
+<span class="fc" id="L53">        String timestamp = new SimpleDateFormat(&quot;MMM d, HH:mm&quot;, Locale.getDefault()).format(new Date());</span>
+<span class="fc" id="L54">        String entry = timestamp + &quot; - &quot; + body;</span>
+<span class="pc bpc" id="L55" title="1 of 2 branches missed.">        if (marker != 0) entry = marker + entry;</span>
+<span class="fc" id="L56">        items.add(0, entry);</span>
+
+<span class="pc bpc" id="L58" title="1 of 2 branches missed.">        if (items.size() &gt; MAX_ITEMS) {</span>
+<span class="nc" id="L59">            items = items.subList(0, MAX_ITEMS);</span>
+        }
+
+<span class="fc" id="L62">        saveNotifications(context, items);</span>
+<span class="fc" id="L63">        showPhoneNotification(context, body);</span>
+<span class="fc" id="L64">    }</span>
+
+    public static void requestNotificationPermissionIfNeeded(Activity activity) {
+<span class="pc bpc" id="L67" title="2 of 4 branches missed.">        if (activity == null || Build.VERSION.SDK_INT &lt; Build.VERSION_CODES.TIRAMISU) {</span>
+<span class="nc" id="L68">            return;</span>
+        }
+
+<span class="fc bfc" id="L71" title="All 2 branches covered.">        if (ContextCompat.checkSelfPermission(activity, Manifest.permission.POST_NOTIFICATIONS)</span>
+                == PackageManager.PERMISSION_GRANTED) {
+<span class="fc" id="L73">            return;</span>
+        }
+
+<span class="fc" id="L76">        ActivityCompat.requestPermissions(</span>
+                activity,
+                new String[]{Manifest.permission.POST_NOTIFICATIONS},
+                NOTIFICATION_PERMISSION_REQUEST_CODE
+        );
+<span class="fc" id="L81">    }</span>
+
+    public static String getLatestNotification(Context context) {
+<span class="fc" id="L84">        List&lt;String&gt; items = getNotifications(context);</span>
+<span class="fc bfc" id="L85" title="All 2 branches covered.">        return items.isEmpty() ? &quot;No notifications yet&quot; : items.get(0);</span>
+    }
+
+    public static List&lt;String&gt; getNotifications(Context context) {
+<span class="fc" id="L89">        SharedPreferences preferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);</span>
+<span class="fc" id="L90">        String raw = preferences.getString(resolveItemsKey(context), null);</span>
+<span class="fc bfc" id="L91" title="All 2 branches covered.">        if (raw == null) {</span>
+<span class="fc" id="L92">            raw = preferences.getString(LEGACY_KEY_ITEMS, &quot;[]&quot;);</span>
+        }
+
+<span class="fc" id="L95">        List&lt;String&gt; items = new ArrayList&lt;&gt;();</span>
+        try {
+<span class="fc" id="L97">            JSONArray array = new JSONArray(raw);</span>
+<span class="fc bfc" id="L98" title="All 2 branches covered.">            for (int i = 0; i &lt; array.length(); i++) {</span>
+<span class="fc" id="L99">                String value = array.optString(i, &quot;&quot;);</span>
+                // trim() strips control chars — preserve leading style marker
+<span class="pc bpc" id="L101" title="2 of 4 branches missed.">                char m = (!value.isEmpty() &amp;&amp; value.charAt(0) &lt; '\u0020') ? value.charAt(0) : 0;</span>
+<span class="fc" id="L102">                value = value.trim();</span>
+<span class="pc bpc" id="L103" title="3 of 4 branches missed.">                if (m != 0 &amp;&amp; !value.isEmpty()) value = m + value;</span>
+<span class="pc bpc" id="L104" title="1 of 2 branches missed.">                if (!value.isEmpty()) {</span>
+<span class="fc" id="L105">                    items.add(value);</span>
+                }
+            }
+<span class="nc" id="L108">        } catch (JSONException ignored) {</span>
+            // Ignore malformed data and return an empty list.
+<span class="fc" id="L110">        }</span>
+
+<span class="fc" id="L112">        return items;</span>
+    }
+
+    public static List&lt;String&gt; getNewestNotifications(Context context, int limit) {
+<span class="nc" id="L116">        List&lt;String&gt; items = getNotifications(context);</span>
+<span class="nc bnc" id="L117" title="All 4 branches missed.">        if (limit &lt;= 0 || items.size() &lt;= limit) {</span>
+<span class="nc" id="L118">            return items;</span>
+        }
+<span class="nc" id="L120">        return new ArrayList&lt;&gt;(items.subList(0, limit));</span>
+    }
+
+    public static void replaceNotifications(Context context, List&lt;String&gt; items) {
+<span class="pc bpc" id="L124" title="1 of 2 branches missed.">        if (items == null) {</span>
+<span class="nc" id="L125">            saveNotifications(context, new ArrayList&lt;&gt;());</span>
+<span class="nc" id="L126">            return;</span>
+        }
+
+<span class="fc" id="L129">        List&lt;String&gt; cleaned = new ArrayList&lt;&gt;();</span>
+<span class="pc bpc" id="L130" title="1 of 2 branches missed.">        for (String item : items) {</span>
+<span class="nc bnc" id="L131" title="All 2 branches missed.">            if (item != null) {</span>
+                // preserve leading style marker before trim()
+<span class="nc bnc" id="L133" title="All 4 branches missed.">                char m = (!item.isEmpty() &amp;&amp; item.charAt(0) &lt; '\u0020') ? item.charAt(0) : 0;</span>
+<span class="nc" id="L134">                String value = item.trim();</span>
+<span class="nc bnc" id="L135" title="All 4 branches missed.">                if (m != 0 &amp;&amp; !value.isEmpty()) value = m + value;</span>
+<span class="nc bnc" id="L136" title="All 2 branches missed.">                if (!value.isEmpty()) {</span>
+<span class="nc" id="L137">                    cleaned.add(value);</span>
+                }
+            }
+<span class="nc bnc" id="L140" title="All 2 branches missed.">            if (cleaned.size() &gt;= MAX_ITEMS) {</span>
+<span class="nc" id="L141">                break;</span>
+            }
+<span class="nc" id="L143">        }</span>
+
+<span class="fc" id="L145">        saveNotifications(context, cleaned);</span>
+<span class="fc" id="L146">    }</span>
+
+    private static void saveNotifications(Context context, List&lt;String&gt; items) {
+<span class="fc" id="L149">        JSONArray array = new JSONArray();</span>
+<span class="fc bfc" id="L150" title="All 2 branches covered.">        for (String item : items) {</span>
+<span class="fc" id="L151">            array.put(item);</span>
+<span class="fc" id="L152">        }</span>
+
+<span class="fc" id="L154">        SharedPreferences preferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);</span>
+<span class="fc" id="L155">        preferences.edit().putString(resolveItemsKey(context), array.toString()).apply();</span>
+<span class="fc" id="L156">    }</span>
+
+    private static void showPhoneNotification(Context context, String rawMessage) {
+<span class="fc" id="L159">        String message = removeStyleMarker(rawMessage);</span>
+<span class="pc bpc" id="L160" title="1 of 2 branches missed.">        if (message.isEmpty()) {</span>
+<span class="nc" id="L161">            return;</span>
+        }
+
+<span class="pc bpc" id="L164" title="1 of 2 branches missed.">        if (Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.TIRAMISU</span>
+<span class="fc bfc" id="L165" title="All 2 branches covered.">                &amp;&amp; ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS)</span>
+                != PackageManager.PERMISSION_GRANTED) {
+<span class="fc" id="L167">            return;</span>
+        }
+
+<span class="fc" id="L170">        createChannelIfNeeded(context);</span>
+
+<span class="fc" id="L172">        Intent intent = new Intent(context, MainActivity.class);</span>
+<span class="fc" id="L173">        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);</span>
+<span class="fc" id="L174">        PendingIntent pendingIntent = PendingIntent.getActivity(</span>
+                context,
+                0,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
+
+<span class="fc" id="L181">        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, SYSTEM_CHANNEL_ID)</span>
+<span class="fc" id="L182">                .setSmallIcon(R.mipmap.ic_launcher)</span>
+<span class="fc" id="L183">                .setContentTitle(&quot;AndroidExample&quot;)</span>
+<span class="fc" id="L184">                .setContentText(message)</span>
+<span class="fc" id="L185">                .setStyle(new NotificationCompat.BigTextStyle().bigText(message))</span>
+<span class="fc" id="L186">                .setPriority(NotificationCompat.PRIORITY_HIGH)</span>
+<span class="fc" id="L187">                .setAutoCancel(true)</span>
+<span class="fc" id="L188">                .setContentIntent(pendingIntent);</span>
+
+        try {
+<span class="fc" id="L191">            NotificationManagerCompat.from(context).notify(nextSystemNotificationId(context), builder.build());</span>
+<span class="nc" id="L192">        } catch (SecurityException ignored) {</span>
+            // Permission may be revoked while posting.
+<span class="fc" id="L194">        }</span>
+<span class="fc" id="L195">    }</span>
+
+    private static String removeStyleMarker(String value) {
+<span class="pc bpc" id="L198" title="2 of 4 branches missed.">        if (value == null || value.isEmpty()) {</span>
+<span class="nc" id="L199">            return &quot;&quot;;</span>
+        }
+<span class="pc bpc" id="L201" title="1 of 2 branches missed.">        if (value.charAt(0) &lt; '\u0020') {</span>
+<span class="nc" id="L202">            return value.substring(1).trim();</span>
+        }
+<span class="fc" id="L204">        return value.trim();</span>
+    }
+
+    private static void createChannelIfNeeded(Context context) {
+<span class="pc bpc" id="L208" title="1 of 2 branches missed.">        if (Build.VERSION.SDK_INT &lt; Build.VERSION_CODES.O) {</span>
+<span class="nc" id="L209">            return;</span>
+        }
+
+<span class="fc" id="L212">        NotificationManager manager = context.getSystemService(NotificationManager.class);</span>
+<span class="pc bpc" id="L213" title="1 of 2 branches missed.">        if (manager == null) {</span>
+<span class="nc" id="L214">            return;</span>
+        }
+
+<span class="fc" id="L217">        NotificationChannel existing = manager.getNotificationChannel(SYSTEM_CHANNEL_ID);</span>
+<span class="pc bpc" id="L218" title="1 of 2 branches missed.">        if (existing != null) {</span>
+<span class="nc" id="L219">            return;</span>
+        }
+
+<span class="fc" id="L222">        NotificationChannel channel = new NotificationChannel(</span>
+                SYSTEM_CHANNEL_ID,
+                SYSTEM_CHANNEL_NAME,
+                NotificationManager.IMPORTANCE_HIGH
+        );
+<span class="fc" id="L227">        channel.setDescription(&quot;Alerts and updates from AndroidExample&quot;);</span>
+<span class="fc" id="L228">        manager.createNotificationChannel(channel);</span>
+<span class="fc" id="L229">    }</span>
+
+    private static int nextSystemNotificationId(Context context) {
+<span class="fc" id="L232">        SharedPreferences preferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);</span>
+<span class="fc" id="L233">        int current = preferences.getInt(KEY_NEXT_SYSTEM_NOTIFICATION_ID, 1);</span>
+<span class="pc bpc" id="L234" title="1 of 2 branches missed.">        int next = current == Integer.MAX_VALUE ? 1 : current + 1;</span>
+<span class="fc" id="L235">        preferences.edit().putInt(KEY_NEXT_SYSTEM_NOTIFICATION_ID, next).apply();</span>
+<span class="fc" id="L236">        return current;</span>
+    }
+
+    private static String resolveItemsKey(Context context) {
+<span class="fc" id="L240">        KeepUser keepUser = new KeepUser(context);</span>
+<span class="fc" id="L241">        String userId = keepUser.getUserIdString();</span>
+<span class="pc bpc" id="L242" title="1 of 2 branches missed.">        if (!userId.isEmpty()) {</span>
+<span class="fc" id="L243">            return KEY_ITEMS_PREFIX + userId;</span>
+        }
+
+<span class="nc" id="L246">        String legacyUserId = SessionManager.getUserId(context);</span>
+<span class="nc bnc" id="L247" title="All 2 branches missed.">        if (!legacyUserId.isEmpty()) {</span>
+<span class="nc" id="L248">            return KEY_ITEMS_PREFIX + legacyUserId;</span>
+        }
+
+<span class="nc" id="L251">        return KEY_ITEMS_PREFIX + &quot;guest&quot;;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F4F7FA"
+    android:background="@color/app_bg"
     android:fillViewport="true"
     tools:context=".CalendarActivity">
 
@@ -25,7 +25,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Workout Calendar"
-                android:textColor="#102A43"
+                android:textColor="@color/app_text_primary"
                 android:textSize="28sp"
                 android:textStyle="bold" />
 
@@ -35,13 +35,13 @@
                 android:layout_marginTop="4dp"
                 android:layout_marginBottom="14dp"
                 android:text="Plan, update, and share sessions"
-                android:textColor="#486581"
+                android:textColor="@color/app_text_secondary"
                 android:textSize="14sp" />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="#FFFFFFFF"
+                android:background="@color/app_surface"
                 android:elevation="3dp"
                 android:orientation="vertical"
                 android:padding="12dp">
@@ -51,7 +51,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="8dp"
-                    android:textColor="#102A43"
+                    android:textColor="@color/app_text_primary"
                     android:textSize="18sp"
                     android:textStyle="bold"
                     tools:text="April 2026" />
@@ -60,12 +60,12 @@
                     android:id="@+id/calendarView"
                     android:layout_width="match_parent"
                     android:layout_height="250dp"
-                    app:compactCalendarBackgroundColor="#FFF8FAFC"
-                    app:compactCalendarCurrentDayBackgroundColor="#FF1976D2"
-                    app:compactCalendarCurrentSelectedDayBackgroundColor="#FF90CAF9"
-                    app:compactCalendarMultiEventIndicatorColor="#FF0D47A1"
+                        app:compactCalendarBackgroundColor="@color/app_surface_alt"
+                        app:compactCalendarCurrentDayBackgroundColor="@color/calendar_current_day"
+                        app:compactCalendarCurrentSelectedDayBackgroundColor="@color/calendar_selected_day"
+                        app:compactCalendarMultiEventIndicatorColor="@color/calendar_multi_event"
                     app:compactCalendarTargetHeight="250dp"
-                    app:compactCalendarTextColor="#FF1F2933"
+                        app:compactCalendarTextColor="@color/app_text_primary"
                     app:compactCalendarTextSize="12sp" />
             </LinearLayout>
 
@@ -74,7 +74,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="18dp"
                 android:text="Event Details"
-                android:textColor="#102A43"
+                android:textColor="@color/app_text_primary"
                 android:textSize="16sp"
                 android:textStyle="bold" />
 
@@ -83,7 +83,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:backgroundTint="#BCCCDC"
+                android:backgroundTint="@color/app_divider"
                 android:hint="Workout title"
                 android:inputType="textCapSentences"
                 android:maxLines="1"
@@ -94,7 +94,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:backgroundTint="#BCCCDC"
+                android:backgroundTint="@color/app_divider"
                 android:hint="Workout notes"
                 android:inputType="textMultiLine"
                 android:minLines="2"
@@ -112,7 +112,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:backgroundTint="#BCCCDC"
+                    android:backgroundTint="@color/app_divider"
                     android:hint="Start (HH:mm)"
                     android:inputType="time"
                     android:maxLines="1"
@@ -124,7 +124,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
                     android:layout_weight="1"
-                    android:backgroundTint="#BCCCDC"
+                    android:backgroundTint="@color/app_divider"
                     android:hint="End (HH:mm)"
                     android:inputType="time"
                     android:maxLines="1"
@@ -136,7 +136,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
-                android:backgroundTint="#BCCCDC"
+                android:backgroundTint="@color/app_divider"
                 android:padding="6dp" />
 
             <LinearLayout
@@ -184,7 +184,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
                 android:text="Invite Participant"
-                android:textColor="#102A43"
+                android:textColor="@color/app_text_primary"
                 android:textSize="16sp"
                 android:textStyle="bold" />
 
@@ -193,7 +193,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:backgroundTint="#BCCCDC"
+                android:backgroundTint="@color/app_divider"
                 android:hint="Enter user ID"
                 android:inputType="number"
                 android:padding="10dp" />
@@ -214,7 +214,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
                 android:text="Participants"
-                android:textColor="#102A43"
+                android:textColor="@color/app_text_primary"
                 android:textSize="16sp"
                 android:textStyle="bold" />
 
@@ -223,10 +223,10 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:background="#FFFFFFFF"
+                android:background="@color/app_surface"
                 android:padding="10dp"
                 android:text="Select an event to view participants."
-                android:textColor="#334E68"
+                android:textColor="@color/app_text_body"
                 android:textSize="14sp" />
 
         </LinearLayout>

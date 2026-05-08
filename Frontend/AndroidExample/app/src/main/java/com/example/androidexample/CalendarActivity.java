@@ -1,6 +1,5 @@
 package com.example.androidexample;
 
-import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
@@ -9,6 +8,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.Spinner;
 import android.widget.ArrayAdapter;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.android.volley.Request;
 import com.android.volley.VolleyError;
@@ -33,7 +34,7 @@ import java.util.ArrayList;
 import java.util.Locale;
 import android.graphics.Color;
 
-public class CalendarActivity extends Activity {
+public class CalendarActivity extends AppCompatActivity {
 
     private CompactCalendarView calendarView;
     private TextView tvCurrentMonth;

@@ -5,6 +5,8 @@
     tools:context=".MainActivity"
     android:layout_height="match_parent"
     android:layout_width="match_parent"
+    android:background="@color/app_bg"
+    android:padding="16dp"
     android:orientation="vertical">
 
     <TextView
@@ -17,7 +19,7 @@
         android:fontFamily="sans-serif-smallcaps"
         android:text="Signup"
         android:textAlignment="center"
-        android:textColor="#0331FC"
+        android:textColor="@color/app_text_primary"
         android:textSize="48sp"
         android:textStyle="bold"></TextView>
 
@@ -44,13 +46,14 @@
             android:layout_height="wrap_content"
             android:text="username: "
             android:textSize="20dp"
-            android:textColor="#000000">
+            android:textColor="@color/app_text_primary">
         </TextView>
 
         <EditText
             android:id="@+id/signup_username_edt"
             android:layout_width="wrap_content"
             android:layout_height="50dp"
+            android:backgroundTint="@color/app_divider"
             android:hint="Enter Username Here">
         </EditText>
 
@@ -67,7 +70,7 @@
             android:layout_height="wrap_content"
             android:text="password: "
             android:textSize="20dp"
-            android:textColor="#000000">
+            android:textColor="@color/app_text_primary">
         </TextView>
 
         <EditText
@@ -75,6 +78,7 @@
             android:layout_width="wrap_content"
             android:inputType="textPassword"
             android:layout_height="50dp"
+            android:backgroundTint="@color/app_divider"
             android:hint="Enter Password Here">
         </EditText>
 
@@ -91,7 +95,7 @@
             android:layout_height="70sp"
             android:text="confirm\npassword: "
             android:textSize="20dp"
-            android:textColor="#000000">
+            android:textColor="@color/app_text_primary">
         </TextView>
 
         <EditText
@@ -99,6 +103,7 @@
             android:layout_width="wrap_content"
             android:inputType="textPassword"
             android:layout_height="70dp"
+            android:backgroundTint="@color/app_divider"
             android:hint="Enter Password Here">
         </EditText>
 
@@ -115,13 +120,14 @@
             android:layout_height="wrap_content"
             android:text="DOB: "
             android:textSize="20dp"
-            android:textColor="#000000" />
+            android:textColor="@color/app_text_primary" />
 
         <EditText
             android:id="@+id/signup_dob_edt"
             android:layout_width="wrap_content"
             android:layout_height="50dp"
             android:hint="MM/DD/YYYY"
+            android:backgroundTint="@color/app_divider"
             android:inputType="text" />
     </LinearLayout>
 
@@ -139,7 +145,7 @@
             android:layout_marginRight="10dp"
             android:text="Login"
             android:textSize="20sp"
-            android:textColor="#ffffff">
+            android:textColor="@color/button_on_primary">
         </Button>
 
         <Button
@@ -149,7 +155,7 @@
             android:layout_marginLeft="10dp"
             android:text="Signup"
             android:textSize="20sp"
-            android:textColor="#ffffff">
+            android:textColor="@color/button_on_primary">
         </Button>
 
     </LinearLayout>
